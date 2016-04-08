@@ -29,6 +29,7 @@ import org.apache.commons.lang3.SystemUtils;
 import se.trixon.util.BundleHelper;
 import se.trixon.util.SystemHelper;
 import se.trixon.util.Xlog;
+import se.trixon.util.dictionary.Dict;
 
 /**
  *
@@ -63,25 +64,15 @@ public class FileByDate {
                     displayVersion();
                     System.exit(0);
                 } else {
-                    Arguments arguments = new Arguments();
-                    arguments.setModeCopy(commandLine.hasOption("cp"));
-                    arguments.setModeMove(commandLine.hasOption("mv"));
-                    
-                    arguments.setDatePattern(commandLine.getOptionValue("dp"));
-                    arguments.setDateSource(commandLine.getOptionValue("ds"));
-                    arguments.setFilePattern(commandLine.getOptionValue("fp"));
-
-                    arguments.setDryRun(commandLine.hasOption("dry-run"));
-                    arguments.setLinks(commandLine.hasOption("links"));
-                    arguments.setRecursive(commandLine.hasOption("recursive"));
-
-                    arguments.setSourceAndDest(commandLine.getArgs());
-                    System.out.println(arguments.toString());
+                    Arguments arguments = new Arguments(commandLine);
 
                     if (arguments.isValid()) {
-                        System.out.println("execute the operation");
+                        System.out.println("*** execute the operation");
+                        System.out.println(arguments.toString());
                     } else {
-                        System.out.println("invalid args");
+                        System.out.println("*** invalid args");
+                        System.out.println(arguments.getValidationError());
+                        System.out.println(Dict.ABORTING.toString());
                     }
                 }
             } catch (ParseException ex) {
@@ -177,7 +168,7 @@ public class FileByDate {
                 .build();
 
         mOptions = new Options();
-        
+
         mOptions.addOption(copy);
         mOptions.addOption(move);
 

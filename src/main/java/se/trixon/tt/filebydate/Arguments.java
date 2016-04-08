@@ -16,7 +16,10 @@
 package se.trixon.tt.filebydate;
 
 import java.io.File;
+import java.nio.file.FileSystems;
+import java.nio.file.PathMatcher;
 import java.text.SimpleDateFormat;
+import org.apache.commons.cli.CommandLine;
 
 /**
  *
@@ -25,7 +28,8 @@ import java.text.SimpleDateFormat;
 public class Arguments {
 
     private String mDatePattern;
-    private String mDateSource;
+    private DateSource mDateSource;
+    private String mDateSourceString;
     private File mDest;
     private boolean mDryRun;
     private String mFilePattern;
@@ -33,15 +37,36 @@ public class Arguments {
     private boolean mModeCopy;
     private boolean mModeMove;
     private OperationMode mOperationMode;
+    private PathMatcher mPathMatcher;
     private boolean mRecursive;
     private File mSource;
+    private StringBuilder mValidationErrorBuilder = new StringBuilder();
+
+    public Arguments(CommandLine commandLine) {
+        mModeCopy = commandLine.hasOption("copy");
+        mModeMove = commandLine.hasOption("move");
+
+        mDatePattern = commandLine.getOptionValue("dp");
+        mDateSourceString = commandLine.getOptionValue("ds");
+        mFilePattern = commandLine.getOptionValue("fp");
+
+        mDryRun = commandLine.hasOption("dry-run");
+        mLinks = commandLine.hasOption("links");
+        mRecursive = commandLine.hasOption("recursive");
+
+        setSourceAndDest(commandLine.getArgs());
+    }
 
     public String getDatePattern() {
         return mDatePattern;
     }
 
-    public String getDateSource() {
+    public DateSource getDateSource() {
         return mDateSource;
+    }
+
+    public String getDateSourceString() {
+        return mDateSourceString;
     }
 
     public File getDest() {
@@ -56,14 +81,16 @@ public class Arguments {
         return mOperationMode;
     }
 
+    public PathMatcher getPathMatcher() {
+        return mPathMatcher;
+    }
+
     public File getSource() {
         return mSource;
     }
 
-    public boolean isDatePatternValid() {
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(mDatePattern);
-
-        return true;
+    public String getValidationError() {
+        return mValidationErrorBuilder.toString();
     }
 
     public boolean isDryRun() {
@@ -87,30 +114,51 @@ public class Arguments {
     }
 
     public boolean isValid() {
-        boolean valid = true;
-        StringBuilder sb = new StringBuilder();
-
-        valid = valid && mDatePattern != null;
-        valid = valid && mDateSource != null;
-        valid = valid && mFilePattern != null;
-        valid = valid && mSource.isDirectory();
-
-        if (mSource == null || !mSource.isDirectory()) {
-            sb.append("invalid source directory: " + mSource).append("\n");
+        if (mModeCopy == mModeMove) {
+            addValidationError("Pick one operation of cp/mv");
+        } else {
+            mOperationMode = mModeCopy ? OperationMode.CP : OperationMode.MV;
         }
 
-        valid = valid && mDest.isDirectory();
+        try {
+            mPathMatcher = FileSystems.getDefault().getPathMatcher("glob:" + mFilePattern);
+        } catch (Exception e) {
+            addValidationError("invalid file pattern: " + mFilePattern);
+        }
 
-        System.out.println(sb.toString());
-        return valid;
+        try {
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat(mDatePattern);
+        } catch (Exception e) {
+            addValidationError("invalid date pattern: " + mDatePattern);
+        }
+
+        try {
+            mDateSource = DateSource.valueOf(mDateSourceString.toUpperCase());
+        } catch (Exception e) {
+            addValidationError("invalid date source: " + mDateSourceString);
+        }
+
+        if (mSource == null || !mSource.isDirectory()) {
+            addValidationError("invalid source directory: " + mSource);
+        }
+
+        if (mDest == null || !mDest.isDirectory()) {
+            addValidationError("invalid dest directory: " + mDest);
+        }
+
+        return mValidationErrorBuilder.length() == 0;
     }
 
     public void setDatePattern(String datePattern) {
         mDatePattern = datePattern;
     }
 
-    public void setDateSource(String dateSource) {
+    public void setDateSource(DateSource dateSource) {
         mDateSource = dateSource;
+    }
+
+    public void setDateSourceString(String dateSourceString) {
+        mDateSourceString = dateSourceString;
     }
 
     public void setDest(File dest) {
@@ -141,6 +189,10 @@ public class Arguments {
         mOperationMode = operationMode;
     }
 
+    public void setPathMatcher(PathMatcher pathMatcher) {
+        mPathMatcher = pathMatcher;
+    }
+
     public void setRecursive(boolean recursive) {
         mRecursive = recursive;
     }
@@ -154,7 +206,7 @@ public class Arguments {
             setSource(new File(args[0]));
             setDest(new File(args[1]));
         } else {
-            System.out.println("invalid arg count");
+            addValidationError("invalid arg count");
         }
     }
 
@@ -164,7 +216,7 @@ public class Arguments {
                 + "\n ModeCopy=" + mModeCopy
                 + "\n ModeMove=" + mModeMove
                 + "\n DatePattern=" + mDatePattern
-                + "\n DateSource=" + mDateSource
+                + "\n DateSource=" + mDateSourceString
                 + "\n DryRun=" + mDryRun
                 + "\n FilePattern=" + mFilePattern
                 + "\n Links=" + mLinks
@@ -172,5 +224,9 @@ public class Arguments {
                 + "\n Source=" + mSource
                 + "\n Dest=" + mDest
                 + "\n}";
+    }
+
+    private void addValidationError(String string) {
+        mValidationErrorBuilder.append(string).append("\n");
     }
 }
