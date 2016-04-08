@@ -15,16 +15,180 @@
  */
 package se.trixon.tt.filebydate;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.util.ResourceBundle;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.lang3.SystemUtils;
+import se.trixon.util.BundleHelper;
+import se.trixon.util.SystemHelper;
+import se.trixon.util.Xlog;
+
 /**
  *
  * @author Patrik Karlsson
  */
 public class FileByDate {
 
+    private final ResourceBundle mBundle = BundleHelper.getBundle(FileByDate.class, "Bundle");
+    private Options mOptions;
+
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        System.out.println("file by date");
+        new FileByDate(args);
+    }
+
+    public FileByDate(String[] args) {
+        initOptions();
+
+        if (args.length == 0) {
+            displayHelp();
+        } else {
+            try {
+                CommandLineParser commandLineParser = new DefaultParser();
+                CommandLine commandLine = commandLineParser.parse(mOptions, args);
+
+                if (commandLine.hasOption("help")) {
+                    displayHelp();
+                    System.exit(0);
+                } else if (commandLine.hasOption("version")) {
+                    displayVersion();
+                    System.exit(0);
+                } else {
+                    Arguments arguments = new Arguments();
+                    arguments.setModeCopy(commandLine.hasOption("cp"));
+                    arguments.setModeMove(commandLine.hasOption("mv"));
+                    
+                    arguments.setDatePattern(commandLine.getOptionValue("dp"));
+                    arguments.setDateSource(commandLine.getOptionValue("ds"));
+                    arguments.setFilePattern(commandLine.getOptionValue("fp"));
+
+                    arguments.setDryRun(commandLine.hasOption("dry-run"));
+                    arguments.setLinks(commandLine.hasOption("links"));
+                    arguments.setRecursive(commandLine.hasOption("recursive"));
+
+                    arguments.setSourceAndDest(commandLine.getArgs());
+                    System.out.println(arguments.toString());
+
+                    if (arguments.isValid()) {
+                        System.out.println("execute the operation");
+                    } else {
+                        System.out.println("invalid args");
+                    }
+                }
+            } catch (ParseException ex) {
+                Xlog.timedErr(ex.getMessage());
+                System.out.println(mBundle.getString("parse_help"));
+            }
+        }
+    }
+
+    private void displayHelp() {
+        PrintStream defaultStdOut = System.out;
+        StringBuilder sb = new StringBuilder()
+                .append(mBundle.getString("usage")).append("\n\n");
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintStream ps = new PrintStream(baos);
+        System.setOut(ps);
+
+        HelpFormatter formatter = new HelpFormatter();
+        formatter.setOptionComparator(null);
+        formatter.printHelp("xxx", mOptions, false);
+        System.out.flush();
+        System.setOut(defaultStdOut);
+        sb.append(baos.toString().replace("usage: xxx" + SystemUtils.LINE_SEPARATOR, "")).append("\n")
+                .append(mBundle.getString("help_footer"));
+
+        System.out.println(sb.toString());
+    }
+
+    private void displayVersion() {
+        System.out.println(String.format(mBundle.getString("version_info"), SystemHelper.getJarVersion(FileByDate.class)));
+    }
+
+    private void initOptions() {
+        Option help = Option.builder("h")
+                .longOpt("help")
+                .desc(mBundle.getString("opt_help_desc"))
+                .build();
+
+        Option version = Option.builder("v")
+                .longOpt("version")
+                .desc(mBundle.getString("opt_version_desc"))
+                .build();
+
+        Option copy = Option.builder("cp")
+                .longOpt("copy")
+                .desc(mBundle.getString("opt_copy_desc"))
+                .build();
+
+        Option move = Option.builder("mv")
+                .longOpt("move")
+                .desc(mBundle.getString("opt_move_desc"))
+                .build();
+
+        Option recursive = Option.builder("r")
+                .longOpt("recursive")
+                .desc(mBundle.getString("opt_recursive_desc"))
+                .build();
+
+        Option links = Option.builder("l")
+                .longOpt("links")
+                .desc(mBundle.getString("opt_links_desc"))
+                .build();
+
+        Option dryRun = Option.builder("n")
+                .longOpt("dry-run")
+                .desc(mBundle.getString("opt_dry_run_desc"))
+                .build();
+
+        Option filePattern = Option.builder("fp")
+                .longOpt("file-pattern")
+                .desc(mBundle.getString("opt_file_pattern_desc"))
+                //                .required()
+                .hasArg()
+                .argName(("glob pattern"))
+                .optionalArg(false)
+                .build();
+
+        Option datePattern = Option.builder("dp")
+                .longOpt("date-pattern")
+                .desc(mBundle.getString("opt_date_pattern_desc"))
+                .hasArg()
+                .argName(("java date format"))
+                .optionalArg(false)
+                .build();
+
+        Option dateSource = Option.builder("ds")
+                .longOpt("date-source")
+                .desc(mBundle.getString("opt_date_source_desc"))
+                .hasArg()
+                //                .argName("[file_created | file_modified | exif_original]")
+                .optionalArg(false)
+                .build();
+
+        mOptions = new Options();
+        
+        mOptions.addOption(copy);
+        mOptions.addOption(move);
+
+        mOptions.addOption(dryRun);
+        mOptions.addOption(recursive);
+        mOptions.addOption(links);
+        mOptions.addOption(filePattern);
+        mOptions.addOption(datePattern);
+        mOptions.addOption(dateSource);
+
+        mOptions.addOption(help);
+        mOptions.addOption(version);
     }
 }

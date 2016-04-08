@@ -12,7 +12,7 @@
         <netbeans.hint.license>apache20</netbeans.hint.license>
     </properties>
     <description>copy or move files depending on their file/exif dates</description>
-    <url>http://jotasync.trixon.se/</url>
+    <url>http://trixon.se/</url>
     <licenses>
         <license>
             <name>The Apache Software License, Version 2.0</name>
@@ -33,9 +33,9 @@
         </developer>
     </developers>
     <scm>
-        <url>https://github.com/trixon/java-fifi</url>
-        <connection>scm:git:git://github.com/trixon/java-fifi.git</connection>
-        <developerConnection>scm:git:git@github.com:trixon/java-fifi.git</developerConnection>
+        <url>https://github.com/trixon/java-tt_filebydate</url>
+        <connection>scm:git:git://github.com/trixon/java-tt_filebydate.git</connection>
+        <developerConnection>scm:git:git@github.com:trixon/java-tt_filebydate.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
     <dependencies>
@@ -79,7 +79,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>se.trixon.fifi.Main</mainClass>
+                            <mainClass>se.trixon.tt.filebydate.FileByDate</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
