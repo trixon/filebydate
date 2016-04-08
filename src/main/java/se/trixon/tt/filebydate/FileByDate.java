@@ -64,14 +64,14 @@ public class FileByDate {
                     displayVersion();
                     System.exit(0);
                 } else {
-                    Arguments arguments = new Arguments(commandLine);
+                    OptionsHolder optionsHolder = new OptionsHolder(commandLine);
 
-                    if (arguments.isValid()) {
+                    if (optionsHolder.isValid()) {
                         System.out.println("*** execute the operation");
-                        System.out.println(arguments.toString());
+                        System.out.println(optionsHolder.toString());
                     } else {
                         System.out.println("*** invalid args");
-                        System.out.println(arguments.getValidationError());
+                        System.out.println(optionsHolder.getValidationError());
                         System.out.println(Dict.ABORTING.toString());
                     }
                 }

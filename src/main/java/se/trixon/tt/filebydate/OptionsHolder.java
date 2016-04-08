@@ -25,7 +25,7 @@ import org.apache.commons.cli.CommandLine;
  *
  * @author Patrik Karlsson
  */
-public class Arguments {
+public class OptionsHolder {
 
     private String mDatePattern;
     private DateSource mDateSource;
@@ -42,7 +42,7 @@ public class Arguments {
     private File mSource;
     private StringBuilder mValidationErrorBuilder = new StringBuilder();
 
-    public Arguments(CommandLine commandLine) {
+    public OptionsHolder(CommandLine commandLine) {
         mModeCopy = commandLine.hasOption("copy");
         mModeMove = commandLine.hasOption("move");
 
@@ -212,7 +212,7 @@ public class Arguments {
 
     @Override
     public String toString() {
-        return "Arguments{"
+        return "OptionsHolder {"
                 + "\n ModeCopy=" + mModeCopy
                 + "\n ModeMove=" + mModeMove
                 + "\n DatePattern=" + mDatePattern
