@@ -142,14 +142,14 @@ public class FileByDate {
                 .desc(mBundle.getString("opt_dry_run_desc"))
                 .build();
 
-        Option filePattern = Option.builder("fp")
-                .longOpt("file-pattern")
-                .desc(mBundle.getString("opt_file_pattern_desc"))
-                //                .required()
-                .hasArg()
-                .argName(("glob pattern"))
-                .optionalArg(false)
-                .build();
+//        Option filePattern = Option.builder("fp")
+//                .longOpt("file-pattern")
+//                .desc(mBundle.getString("opt_file_pattern_desc"))
+//                //                .required()
+//                .hasArg()
+//                .argName(("glob pattern"))
+//                .optionalArg(false)
+//                .build();
 
         Option datePattern = Option.builder("dp")
                 .longOpt("date-pattern")
@@ -175,7 +175,7 @@ public class FileByDate {
         mOptions.addOption(dryRun);
         mOptions.addOption(recursive);
         mOptions.addOption(links);
-        mOptions.addOption(filePattern);
+//        mOptions.addOption(filePattern);
         mOptions.addOption(datePattern);
         mOptions.addOption(dateSource);
 

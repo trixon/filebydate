@@ -20,6 +20,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.PathMatcher;
 import java.text.SimpleDateFormat;
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.io.FilenameUtils;
 
 /**
  *
@@ -40,7 +41,7 @@ public class OptionsHolder {
     private PathMatcher mPathMatcher;
     private boolean mRecursive;
     private File mSource;
-    private StringBuilder mValidationErrorBuilder = new StringBuilder();
+    private final StringBuilder mValidationErrorBuilder = new StringBuilder();
 
     public OptionsHolder(CommandLine commandLine) {
         mModeCopy = commandLine.hasOption("copy");
@@ -48,7 +49,7 @@ public class OptionsHolder {
 
         mDatePattern = commandLine.getOptionValue("dp");
         mDateSourceString = commandLine.getOptionValue("ds");
-        mFilePattern = commandLine.getOptionValue("fp");
+        //mFilePattern = commandLine.getOptionValue("fp");
 
         mDryRun = commandLine.hasOption("dry-run");
         mLinks = commandLine.hasOption("links");
@@ -203,7 +204,17 @@ public class OptionsHolder {
 
     public void setSourceAndDest(String[] args) {
         if (args.length == 2) {
-            setSource(new File(args[0]));
+            String source = args[0];
+            File sourceFile = new File(source);
+            
+            if (sourceFile.isDirectory()) {
+                mSource = sourceFile;
+            } else {
+                String sourceDir = FilenameUtils.getFullPathNoEndSeparator(source);
+                mSource = new File(sourceDir);
+                mFilePattern = FilenameUtils.getName(source);
+            }
+
             setDest(new File(args[1]));
         } else {
             addValidationError("invalid arg count");
@@ -213,14 +224,16 @@ public class OptionsHolder {
     @Override
     public String toString() {
         return "OptionsHolder {"
-                + "\n ModeCopy=" + mModeCopy
-                + "\n ModeMove=" + mModeMove
+                + "\n OperationMode=" + mOperationMode
+                + "\n"
+                + "\n DateSource=" + mDateSource
                 + "\n DatePattern=" + mDatePattern
-                + "\n DateSource=" + mDateSourceString
-                + "\n DryRun=" + mDryRun
                 + "\n FilePattern=" + mFilePattern
+                + "\n"
+                + "\n DryRun=" + mDryRun
                 + "\n Links=" + mLinks
                 + "\n Recursive=" + mRecursive
+                + "\n"
                 + "\n Source=" + mSource
                 + "\n Dest=" + mDest
                 + "\n}";
