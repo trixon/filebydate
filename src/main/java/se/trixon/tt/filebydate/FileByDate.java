@@ -67,8 +67,7 @@ public class FileByDate implements OperationListener {
                     OptionsHolder optionsHolder = new OptionsHolder(commandLine);
 
                     if (optionsHolder.isValid()) {
-                        System.out.println("*** execute the operation");
-                        System.out.println(optionsHolder.toString());
+                        //System.out.println(optionsHolder.toString());
                         Operation operation = new Operation(this, optionsHolder);
                         operation.start();
                     } else {
@@ -90,14 +89,17 @@ public class FileByDate implements OperationListener {
 
     @Override
     public void onOperationFinished(String message) {
+        System.out.println(Dict.DONE.toString());
     }
 
     @Override
     public void onOperationInterrupted() {
+        System.out.println("OPERATION INTERRUPTED");
     }
 
     @Override
     public void onOperationLog(String message) {
+        System.out.println(message);
     }
 
     @Override

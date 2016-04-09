@@ -35,7 +35,6 @@ import java.util.List;
 import java.util.ResourceBundle;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.SystemUtils;
 import se.trixon.util.BundleHelper;
 import se.trixon.util.Xlog;
 import se.trixon.util.dictionary.Dict;
@@ -52,14 +51,11 @@ public class Operation {
     private boolean mInterrupted;
     private final OperationListener mListener;
     private final OptionsHolder mOptionsHolder;
-    private final PathMatcher mPathMatcher;
 
     public Operation(OperationListener operationListener, OptionsHolder optionsHolder) {
         mListener = operationListener;
         mOptionsHolder = optionsHolder;
         mBundle = BundleHelper.getBundle(Operation.class, "Bundle");
-
-        mPathMatcher = mOptionsHolder.getPathMatcher();
     }
 
     public void start() {
@@ -69,7 +65,7 @@ public class Operation {
         String status;
 
         if (!mInterrupted && !mFiles.isEmpty()) {
-            status = String.format("\n%s\n", Dict.PROCESSING.toString());
+            status = String.format("%s", Dict.PROCESSING.toString());
             mListener.onOperationLog(status);
 
             for (File sourceFile : mFiles) {
@@ -89,9 +85,9 @@ public class Operation {
                     File destFile = new File(destDir, sourceFile.getName());
 
                     Command command = mOptionsHolder.getCommand();
-
+                    String cmd = command == Command.COPY ? "cp" : "mv";
                     String log;
-                    log = String.format("%s %s TO %s", command, sourceFile.getAbsolutePath(), destFile.toString());
+                    log = String.format("%s %s\t%s", cmd, sourceFile.getAbsolutePath(), destFile.toString());
 
                     if (destDir.canWrite()) {
                         if (!mOptionsHolder.isDryRun()) {
@@ -134,25 +130,8 @@ public class Operation {
     }
 
     private boolean generateFileList() {
-        mListener.onOperationLog(String.format("* %s", Dict.GENERATING_FILELIST.toString()));
-        boolean invalidPath = false;
-
-        if (mFiles != null) {
-            for (File file : mFiles) {
-                String path = file.getAbsolutePath();
-
-                if (path.contains(SystemUtils.PATH_SEPARATOR)) {
-                    invalidPath = true;
-                    String message = String.format(Dict.INVALID_PATH.toString(), file.getAbsolutePath());
-                    mListener.onOperationLog(message);
-                }
-            }
-
-            if (invalidPath) {
-                String message = String.format(Dict.ERROR_PATH_SEPARATOR.toString(), SystemUtils.PATH_SEPARATOR);
-                ////Message.error(Dict.IO_ERROR_TITLE.toString(), message);
-            }
-        }
+        mListener.onOperationLog(Dict.GENERATING_FILELIST.toString());
+        PathMatcher pathMatcher = mOptionsHolder.getPathMatcher();
 
         EnumSet<FileVisitOption> fileVisitOptions = EnumSet.noneOf(FileVisitOption.class);
         if (mOptionsHolder.isFollowLinks()) {
@@ -161,7 +140,7 @@ public class Operation {
 
         File file = mOptionsHolder.getSourceDir();
         if (file.isDirectory()) {
-            FileVisitor fileVisitor = new FileVisitor(mPathMatcher, mFiles);
+            FileVisitor fileVisitor = new FileVisitor(pathMatcher, mFiles);
             try {
                 if (mOptionsHolder.isRecursive()) {
                     Files.walkFileTree(file.toPath(), fileVisitOptions, Integer.MAX_VALUE, fileVisitor);
@@ -173,10 +152,9 @@ public class Operation {
                     return false;
                 }
             } catch (IOException ex) {
-                ////Exceptions.printStackTrace(ex);
                 Xlog.e(getClass(), ex.getLocalizedMessage());
             }
-        } else if (file.isFile() && mPathMatcher.matches(file.toPath().getFileName())) {
+        } else if (file.isFile() && pathMatcher.matches(file.toPath().getFileName())) {
             mFiles.add(file);
         }
 
@@ -204,7 +182,7 @@ public class Operation {
             Directory directory = metadata.getFirstDirectoryOfType(ExifSubIFDDirectory.class);
 
             if (directory == null) {
-                throw new ImageProcessingException(String.format(mBundle.getString("exifError"), sourceFile.getAbsolutePath()));
+                throw new ImageProcessingException(String.format(mBundle.getString("err_exif"), sourceFile.getAbsolutePath()));
             } else {
                 date = directory.getDate(ExifSubIFDDirectory.TAG_DATETIME_ORIGINAL);
             }
@@ -215,7 +193,7 @@ public class Operation {
 
     private String getMessage(String message) {
         if (mOptionsHolder.isDryRun()) {
-            message = Dict.DRY_RUN.toString() + ": " + message;
+            message = String.format("dry-run: %s", message);
         }
 
         return message;
