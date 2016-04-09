@@ -35,7 +35,7 @@ import se.trixon.util.dictionary.Dict;
  *
  * @author Patrik Karlsson
  */
-public class FileByDate {
+public class FileByDate implements OperationListener {
 
     private final ResourceBundle mBundle = BundleHelper.getBundle(FileByDate.class, "Bundle");
     private Options mOptions;
@@ -69,6 +69,8 @@ public class FileByDate {
                     if (optionsHolder.isValid()) {
                         System.out.println("*** execute the operation");
                         System.out.println(optionsHolder.toString());
+                        Operation operation = new Operation(this, optionsHolder);
+                        operation.start();
                     } else {
                         System.out.println("*** invalid args");
                         System.out.println(optionsHolder.getValidationError());
@@ -80,6 +82,30 @@ public class FileByDate {
                 System.out.println(mBundle.getString("parse_help"));
             }
         }
+    }
+
+    @Override
+    public void onOperationFailed(String message) {
+    }
+
+    @Override
+    public void onOperationFinished(String message) {
+    }
+
+    @Override
+    public void onOperationInterrupted() {
+    }
+
+    @Override
+    public void onOperationLog(String message) {
+    }
+
+    @Override
+    public void onOperationProcessingStarted() {
+    }
+
+    @Override
+    public void onOperationStarted() {
     }
 
     private void displayHelp() {
@@ -150,7 +176,6 @@ public class FileByDate {
 //                .argName(("glob pattern"))
 //                .optionalArg(false)
 //                .build();
-
         Option datePattern = Option.builder("dp")
                 .longOpt("date-pattern")
                 .desc(mBundle.getString("opt_date_pattern_desc"))

@@ -1,0 +1,228 @@
+/* 
+ * Copyright 2016 Patrik Karlsson.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package se.trixon.tt.filebydate;
+
+import com.drew.imaging.ImageMetadataReader;
+import com.drew.imaging.ImageProcessingException;
+import com.drew.metadata.Directory;
+import com.drew.metadata.Metadata;
+import com.drew.metadata.exif.ExifSubIFDDirectory;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.FileVisitOption;
+import java.nio.file.Files;
+import java.nio.file.PathMatcher;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.ResourceBundle;
+import java.util.concurrent.TimeUnit;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.SystemUtils;
+import se.trixon.util.BundleHelper;
+import se.trixon.util.Xlog;
+import se.trixon.util.dictionary.Dict;
+
+/**
+ *
+ * @author Patrik Karlsson
+ */
+public class Operation {
+
+    private final ResourceBundle mBundle;
+    private final List<Exception> mExceptions = new ArrayList<>();
+    private final List<File> mFiles = new ArrayList<>();
+    private boolean mInterrupted;
+    private final OperationListener mListener;
+    private final OptionsHolder mOptionsHolder;
+    private final PathMatcher mPathMatcher;
+
+    public Operation(OperationListener operationListener, OptionsHolder optionsHolder) {
+        mListener = operationListener;
+        mOptionsHolder = optionsHolder;
+        mBundle = BundleHelper.getBundle(Operation.class, "Bundle");
+
+        mPathMatcher = mOptionsHolder.getPathMatcher();
+    }
+
+    public void start() {
+        mListener.onOperationStarted();
+        long startTime = System.currentTimeMillis();
+        mInterrupted = !generateFileList();
+        String status;
+
+        if (!mInterrupted && !mFiles.isEmpty()) {
+            status = String.format("\n%s\n", Dict.PROCESSING.toString());
+            mListener.onOperationLog(status);
+
+            for (File sourceFile : mFiles) {
+                try {
+                    SimpleDateFormat simpleDateFormat = mOptionsHolder.getDateFormat();
+
+                    String fileDate = simpleDateFormat.format(getDate(sourceFile));
+                    File destDir = new File(mOptionsHolder.getDestDir(), fileDate);
+
+                    if (destDir.isFile()) {
+                        mListener.onOperationLog(String.format("%s is file, aborting", destDir.getAbsolutePath()));
+                        break;
+                    } else if (!destDir.exists() && !mOptionsHolder.isDryRun()) {
+                        FileUtils.forceMkdir(destDir);
+                    }
+
+                    File destFile = new File(destDir, sourceFile.getName());
+
+                    Command command = mOptionsHolder.getCommand();
+
+                    String log;
+                    log = String.format("%s %s TO %s", command, sourceFile.getAbsolutePath(), destFile.toString());
+
+                    if (destDir.canWrite()) {
+                        if (!mOptionsHolder.isDryRun()) {
+                            if (command == Command.COPY) {
+                                FileUtils.copyFile(sourceFile, destFile);
+                            } else if (command == Command.MOVE) {
+                                FileUtils.moveFile(sourceFile, destFile);
+                            }
+                        }
+                    } else if (!mOptionsHolder.isDryRun()) {
+                        log = "can't write to dest dir";
+                    }
+
+                    mListener.onOperationLog(getMessage(log));
+                } catch (IOException | ImageProcessingException ex) {
+                    mListener.onOperationLog(getMessage(ex.getLocalizedMessage()));
+                }
+
+                if (Thread.interrupted()) {
+                    mInterrupted = true;
+                    break;
+                }
+            }
+        }
+
+        if (mInterrupted) {
+            status = Dict.TASK_ABORTED.toString();
+            mListener.onOperationLog("\n" + status);
+
+        } else {
+            mExceptions.stream().forEach((exception) -> {
+                mListener.onOperationLog(String.format("#%s", exception.getLocalizedMessage()));
+            });
+            long millis = System.currentTimeMillis() - startTime;
+            long min = TimeUnit.MILLISECONDS.toMinutes(millis);
+            long sec = TimeUnit.MILLISECONDS.toSeconds(millis) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis));
+            status = String.format("%s (%d %s, %d %s)", Dict.TASK_COMPLETED.toString(), min, Dict.TIME_MIN.toString(), sec, Dict.TIME_SEC.toString());
+            mListener.onOperationFinished(status);
+        }
+    }
+
+    private boolean generateFileList() {
+        mListener.onOperationLog(String.format("* %s", Dict.GENERATING_FILELIST.toString()));
+        boolean invalidPath = false;
+
+        if (mFiles != null) {
+            for (File file : mFiles) {
+                String path = file.getAbsolutePath();
+
+                if (path.contains(SystemUtils.PATH_SEPARATOR)) {
+                    invalidPath = true;
+                    String message = String.format(Dict.INVALID_PATH.toString(), file.getAbsolutePath());
+                    mListener.onOperationLog(message);
+                }
+            }
+
+            if (invalidPath) {
+                String message = String.format(Dict.ERROR_PATH_SEPARATOR.toString(), SystemUtils.PATH_SEPARATOR);
+                ////Message.error(Dict.IO_ERROR_TITLE.toString(), message);
+            }
+        }
+
+        EnumSet<FileVisitOption> fileVisitOptions = EnumSet.noneOf(FileVisitOption.class);
+        if (mOptionsHolder.isFollowLinks()) {
+            fileVisitOptions = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
+        }
+
+        File file = mOptionsHolder.getSourceDir();
+        if (file.isDirectory()) {
+            FileVisitor fileVisitor = new FileVisitor(mPathMatcher, mFiles);
+            try {
+                if (mOptionsHolder.isRecursive()) {
+                    Files.walkFileTree(file.toPath(), fileVisitOptions, Integer.MAX_VALUE, fileVisitor);
+                } else {
+                    Files.walkFileTree(file.toPath(), fileVisitOptions, 1, fileVisitor);
+                }
+
+                if (fileVisitor.isInterrupted()) {
+                    return false;
+                }
+            } catch (IOException ex) {
+                ////Exceptions.printStackTrace(ex);
+                Xlog.e(getClass(), ex.getLocalizedMessage());
+            }
+        } else if (file.isFile() && mPathMatcher.matches(file.toPath().getFileName())) {
+            mFiles.add(file);
+        }
+
+        if (mFiles.isEmpty()) {
+            mListener.onOperationLog(Dict.FILELIST_EMPTY.toString());
+        } else {
+            Collections.sort(mFiles);
+        }
+
+        return true;
+    }
+
+    private Date getDate(File sourceFile) throws IOException, ImageProcessingException {
+        Date date = new Date(System.currentTimeMillis());
+        DateSource dateSource = mOptionsHolder.getDateSource();
+
+        if (dateSource == DateSource.FILE_CREATED) {
+            BasicFileAttributes attr = Files.readAttributes(sourceFile.toPath(), BasicFileAttributes.class);
+            date = new Date(attr.creationTime().toMillis());
+        } else if (dateSource == DateSource.FILE_MODIFIED) {
+            BasicFileAttributes attr = Files.readAttributes(sourceFile.toPath(), BasicFileAttributes.class);
+            date = new Date(attr.lastModifiedTime().toMillis());
+        } else if (dateSource == DateSource.EXIF_ORIGINAL) {
+            Metadata metadata = ImageMetadataReader.readMetadata(sourceFile);
+            Directory directory = metadata.getFirstDirectoryOfType(ExifSubIFDDirectory.class);
+
+            if (directory == null) {
+                throw new ImageProcessingException(String.format(mBundle.getString("exifError"), sourceFile.getAbsolutePath()));
+            } else {
+                date = directory.getDate(ExifSubIFDDirectory.TAG_DATETIME_ORIGINAL);
+            }
+        }
+
+        return date;
+    }
+
+    private String getMessage(String message) {
+        if (mOptionsHolder.isDryRun()) {
+            message = Dict.DRY_RUN.toString() + ": " + message;
+        }
+
+        return message;
+    }
+
+    public enum Command {
+
+        COPY, MOVE
+    }
+}

@@ -1,4 +1,4 @@
-/*
+/* 
  * Copyright 2016 Patrik Karlsson.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,6 +19,17 @@ package se.trixon.tt.filebydate;
  *
  * @author Patrik Karlsson
  */
-public enum OperationMode {
-    CP, MV;
+public interface OperationListener {
+
+    void onOperationFailed(String message);
+
+    void onOperationFinished(String message);
+
+    void onOperationInterrupted();
+
+    void onOperationLog(String message);
+
+    void onOperationProcessingStarted();
+
+    void onOperationStarted();
 }

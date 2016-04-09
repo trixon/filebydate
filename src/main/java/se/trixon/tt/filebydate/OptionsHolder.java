@@ -1,4 +1,4 @@
-/*
+/* 
  * Copyright 2016 Patrik Karlsson.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,6 +21,7 @@ import java.nio.file.PathMatcher;
 import java.text.SimpleDateFormat;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.io.FilenameUtils;
+import se.trixon.tt.filebydate.Operation.Command;
 
 /**
  *
@@ -28,19 +29,21 @@ import org.apache.commons.io.FilenameUtils;
  */
 public class OptionsHolder {
 
+    private Command mCommand;
+    private SimpleDateFormat mDateFormat;
+
     private String mDatePattern;
     private DateSource mDateSource;
     private String mDateSourceString;
-    private File mDest;
+    private File mDestDir;
     private boolean mDryRun;
     private String mFilePattern;
-    private boolean mLinks;
+    private boolean mFollowLinks;
     private boolean mModeCopy;
     private boolean mModeMove;
-    private OperationMode mOperationMode;
     private PathMatcher mPathMatcher;
     private boolean mRecursive;
-    private File mSource;
+    private File mSourceDir;
     private final StringBuilder mValidationErrorBuilder = new StringBuilder();
 
     public OptionsHolder(CommandLine commandLine) {
@@ -52,10 +55,18 @@ public class OptionsHolder {
         //mFilePattern = commandLine.getOptionValue("fp");
 
         mDryRun = commandLine.hasOption("dry-run");
-        mLinks = commandLine.hasOption("links");
+        mFollowLinks = commandLine.hasOption("links");
         mRecursive = commandLine.hasOption("recursive");
 
         setSourceAndDest(commandLine.getArgs());
+    }
+
+    public Command getCommand() {
+        return mCommand;
+    }
+
+    public SimpleDateFormat getDateFormat() {
+        return mDateFormat;
     }
 
     public String getDatePattern() {
@@ -70,24 +81,20 @@ public class OptionsHolder {
         return mDateSourceString;
     }
 
-    public File getDest() {
-        return mDest;
+    public File getDestDir() {
+        return mDestDir;
     }
 
     public String getFilePattern() {
         return mFilePattern;
     }
 
-    public OperationMode getOperationMode() {
-        return mOperationMode;
-    }
-
     public PathMatcher getPathMatcher() {
         return mPathMatcher;
     }
 
-    public File getSource() {
-        return mSource;
+    public File getSourceDir() {
+        return mSourceDir;
     }
 
     public String getValidationError() {
@@ -98,8 +105,8 @@ public class OptionsHolder {
         return mDryRun;
     }
 
-    public boolean isLinks() {
-        return mLinks;
+    public boolean isFollowLinks() {
+        return mFollowLinks;
     }
 
     public boolean isModeCopy() {
@@ -118,7 +125,7 @@ public class OptionsHolder {
         if (mModeCopy == mModeMove) {
             addValidationError("Pick one operation of cp/mv");
         } else {
-            mOperationMode = mModeCopy ? OperationMode.CP : OperationMode.MV;
+            mCommand = mModeCopy ? Command.COPY : Command.MOVE;
         }
 
         try {
@@ -128,7 +135,7 @@ public class OptionsHolder {
         }
 
         try {
-            SimpleDateFormat simpleDateFormat = new SimpleDateFormat(mDatePattern);
+            mDateFormat = new SimpleDateFormat(mDatePattern);
         } catch (Exception e) {
             addValidationError("invalid date pattern: " + mDatePattern);
         }
@@ -139,15 +146,19 @@ public class OptionsHolder {
             addValidationError("invalid date source: " + mDateSourceString);
         }
 
-        if (mSource == null || !mSource.isDirectory()) {
-            addValidationError("invalid source directory: " + mSource);
+        if (mSourceDir == null || !mSourceDir.isDirectory()) {
+            addValidationError("invalid source directory: " + mSourceDir);
         }
 
-        if (mDest == null || !mDest.isDirectory()) {
-            addValidationError("invalid dest directory: " + mDest);
+        if (mDestDir == null || !mDestDir.isDirectory()) {
+            addValidationError("invalid dest directory: " + mDestDir);
         }
 
         return mValidationErrorBuilder.length() == 0;
+    }
+
+    public void setCommand(Command operationMode) {
+        mCommand = operationMode;
     }
 
     public void setDatePattern(String datePattern) {
@@ -162,8 +173,8 @@ public class OptionsHolder {
         mDateSourceString = dateSourceString;
     }
 
-    public void setDest(File dest) {
-        mDest = dest;
+    public void setDestDir(File dest) {
+        mDestDir = dest;
     }
 
     public void setDryRun(boolean dryRun) {
@@ -174,8 +185,8 @@ public class OptionsHolder {
         mFilePattern = filePattern;
     }
 
-    public void setLinks(boolean links) {
-        mLinks = links;
+    public void setFollowLinks(boolean links) {
+        mFollowLinks = links;
     }
 
     public void setModeCopy(boolean modeCopy) {
@@ -186,10 +197,6 @@ public class OptionsHolder {
         mModeMove = modeMove;
     }
 
-    public void setOperationMode(OperationMode operationMode) {
-        mOperationMode = operationMode;
-    }
-
     public void setPathMatcher(PathMatcher pathMatcher) {
         mPathMatcher = pathMatcher;
     }
@@ -198,44 +205,44 @@ public class OptionsHolder {
         mRecursive = recursive;
     }
 
-    public void setSource(File source) {
-        mSource = source;
-    }
-
     public void setSourceAndDest(String[] args) {
         if (args.length == 2) {
             String source = args[0];
             File sourceFile = new File(source);
-            
+
             if (sourceFile.isDirectory()) {
-                mSource = sourceFile;
+                mSourceDir = sourceFile;
             } else {
                 String sourceDir = FilenameUtils.getFullPathNoEndSeparator(source);
-                mSource = new File(sourceDir);
+                mSourceDir = new File(sourceDir);
                 mFilePattern = FilenameUtils.getName(source);
             }
 
-            setDest(new File(args[1]));
+            setDestDir(new File(args[1]));
         } else {
             addValidationError("invalid arg count");
         }
     }
 
+    public void setSourceDir(File source) {
+        mSourceDir = source;
+    }
+
     @Override
     public String toString() {
         return "OptionsHolder {"
-                + "\n OperationMode=" + mOperationMode
+                + "\n OperationMode=" + mCommand
                 + "\n"
                 + "\n DateSource=" + mDateSource
                 + "\n DatePattern=" + mDatePattern
                 + "\n FilePattern=" + mFilePattern
                 + "\n"
                 + "\n DryRun=" + mDryRun
-                + "\n Links=" + mLinks
+                + "\n Links=" + mFollowLinks
                 + "\n Recursive=" + mRecursive
                 + "\n"
-                + "\n Source=" + mSource
-                + "\n Dest=" + mDest
+                + "\n Source=" + mSourceDir
+                + "\n Dest=" + mDestDir
                 + "\n}";
     }
 
