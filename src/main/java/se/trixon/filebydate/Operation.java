@@ -181,14 +181,18 @@ public class Operation {
             BasicFileAttributes attr = Files.readAttributes(sourceFile.toPath(), BasicFileAttributes.class);
             date = new Date(attr.lastModifiedTime().toMillis());
         } else if (dateSource == DateSource.EXIF_ORIGINAL) {
-            Metadata metadata = ImageMetadataReader.readMetadata(sourceFile);
-            Directory directory = metadata.getFirstDirectoryOfType(ExifSubIFDDirectory.class);
+            Metadata metadata;
+            Directory directory;
 
-            if (directory == null) {
-                throw new ImageProcessingException(String.format(mBundle.getString("err_exif"), sourceFile.getAbsolutePath()));
-            } else {
-                date = directory.getDate(ExifSubIFDDirectory.TAG_DATETIME_ORIGINAL);
+            try {
+                metadata = ImageMetadataReader.readMetadata(sourceFile);
+                directory = metadata.getFirstDirectoryOfType(ExifSubIFDDirectory.class);
+            } catch (ImageProcessingException ex) {
+                String message = String.format("File format is not supported: %s", sourceFile.getAbsolutePath());
+                throw new ImageProcessingException(message);
             }
+
+            date = directory.getDate(ExifSubIFDDirectory.TAG_DATETIME_ORIGINAL);
         }
 
         return date;
