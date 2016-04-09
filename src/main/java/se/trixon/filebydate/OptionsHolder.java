@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.trixon.tt.filebydate;
+package se.trixon.filebydate;
 
 import java.io.File;
 import java.nio.file.FileSystems;
@@ -21,7 +21,7 @@ import java.nio.file.PathMatcher;
 import java.text.SimpleDateFormat;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.io.FilenameUtils;
-import se.trixon.tt.filebydate.Operation.Command;
+import se.trixon.filebydate.Operation.Command;
 
 /**
  *
