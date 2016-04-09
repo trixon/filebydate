@@ -28,7 +28,6 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.SystemUtils;
 import se.trixon.util.BundleHelper;
 import se.trixon.util.SystemHelper;
-import se.trixon.util.Xlog;
 import se.trixon.util.dictionary.Dict;
 
 /**
@@ -77,7 +76,7 @@ public class FileByDate implements OperationListener {
                     }
                 }
             } catch (ParseException ex) {
-                Xlog.timedErr(ex.getMessage());
+                System.out.println(ex.getLocalizedMessage());
                 System.out.println(mBundle.getString("parse_help"));
             }
         }
@@ -170,19 +169,10 @@ public class FileByDate implements OperationListener {
                 .desc(mBundle.getString("opt_dry_run_desc"))
                 .build();
 
-//        Option filePattern = Option.builder("fp")
-//                .longOpt("file-pattern")
-//                .desc(mBundle.getString("opt_file_pattern_desc"))
-//                //                .required()
-//                .hasArg()
-//                .argName(("glob pattern"))
-//                .optionalArg(false)
-//                .build();
         Option datePattern = Option.builder("dp")
                 .longOpt("date-pattern")
                 .desc(mBundle.getString("opt_date_pattern_desc"))
                 .hasArg()
-                .argName(("java date format"))
                 .optionalArg(false)
                 .build();
 
@@ -190,7 +180,6 @@ public class FileByDate implements OperationListener {
                 .longOpt("date-source")
                 .desc(mBundle.getString("opt_date_source_desc"))
                 .hasArg()
-                //                .argName("[file_created | file_modified | exif_original]")
                 .optionalArg(false)
                 .build();
 
@@ -202,7 +191,7 @@ public class FileByDate implements OperationListener {
         mOptions.addOption(dryRun);
         mOptions.addOption(recursive);
         mOptions.addOption(links);
-//        mOptions.addOption(filePattern);
+
         mOptions.addOption(datePattern);
         mOptions.addOption(dateSource);
 

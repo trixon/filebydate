@@ -52,7 +52,6 @@ public class OptionsHolder {
 
         mDatePattern = commandLine.getOptionValue("dp");
         mDateSourceString = commandLine.getOptionValue("ds");
-        //mFilePattern = commandLine.getOptionValue("fp");
 
         mDryRun = commandLine.hasOption("dry-run");
         mFollowLinks = commandLine.hasOption("links");
@@ -212,6 +211,7 @@ public class OptionsHolder {
 
             if (sourceFile.isDirectory()) {
                 mSourceDir = sourceFile;
+                mFilePattern = "*";
             } else {
                 String sourceDir = FilenameUtils.getFullPathNoEndSeparator(source);
                 mSourceDir = new File(sourceDir);
