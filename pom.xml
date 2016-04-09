@@ -84,7 +84,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>se.trixon.tt.filebydate.FileByDate</mainClass>
+                            <mainClass>se.trixon.filebydate.FileByDate</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
