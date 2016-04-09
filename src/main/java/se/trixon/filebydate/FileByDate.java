@@ -169,6 +169,11 @@ public class FileByDate implements OperationListener {
                 .desc(mBundle.getString("opt_dry_run_desc"))
                 .build();
 
+        Option overwrite = Option.builder("o")
+                .longOpt("overwrite")
+                .desc(mBundle.getString("opt_overwrite_desc"))
+                .build();
+
         Option datePattern = Option.builder("dp")
                 .longOpt("date-pattern")
                 .desc(mBundle.getString("opt_date_pattern_desc"))
@@ -189,8 +194,9 @@ public class FileByDate implements OperationListener {
         mOptions.addOption(move);
 
         mOptions.addOption(dryRun);
-        mOptions.addOption(recursive);
         mOptions.addOption(links);
+        mOptions.addOption(overwrite);
+        mOptions.addOption(recursive);
 
         mOptions.addOption(datePattern);
         mOptions.addOption(dateSource);

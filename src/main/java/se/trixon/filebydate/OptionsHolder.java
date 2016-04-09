@@ -31,7 +31,6 @@ public class OptionsHolder {
 
     private Command mCommand;
     private SimpleDateFormat mDateFormat;
-
     private String mDatePattern;
     private DateSource mDateSource;
     private String mDateSourceString;
@@ -43,6 +42,7 @@ public class OptionsHolder {
     private boolean mModeMove;
     private PathMatcher mPathMatcher;
     private boolean mRecursive;
+    private boolean mReplaceExisting;
     private File mSourceDir;
     private final StringBuilder mValidationErrorBuilder = new StringBuilder();
 
@@ -56,6 +56,7 @@ public class OptionsHolder {
         mDryRun = commandLine.hasOption("dry-run");
         mFollowLinks = commandLine.hasOption("links");
         mRecursive = commandLine.hasOption("recursive");
+        mReplaceExisting = commandLine.hasOption("overwrite");
 
         setSourceAndDest(commandLine.getArgs());
     }
@@ -118,6 +119,10 @@ public class OptionsHolder {
 
     public boolean isRecursive() {
         return mRecursive;
+    }
+
+    public boolean isReplaceExisting() {
+        return mReplaceExisting;
     }
 
     public boolean isValid() {
@@ -204,6 +209,10 @@ public class OptionsHolder {
         mRecursive = recursive;
     }
 
+    public void setReplaceExisting(boolean replaceExisting) {
+        mReplaceExisting = replaceExisting;
+    }
+
     public void setSourceAndDest(String[] args) {
         if (args.length == 2) {
             String source = args[0];
@@ -239,6 +248,7 @@ public class OptionsHolder {
                 + "\n"
                 + "\n DryRun=" + mDryRun
                 + "\n Links=" + mFollowLinks
+                + "\n Overwrite=" + mReplaceExisting
                 + "\n Recursive=" + mRecursive
                 + "\n"
                 + "\n Source=" + mSourceDir

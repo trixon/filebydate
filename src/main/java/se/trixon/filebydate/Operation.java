@@ -83,22 +83,25 @@ public class Operation {
                     }
 
                     File destFile = new File(destDir, sourceFile.getName());
-
-                    Command command = mOptionsHolder.getCommand();
-                    String cmd = command == Command.COPY ? "cp" : "mv";
                     String log;
-                    log = String.format("%s %s\t%s", cmd, sourceFile.getAbsolutePath(), destFile.toString());
+                    if (destFile.exists() && !mOptionsHolder.isReplaceExisting()) {
+                        log = String.format("File exists: %s, skipping...", destFile.getAbsolutePath());
+                    } else {
+                        Command command = mOptionsHolder.getCommand();
+                        String cmd = command == Command.COPY ? "cp" : "mv";
+                        log = String.format("%s %s    %s", cmd, sourceFile.getAbsolutePath(), destFile.toString());
 
-                    if (destDir.canWrite()) {
-                        if (!mOptionsHolder.isDryRun()) {
-                            if (command == Command.COPY) {
-                                FileUtils.copyFile(sourceFile, destFile);
-                            } else if (command == Command.MOVE) {
-                                FileUtils.moveFile(sourceFile, destFile);
+                        if (destDir.canWrite()) {
+                            if (!mOptionsHolder.isDryRun()) {
+                                if (command == Command.COPY) {
+                                    FileUtils.copyFile(sourceFile, destFile);
+                                } else if (command == Command.MOVE) {
+                                    FileUtils.moveFile(sourceFile, destFile);
+                                }
                             }
+                        } else if (!mOptionsHolder.isDryRun()) {
+                            log = "can't write to dest dir";
                         }
-                    } else if (!mOptionsHolder.isDryRun()) {
-                        log = "can't write to dest dir";
                     }
 
                     mListener.onOperationLog(getMessage(log));
