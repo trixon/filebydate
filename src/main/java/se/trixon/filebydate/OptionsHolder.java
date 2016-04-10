@@ -31,7 +31,11 @@ import se.trixon.util.BundleHelper;
  */
 public class OptionsHolder {
 
+    private NameCase mBaseNameCase;
+
     private final ResourceBundle mBundle = BundleHelper.getBundle(OptionsHolder.class, "Bundle");
+    private String mCaseBase;
+    private String mCaseExt;
     private Command mCommand;
     private SimpleDateFormat mDateFormat;
     private String mDatePattern;
@@ -39,6 +43,7 @@ public class OptionsHolder {
     private String mDateSourceString;
     private File mDestDir;
     private boolean mDryRun;
+    private NameCase mExtNameCase;
     private String mFilePattern;
     private boolean mFollowLinks;
     private boolean mModeCopy;
@@ -55,6 +60,8 @@ public class OptionsHolder {
 
         mDatePattern = commandLine.getOptionValue("dp");
         mDateSourceString = commandLine.getOptionValue("ds");
+        mCaseBase = commandLine.getOptionValue("case-base");
+        mCaseExt = commandLine.getOptionValue("case-ext");
 
         mDryRun = commandLine.hasOption("dry-run");
         mFollowLinks = commandLine.hasOption("links");
@@ -62,6 +69,18 @@ public class OptionsHolder {
         mReplaceExisting = commandLine.hasOption("overwrite");
 
         setSourceAndDest(commandLine.getArgs());
+    }
+
+    public NameCase getBaseNameCase() {
+        return mBaseNameCase;
+    }
+
+    public String getCaseBase() {
+        return mCaseBase;
+    }
+
+    public String getCaseExt() {
+        return mCaseExt;
     }
 
     public Command getCommand() {
@@ -86,6 +105,10 @@ public class OptionsHolder {
 
     public File getDestDir() {
         return mDestDir;
+    }
+
+    public NameCase getExtNameCase() {
+        return mExtNameCase;
     }
 
     public String getFilePattern() {
@@ -153,6 +176,16 @@ public class OptionsHolder {
             addValidationError(String.format(mBundle.getString("invalid_date_source"), mDateSourceString));
         }
 
+        mBaseNameCase = NameCase.getCase(mCaseBase);
+        if (mBaseNameCase == null && mCaseBase != null) {
+            addValidationError(String.format(mBundle.getString("invalid_case_base"), mCaseBase));
+        }
+
+        mExtNameCase = NameCase.getCase(mCaseExt);
+        if (mExtNameCase == null && mCaseExt != null) {
+            addValidationError(String.format(mBundle.getString("invalid_case_base"), mCaseExt));
+        }
+
         if (mSourceDir == null || !mSourceDir.isDirectory()) {
             addValidationError(String.format(mBundle.getString("invalid_source_dir"), mSourceDir));
         }
@@ -162,6 +195,18 @@ public class OptionsHolder {
         }
 
         return mValidationErrorBuilder.length() == 0;
+    }
+
+    public void setBaseNameCase(NameCase baseNameCase) {
+        mBaseNameCase = baseNameCase;
+    }
+
+    public void setCaseBase(String caseBase) {
+        mCaseBase = caseBase;
+    }
+
+    public void setCaseExt(String caseExt) {
+        mCaseExt = caseExt;
     }
 
     public void setCommand(Command operationMode) {
@@ -186,6 +231,10 @@ public class OptionsHolder {
 
     public void setDryRun(boolean dryRun) {
         mDryRun = dryRun;
+    }
+
+    public void setExtNameCase(NameCase extNameCase) {
+        mExtNameCase = extNameCase;
     }
 
     public void setFilePattern(String filePattern) {

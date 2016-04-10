@@ -25,6 +25,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.SystemUtils;
 import se.trixon.util.BundleHelper;
 import se.trixon.util.SystemHelper;
@@ -186,6 +187,20 @@ public class FileByDate implements OperationListener {
                 .optionalArg(false)
                 .build();
 
+        Option caseBase = Option.builder("cb")
+                .longOpt("case-base")
+                .desc(mBundle.getString("opt_case_base_desc"))
+                .hasArg()
+                .optionalArg(false)
+                .build();
+
+        Option caseExt = Option.builder("ce")
+                .longOpt("case-ext")
+                .desc(mBundle.getString("opt_case_ext_desc"))
+                .hasArg()
+                .optionalArg(false)
+                .build();
+
         mOptions = new Options();
 
         mOptions.addOption(copy);
@@ -198,6 +213,9 @@ public class FileByDate implements OperationListener {
 
         mOptions.addOption(datePattern);
         mOptions.addOption(dateSource);
+
+        mOptions.addOption(caseBase);
+        mOptions.addOption(caseExt);
 
         mOptions.addOption(help);
         mOptions.addOption(version);
