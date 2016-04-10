@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.ResourceBundle;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import se.trixon.util.BundleHelper;
 import se.trixon.util.Xlog;
 import se.trixon.util.dictionary.Dict;
@@ -82,14 +83,38 @@ public class Operation {
                         FileUtils.forceMkdir(destDir);
                     }
 
-                    File destFile = new File(destDir, sourceFile.getName());
+                    String destFilename = sourceFile.getName();
+                    String base = FilenameUtils.getBaseName(destFilename);
+                    String ext = FilenameUtils.getExtension(destFilename);
+                    NameCase baseCase = mOptionsHolder.getBaseNameCase();
+                    NameCase extCase = mOptionsHolder.getExtNameCase();
+
+                    if (baseCase != null || extCase != null) {
+                        if (baseCase != null) {
+                            base = baseCase == NameCase.LOWER ? base.toLowerCase() : base.toUpperCase();
+                        }
+
+                        if (extCase != null) {
+                            ext = extCase == NameCase.LOWER ? ext.toLowerCase() : ext.toUpperCase();
+                        }
+
+                        if (base.length() == 0) {
+                            destFilename = String.format(".%s", ext);
+                        } else if (ext.length() == 0) {
+                            destFilename = base;
+                        } else {
+                            destFilename = String.format("%s.%s", base, ext);
+                        }
+                    }
+
+                    File destFile = new File(destDir, destFilename);
                     String log;
                     if (destFile.exists() && !mOptionsHolder.isReplaceExisting()) {
                         log = String.format(mBundle.getString("err_dest_file_exists"), destFile.getAbsolutePath());
                     } else {
                         Command command = mOptionsHolder.getCommand();
                         String cmd = command == Command.COPY ? "cp" : "mv";
-                        log = String.format("%s %s    %s", cmd, sourceFile.getAbsolutePath(), destFile.toString());
+                        log = String.format("%s %s  %s", cmd, sourceFile.getAbsolutePath(), destFile.toString());
 
                         if (destDir.canWrite()) {
                             if (!mOptionsHolder.isDryRun()) {
