@@ -66,17 +66,15 @@ public class FileByDate implements OperationListener {
                     OptionsHolder optionsHolder = new OptionsHolder(commandLine);
 
                     if (optionsHolder.isValid()) {
-                        //System.out.println(optionsHolder.toString());
                         Operation operation = new Operation(this, optionsHolder);
                         operation.start();
                     } else {
-                        System.out.println("*** invalid args");
                         System.out.println(optionsHolder.getValidationError());
                         System.out.println(Dict.ABORTING.toString());
                     }
                 }
             } catch (ParseException ex) {
-                System.out.println(ex.getLocalizedMessage());
+                System.out.println(ex.getMessage());
                 System.out.println(mBundle.getString("parse_help"));
             }
         }
@@ -93,7 +91,7 @@ public class FileByDate implements OperationListener {
 
     @Override
     public void onOperationInterrupted() {
-        System.out.println("OPERATION INTERRUPTED");
+        System.out.println(Dict.OPERATION_INTERRUPTED.toString());
     }
 
     @Override

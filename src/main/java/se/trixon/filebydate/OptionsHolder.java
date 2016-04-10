@@ -19,9 +19,11 @@ import java.io.File;
 import java.nio.file.FileSystems;
 import java.nio.file.PathMatcher;
 import java.text.SimpleDateFormat;
+import java.util.ResourceBundle;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.io.FilenameUtils;
 import se.trixon.filebydate.Operation.Command;
+import se.trixon.util.BundleHelper;
 
 /**
  *
@@ -29,6 +31,7 @@ import se.trixon.filebydate.Operation.Command;
  */
 public class OptionsHolder {
 
+    private final ResourceBundle mBundle = BundleHelper.getBundle(OptionsHolder.class, "Bundle");
     private Command mCommand;
     private SimpleDateFormat mDateFormat;
     private String mDatePattern;
@@ -127,7 +130,7 @@ public class OptionsHolder {
 
     public boolean isValid() {
         if (mModeCopy == mModeMove) {
-            addValidationError("Pick one operation of cp/mv");
+            addValidationError(mBundle.getString("invalid_command"));
         } else {
             mCommand = mModeCopy ? Command.COPY : Command.MOVE;
         }
@@ -141,21 +144,21 @@ public class OptionsHolder {
         try {
             mDateFormat = new SimpleDateFormat(mDatePattern);
         } catch (Exception e) {
-            addValidationError("invalid date pattern: " + mDatePattern);
+            addValidationError(String.format(mBundle.getString("invalid_date_pattern"), mDatePattern));
         }
 
         try {
             mDateSource = DateSource.valueOf(mDateSourceString.toUpperCase());
         } catch (Exception e) {
-            addValidationError("invalid date source: " + mDateSourceString);
+            addValidationError(String.format(mBundle.getString("invalid_date_source"), mDateSourceString));
         }
 
         if (mSourceDir == null || !mSourceDir.isDirectory()) {
-            addValidationError("invalid source directory: " + mSourceDir);
+            addValidationError(String.format(mBundle.getString("invalid_source_dir"), mSourceDir));
         }
 
         if (mDestDir == null || !mDestDir.isDirectory()) {
-            addValidationError("invalid dest directory: " + mDestDir);
+            addValidationError(String.format(mBundle.getString("invalid_dest_dir"), mDestDir));
         }
 
         return mValidationErrorBuilder.length() == 0;
@@ -229,7 +232,7 @@ public class OptionsHolder {
 
             setDestDir(new File(args[1]));
         } else {
-            addValidationError("invalid arg count");
+            addValidationError(mBundle.getString("invalid_arg_count"));
         }
     }
 

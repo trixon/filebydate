@@ -65,7 +65,7 @@ public class Operation {
         String status;
 
         if (!mInterrupted && !mFiles.isEmpty()) {
-            status = String.format("%s", Dict.PROCESSING.toString());
+            status = Dict.PROCESSING.toString();
             mListener.onOperationLog(status);
 
             for (File sourceFile : mFiles) {
@@ -76,7 +76,7 @@ public class Operation {
                     File destDir = new File(mOptionsHolder.getDestDir(), fileDate);
 
                     if (destDir.isFile()) {
-                        mListener.onOperationLog(String.format("%s is file, aborting", destDir.getAbsolutePath()));
+                        mListener.onOperationLog(String.format(mBundle.getString("err_dest_dir_is_file"), destDir.getAbsolutePath()));
                         break;
                     } else if (!destDir.exists() && !mOptionsHolder.isDryRun()) {
                         FileUtils.forceMkdir(destDir);
@@ -85,7 +85,7 @@ public class Operation {
                     File destFile = new File(destDir, sourceFile.getName());
                     String log;
                     if (destFile.exists() && !mOptionsHolder.isReplaceExisting()) {
-                        log = String.format("File exists: %s, skipping...", destFile.getAbsolutePath());
+                        log = String.format(mBundle.getString("err_dest_file_exists"), destFile.getAbsolutePath());
                     } else {
                         Command command = mOptionsHolder.getCommand();
                         String cmd = command == Command.COPY ? "cp" : "mv";
@@ -100,7 +100,7 @@ public class Operation {
                                 }
                             }
                         } else if (!mOptionsHolder.isDryRun()) {
-                            log = "can't write to dest dir";
+                            log = mBundle.getString("err_dest_cant_write");
                         }
                     }
 
