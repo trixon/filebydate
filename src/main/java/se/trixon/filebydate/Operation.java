@@ -121,7 +121,8 @@ public class Operation {
                                 if (command == Command.COPY) {
                                     FileUtils.copyFile(sourceFile, destFile);
                                 } else if (command == Command.MOVE) {
-                                    FileUtils.moveFile(sourceFile, destFile);
+                                    FileUtils.copyFile(sourceFile, destFile);
+                                    FileUtils.deleteQuietly(sourceFile);
                                 }
                             }
                         } else if (!mOptionsHolder.isDryRun()) {
