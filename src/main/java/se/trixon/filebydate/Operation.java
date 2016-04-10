@@ -182,17 +182,22 @@ public class Operation {
             date = new Date(attr.lastModifiedTime().toMillis());
         } else if (dateSource == DateSource.EXIF_ORIGINAL) {
             Metadata metadata;
-            Directory directory;
+            Directory directory = null;
 
             try {
                 metadata = ImageMetadataReader.readMetadata(sourceFile);
                 directory = metadata.getFirstDirectoryOfType(ExifSubIFDDirectory.class);
-            } catch (ImageProcessingException ex) {
-                String message = String.format("File format is not supported: %s", sourceFile.getAbsolutePath());
+                date = directory.getDate(ExifSubIFDDirectory.TAG_DATETIME_ORIGINAL);
+            } catch (NullPointerException | ImageProcessingException ex) {
+                String message;
+                if (directory == null) {
+                    message = String.format(mBundle.getString("err_exif"), sourceFile.getAbsolutePath());
+                } else {
+                    message = String.format(mBundle.getString("err_file_format"), sourceFile.getAbsolutePath());
+                }
+
                 throw new ImageProcessingException(message);
             }
-
-            date = directory.getDate(ExifSubIFDDirectory.TAG_DATETIME_ORIGINAL);
         }
 
         return date;
@@ -208,6 +213,6 @@ public class Operation {
 
     public enum Command {
 
-        COPY, MOVE
+        COPY, MOVE;
     }
 }
