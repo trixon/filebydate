@@ -25,7 +25,6 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.SystemUtils;
 import se.trixon.util.BundleHelper;
 import se.trixon.util.SystemHelper;
