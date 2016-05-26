@@ -131,7 +131,7 @@ public class Operation {
                     }
 
                     mListener.onOperationLog(getMessage(log));
-                } catch (IOException | ImageProcessingException ex) {
+                } catch (IOException | ImageProcessingException | NullPointerException ex) {
                     mListener.onOperationLog(getMessage(ex.getLocalizedMessage()));
                 }
 
