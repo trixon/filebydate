@@ -36,9 +36,9 @@ import java.util.ResourceBundle;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import se.trixon.util.BundleHelper;
-import se.trixon.util.Xlog;
-import se.trixon.util.dictionary.Dict;
+import se.trixon.almond.util.BundleHelper;
+import se.trixon.almond.util.Xlog;
+import se.trixon.almond.util.Dict;
 
 /**
  *

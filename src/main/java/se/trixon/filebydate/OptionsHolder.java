@@ -23,7 +23,7 @@ import java.util.ResourceBundle;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.io.FilenameUtils;
 import se.trixon.filebydate.Operation.Command;
-import se.trixon.util.BundleHelper;
+import se.trixon.almond.util.BundleHelper;
 
 /**
  *
