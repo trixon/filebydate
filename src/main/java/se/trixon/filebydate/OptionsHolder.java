@@ -54,6 +54,9 @@ public class OptionsHolder {
     private File mSourceDir;
     private final StringBuilder mValidationErrorBuilder = new StringBuilder();
 
+    public OptionsHolder() {
+    }
+
     public OptionsHolder(CommandLine commandLine) {
         mModeCopy = commandLine.hasOption("copy");
         mModeMove = commandLine.hasOption("move");
