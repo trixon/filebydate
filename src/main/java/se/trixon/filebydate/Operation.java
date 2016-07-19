@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2016 Patrik Karlsson.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,8 +37,8 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import se.trixon.almond.util.BundleHelper;
-import se.trixon.almond.util.Xlog;
 import se.trixon.almond.util.Dict;
+import se.trixon.almond.util.Xlog;
 
 /**
  *
@@ -121,8 +121,12 @@ public class Operation {
                                 if (command == Command.COPY) {
                                     FileUtils.copyFile(sourceFile, destFile);
                                 } else if (command == Command.MOVE) {
-                                    FileUtils.copyFile(sourceFile, destFile);
-                                    FileUtils.deleteQuietly(sourceFile);
+                                    if (File.listRoots().length == 1) {
+                                        FileUtils.moveFile(sourceFile, destFile);
+                                    } else {
+                                        FileUtils.copyFile(sourceFile, destFile);
+                                        FileUtils.deleteQuietly(sourceFile);
+                                    }
                                 }
                             }
                         } else if (!mOptionsHolder.isDryRun()) {

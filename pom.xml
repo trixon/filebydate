@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>se.trixon</groupId>
     <artifactId>filebydate</artifactId>
-    <version>0.1.1-SNAPSHOT</version>
+    <version>0.1.2-SNAPSHOT</version>
     <packaging>jar</packaging>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -90,7 +90,7 @@
                         <configuration>
                             <minimizeJar>true</minimizeJar>
                             <filters>
-                                <filter>                
+                                <filter>
                                     <artifact>se.trixon.util:trixon-util</artifact>
                                     <excludes>
                                         <exclude>se/trixon/util/icon/**</exclude>
