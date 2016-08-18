@@ -15,17 +15,86 @@
  */
 package se.trixon.filebydate.ui;
 
+import java.awt.Component;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.WindowEvent;
+import java.util.LinkedList;
+import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.prefs.BackingStoreException;
+import javax.swing.AbstractAction;
+import javax.swing.AbstractButton;
+import javax.swing.Action;
+import javax.swing.ActionMap;
+import javax.swing.InputMap;
+import javax.swing.JComponent;
+import javax.swing.JOptionPane;
+import javax.swing.KeyStroke;
+import org.apache.commons.lang3.SystemUtils;
+import se.trixon.almond.util.AlmondAction;
+import se.trixon.almond.util.BundleHelper;
+import se.trixon.almond.util.Dict;
+import se.trixon.almond.util.SystemHelper;
+import se.trixon.almond.util.icon.Pict;
+import se.trixon.almond.util.icons.material.MaterialIcon;
+import se.trixon.almond.util.swing.SwingHelper;
+import se.trixon.almond.util.swing.dialogs.Message;
+import se.trixon.filebydate.FileByDate;
+
 /**
  *
  * @author Patrik Karlsson
  */
 public class MainFrame extends javax.swing.JFrame {
 
+    private final ResourceBundle mBundle = BundleHelper.getBundle(FileByDate.class, "Bundle");
+    private ActionManager mActionManager;
+
+    private final LinkedList<AlmondAction> mServerActions = new LinkedList<>();
+    private final LinkedList<AlmondAction> mAllActions = new LinkedList<>();
+
     /**
      * Creates new form MainFrame
      */
     public MainFrame() {
         initComponents();
+        init();
+    }
+
+    private void init() {
+        mActionManager = new ActionManager();
+        mActionManager.initActions();
+
+        try {
+            SwingHelper.frameStateRestore(this, 800, 600);
+        } catch (BackingStoreException ex) {
+            Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private void showOptions() {
+        OptionsPanel optionsPanel = new OptionsPanel();
+        SwingHelper.makeWindowResizable(optionsPanel);
+
+        int retval = JOptionPane.showOptionDialog(this,
+                optionsPanel,
+                Dict.OPTIONS.toString(),
+                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE,
+                null,
+                null,
+                null);
+
+        if (retval == JOptionPane.OK_OPTION) {
+            optionsPanel.save();
+        }
+    }
+
+    private void quit() {
+        dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
     }
 
     /**
@@ -37,57 +106,335 @@ public class MainFrame extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        mPopupMenu = new javax.swing.JPopupMenu();
+        removeAllProfilesMenuItem = new javax.swing.JMenuItem();
+        optionsMenuItem = new javax.swing.JMenuItem();
+        jSeparator2 = new javax.swing.JPopupMenu.Separator();
+        aboutMenuItem = new javax.swing.JMenuItem();
+        jSeparator6 = new javax.swing.JPopupMenu.Separator();
+        quitMenuItem = new javax.swing.JMenuItem();
+        toolBar = new javax.swing.JToolBar();
+        profileComboBox = new javax.swing.JComboBox<>();
+        startButton = new javax.swing.JButton();
+        addButton = new javax.swing.JButton();
+        editButton = new javax.swing.JButton();
+        cloneButton = new javax.swing.JButton();
+        removeButton = new javax.swing.JButton();
+        menuButton = new javax.swing.JButton();
+        jPanel1 = new javax.swing.JPanel();
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
+        mPopupMenu.add(removeAllProfilesMenuItem);
+        mPopupMenu.add(optionsMenuItem);
+        mPopupMenu.add(jSeparator2);
+        mPopupMenu.add(aboutMenuItem);
+        mPopupMenu.add(jSeparator6);
+        mPopupMenu.add(quitMenuItem);
+
+        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("se/trixon/filebydate/ui/Bundle"); // NOI18N
+        setTitle(bundle.getString("MainFrame.title")); // NOI18N
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent evt) {
+                formWindowClosing(evt);
+            }
+        });
+
+        toolBar.setFloatable(false);
+        toolBar.setRollover(true);
+
+        profileComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        toolBar.add(profileComboBox);
+
+        startButton.setFocusable(false);
+        startButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        startButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        toolBar.add(startButton);
+
+        addButton.setFocusable(false);
+        addButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        addButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        toolBar.add(addButton);
+
+        editButton.setFocusable(false);
+        editButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        editButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        toolBar.add(editButton);
+
+        cloneButton.setFocusable(false);
+        cloneButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        cloneButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        toolBar.add(cloneButton);
+
+        removeButton.setFocusable(false);
+        removeButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        removeButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        toolBar.add(removeButton);
+
+        menuButton.setFocusable(false);
+        menuButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        menuButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        menuButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mousePressed(java.awt.event.MouseEvent evt) {
+                menuButtonMousePressed(evt);
+            }
+        });
+        toolBar.add(menuButton);
+
+        getContentPane().add(toolBar, java.awt.BorderLayout.PAGE_START);
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 701, Short.MAX_VALUE)
         );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 300, Short.MAX_VALUE)
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 451, Short.MAX_VALUE)
         );
+
+        getContentPane().add(jPanel1, java.awt.BorderLayout.CENTER);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(MainFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(MainFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(MainFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(MainFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
+    private void menuButtonMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_menuButtonMousePressed
+        if (evt == null || evt.getButton() == MouseEvent.BUTTON1) {
+            InputMap inputMap = mPopupMenu.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+            ActionMap actionMap = mPopupMenu.getActionMap();
+            Action action = new AbstractAction("HideMenu") {
 
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new MainFrame().setVisible(true);
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    mPopupMenu.setVisible(false);
+                }
+            };
+
+            String key = "HideMenu";
+            actionMap.put(key, action);
+            KeyStroke keyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
+            inputMap.put(keyStroke, key);
+
+            if (mPopupMenu.isVisible()) {
+                mPopupMenu.setVisible(false);
+            } else {
+                mPopupMenu.show(menuButton, menuButton.getWidth() - mPopupMenu.getWidth(), mPopupMenu.getHeight());
+
+                int x = menuButton.getLocationOnScreen().x + menuButton.getWidth() - mPopupMenu.getWidth();
+                int y = menuButton.getLocationOnScreen().y + menuButton.getHeight();
+
+                mPopupMenu.setLocation(x, y);
             }
-        });
-    }
+        }
+    }//GEN-LAST:event_menuButtonMousePressed
+
+    private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
+        SwingHelper.frameStateSave(this);
+    }//GEN-LAST:event_formWindowClosing
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JMenuItem aboutMenuItem;
+    private javax.swing.JButton addButton;
+    private javax.swing.JButton cloneButton;
+    private javax.swing.JButton editButton;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPopupMenu.Separator jSeparator2;
+    private javax.swing.JPopupMenu.Separator jSeparator6;
+    private javax.swing.JPopupMenu mPopupMenu;
+    private javax.swing.JButton menuButton;
+    private javax.swing.JMenuItem optionsMenuItem;
+    private javax.swing.JComboBox<String> profileComboBox;
+    private javax.swing.JMenuItem quitMenuItem;
+    private javax.swing.JMenuItem removeAllProfilesMenuItem;
+    private javax.swing.JButton removeButton;
+    private javax.swing.JButton startButton;
+    private javax.swing.JToolBar toolBar;
     // End of variables declaration//GEN-END:variables
+
+    class ActionManager {
+
+        static final String ABOUT = "about";
+        static final String ADD = "add";
+        static final String CLONE = "clone";
+        static final String EDIT = "edit";
+        static final String MENU = "menu";
+        static final String OPTIONS = "options";
+        static final String QUIT = "shutdownServerAndWindow";
+        static final String REMOVE = "remove";
+        static final String REMOVE_ALL = "remove_all";
+        static final String START = "start";
+
+        private ActionManager() {
+            initActions();
+        }
+
+        Action getAction(String key) {
+            return getRootPane().getActionMap().get(key);
+        }
+
+        private void initAction(AlmondAction action, String key, KeyStroke keyStroke, Enum iconEnum, boolean serverAction) {
+            InputMap inputMap = getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+            ActionMap actionMap = getRootPane().getActionMap();
+
+            action.putValue(Action.ACCELERATOR_KEY, keyStroke);
+            action.putValue(Action.SHORT_DESCRIPTION, action.getValue(Action.NAME));
+            action.putValue("hideActionText", true);
+            action.setIconEnum(iconEnum);
+            action.updateIcon();
+
+            inputMap.put(keyStroke, key);
+            actionMap.put(key, action);
+
+            if (serverAction) {
+                mServerActions.add(action);
+            }
+
+            mAllActions.add(action);
+        }
+
+        private void initActions() {
+            AlmondAction action;
+            KeyStroke keyStroke;
+            int commandMask = SystemHelper.getCommandMask();
+
+            //menu
+            int menuKey = KeyEvent.VK_M;
+            keyStroke = KeyStroke.getKeyStroke(menuKey, commandMask);
+            action = new AlmondAction(Dict.MENU.toString()) {
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+//                    menuButtonMousePressed(null);
+                }
+            };
+
+            initAction(action, MENU, keyStroke, MaterialIcon.Navigation.MENU, false);
+            menuButton.setAction(action);
+
+            //options
+            int optionsKey = SystemUtils.IS_OS_MAC ? KeyEvent.VK_COMMA : KeyEvent.VK_P;
+            keyStroke = KeyStroke.getKeyStroke(optionsKey, commandMask);
+            action = new AlmondAction(Dict.OPTIONS.toString()) {
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    showOptions();
+                }
+            };
+
+            initAction(action, OPTIONS, keyStroke, MaterialIcon.Action.SETTINGS, false);
+            optionsMenuItem.setAction(action);
+
+            //start
+            keyStroke = null;
+            action = new AlmondAction(Dict.START.toString()) {
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                }
+            };
+
+            initAction(action, START, keyStroke, MaterialIcon.Av.PLAY_ARROW, false);
+            startButton.setAction(action);
+
+            //add
+            keyStroke = null;
+            action = new AlmondAction(Dict.ADD.toString()) {
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                }
+            };
+
+            initAction(action, ADD, keyStroke, MaterialIcon.Content.ADD, false);
+            addButton.setAction(action);
+
+            //clone
+            keyStroke = null;
+            action = new AlmondAction(Dict.CLONE.toString()) {
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                }
+            };
+
+            initAction(action, CLONE, keyStroke, MaterialIcon.Content.CONTENT_COPY, false);
+            cloneButton.setAction(action);
+
+            //edit
+            keyStroke = null;
+            action = new AlmondAction(Dict.EDIT.toString()) {
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                }
+            };
+
+            initAction(action, EDIT, keyStroke, MaterialIcon.Editor.MODE_EDIT, false);
+            editButton.setAction(action);
+
+            //remove
+            keyStroke = null;
+            action = new AlmondAction(Dict.REMOVE.toString()) {
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                }
+            };
+
+            initAction(action, REMOVE, keyStroke, MaterialIcon.Content.REMOVE, false);
+            removeButton.setAction(action);
+
+            //remove all
+            keyStroke = null;
+            action = new AlmondAction(Dict.REMOVE_ALL.toString()) {
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                }
+            };
+
+            initAction(action, REMOVE_ALL, keyStroke, MaterialIcon.Content.CLEAR, false);
+            removeAllProfilesMenuItem.setAction(action);
+
+            //about
+            keyStroke = null;
+            action = new AlmondAction(Dict.ABOUT.toString()) {
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    String versionInfo = String.format(mBundle.getString("version_info"), SystemHelper.getJarVersion(FileByDate.class));
+                    Message.information(MainFrame.this, Dict.ABOUT.toString(), versionInfo);
+                }
+            };
+
+            initAction(action, ABOUT, keyStroke, null, false);
+            aboutMenuItem.setAction(action);
+
+            //quit
+            keyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_Q, commandMask);
+            action = new AlmondAction(Dict.QUIT.toString()) {
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    quit();
+                }
+            };
+
+            initAction(action, QUIT, keyStroke, Pict.Actions.APPLICATION_EXIT, false);
+            quitMenuItem.setAction(action);
+
+            for (Component component : mPopupMenu.getComponents()) {
+                if (component instanceof AbstractButton) {
+                    ((AbstractButton) component).setToolTipText(null);
+                }
+            }
+
+            for (Component component : toolBar.getComponents()) {
+                if (component instanceof AbstractButton) {
+                    ((AbstractButton) component).setText(null);
+                }
+            }
+        }
+    }
 }
