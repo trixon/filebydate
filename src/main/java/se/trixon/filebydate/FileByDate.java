@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2016 Patrik Karlsson.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,9 +15,12 @@
  */
 package se.trixon.filebydate;
 
+import java.awt.GraphicsEnvironment;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.ResourceBundle;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -26,9 +29,13 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.SystemUtils;
+import se.trixon.almond.util.AlmondOptions;
 import se.trixon.almond.util.BundleHelper;
-import se.trixon.almond.util.SystemHelper;
 import se.trixon.almond.util.Dict;
+import se.trixon.almond.util.SystemHelper;
+import se.trixon.almond.util.Xlog;
+import se.trixon.almond.util.swing.SwingHelper;
+import se.trixon.filebydate.ui.MainFrame;
 
 /**
  *
@@ -38,6 +45,8 @@ public class FileByDate implements OperationListener {
 
     private final ResourceBundle mBundle = BundleHelper.getBundle(FileByDate.class, "Bundle");
     private Options mOptions;
+    private MainFrame mMainFrame = null;
+    private final AlmondOptions mAlmondOptions = AlmondOptions.INSTANCE;
 
     /**
      * @param args the command line arguments
@@ -50,7 +59,8 @@ public class FileByDate implements OperationListener {
         initOptions();
 
         if (args.length == 0) {
-            displayHelp();
+            System.out.println(mBundle.getString("hint_tui"));
+            displayGui();
         } else {
             try {
                 CommandLineParser commandLineParser = new DefaultParser();
@@ -61,6 +71,9 @@ public class FileByDate implements OperationListener {
                     System.exit(0);
                 } else if (commandLine.hasOption("version")) {
                     displayVersion();
+                    System.exit(0);
+                } else if (commandLine.hasOption("gui")) {
+                    displayGui();
                     System.exit(0);
                 } else {
                     OptionsHolder optionsHolder = new OptionsHolder(commandLine);
@@ -105,6 +118,30 @@ public class FileByDate implements OperationListener {
 
     @Override
     public void onOperationStarted() {
+    }
+
+    private void displayGui() {
+        if (GraphicsEnvironment.isHeadless()) {
+            Xlog.timedErr(mBundle.getString("headless"));
+            System.exit(1);
+
+            return;
+        }
+
+        UIManager.installLookAndFeel("Darcula", "com.bulenkov.darcula.DarculaLaf");
+
+        if (mAlmondOptions.isForceLookAndFeel()) {
+            try {
+                UIManager.setLookAndFeel(SwingHelper.getLookAndFeelClassName(mAlmondOptions.getLookAndFeel()));
+            } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex) {
+                Xlog.timedErr(ex.getMessage());
+            }
+        }
+
+        java.awt.EventQueue.invokeLater(() -> {
+            mMainFrame = new MainFrame();
+            mMainFrame.setVisible(true);
+        });
     }
 
     private void displayHelp() {
@@ -200,6 +237,11 @@ public class FileByDate implements OperationListener {
                 .optionalArg(false)
                 .build();
 
+        Option gui = Option.builder("g")
+                .longOpt("gui")
+                .desc(mBundle.getString("opt_gui_desc"))
+                .build();
+
         mOptions = new Options();
 
         mOptions.addOption(copy);
@@ -215,6 +257,8 @@ public class FileByDate implements OperationListener {
 
         mOptions.addOption(caseBase);
         mOptions.addOption(caseExt);
+
+        mOptions.addOption(gui);
 
         mOptions.addOption(help);
         mOptions.addOption(version);
