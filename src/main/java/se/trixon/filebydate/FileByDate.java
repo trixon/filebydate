@@ -46,7 +46,7 @@ public class FileByDate implements OperationListener {
     private final ResourceBundle mBundle = BundleHelper.getBundle(FileByDate.class, "Bundle");
     private Options mOptions;
     private MainFrame mMainFrame = null;
-    private final AlmondOptions mAlmondOptions = AlmondOptions.INSTANCE;
+    private final AlmondOptions mAlmondOptions = AlmondOptions.getInstance();
 
     /**
      * @param args the command line arguments

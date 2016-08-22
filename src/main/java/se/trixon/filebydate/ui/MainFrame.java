@@ -17,24 +17,28 @@ package se.trixon.filebydate.ui;
 
 import java.awt.Component;
 import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.util.LinkedList;
 import java.util.ResourceBundle;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.prefs.BackingStoreException;
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
 import javax.swing.Action;
 import javax.swing.ActionMap;
+import javax.swing.Icon;
 import javax.swing.InputMap;
 import javax.swing.JComponent;
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 import org.apache.commons.lang3.SystemUtils;
 import se.trixon.almond.util.AlmondAction;
+import se.trixon.almond.util.AlmondOptions;
+import se.trixon.almond.util.AlmondOptions.AlmondOptionsEvent;
+import se.trixon.almond.util.AlmondUI;
 import se.trixon.almond.util.BundleHelper;
 import se.trixon.almond.util.Dict;
 import se.trixon.almond.util.SystemHelper;
@@ -48,13 +52,14 @@ import se.trixon.filebydate.FileByDate;
  *
  * @author Patrik Karlsson
  */
-public class MainFrame extends javax.swing.JFrame {
+public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatcher {
 
     private final ResourceBundle mBundle = BundleHelper.getBundle(FileByDate.class, "Bundle");
     private ActionManager mActionManager;
-
+    private final AlmondUI mAlmondUI = AlmondUI.getInstance();
     private final LinkedList<AlmondAction> mServerActions = new LinkedList<>();
     private final LinkedList<AlmondAction> mAllActions = new LinkedList<>();
+    private final AlmondOptions mAlmondOptions = AlmondOptions.getInstance();
 
     /**
      * Creates new form MainFrame
@@ -64,15 +69,44 @@ public class MainFrame extends javax.swing.JFrame {
         init();
     }
 
+    @Override
+    public void onAlmondOptions(AlmondOptionsEvent almondOptionsEvent) {
+        switch (almondOptionsEvent) {
+            case ICON_THEME:
+                mAllActions.stream().forEach((almondAction) -> {
+                    almondAction.updateIcon();
+                });
+                break;
+
+            case LOOK_AND_FEEL:
+                SwingUtilities.updateComponentTreeUI(this);
+                SwingUtilities.updateComponentTreeUI(mPopupMenu);
+                break;
+
+            case MENU_ICONS:
+                ActionMap actionMap = getRootPane().getActionMap();
+                for (Object key : actionMap.allKeys()) {
+                    Action action = actionMap.get(key);
+                    Icon icon = null;
+                    if (mAlmondOptions.isDisplayMenuIcons()) {
+                        icon = (Icon) action.getValue(AlmondAction.ALMOND_SMALL_ICON_KEY);
+                    }
+                    action.putValue(Action.SMALL_ICON, icon);
+                }
+                break;
+
+            default:
+                throw new AssertionError();
+        }
+    }
+
     private void init() {
         mActionManager = new ActionManager();
         mActionManager.initActions();
 
-        try {
-            SwingHelper.frameStateRestore(this, 800, 600);
-        } catch (BackingStoreException ex) {
-            Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        mAlmondUI.addOptionsWatcher(this);
+        mAlmondUI.addWindowWatcher(this);
+        mAlmondUI.initoptions();
     }
 
     private void showOptions() {
@@ -107,7 +141,10 @@ public class MainFrame extends javax.swing.JFrame {
     private void initComponents() {
 
         mPopupMenu = new javax.swing.JPopupMenu();
+        renameMenuItem = new javax.swing.JMenuItem();
+        cloneMenuItem = new javax.swing.JMenuItem();
         removeAllProfilesMenuItem = new javax.swing.JMenuItem();
+        jSeparator1 = new javax.swing.JPopupMenu.Separator();
         optionsMenuItem = new javax.swing.JMenuItem();
         jSeparator2 = new javax.swing.JPopupMenu.Separator();
         aboutMenuItem = new javax.swing.JMenuItem();
@@ -117,13 +154,18 @@ public class MainFrame extends javax.swing.JFrame {
         profileComboBox = new javax.swing.JComboBox<>();
         startButton = new javax.swing.JButton();
         addButton = new javax.swing.JButton();
-        editButton = new javax.swing.JButton();
-        cloneButton = new javax.swing.JButton();
         removeButton = new javax.swing.JButton();
         menuButton = new javax.swing.JButton();
-        jPanel1 = new javax.swing.JPanel();
+        mainPanel = new javax.swing.JPanel();
 
+        java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("se/trixon/filebydate/ui/Bundle"); // NOI18N
+        renameMenuItem.setText(bundle.getString("MainFrame.renameMenuItem.text")); // NOI18N
+        mPopupMenu.add(renameMenuItem);
+
+        cloneMenuItem.setText(bundle.getString("MainFrame.cloneMenuItem.text")); // NOI18N
+        mPopupMenu.add(cloneMenuItem);
         mPopupMenu.add(removeAllProfilesMenuItem);
+        mPopupMenu.add(jSeparator1);
         mPopupMenu.add(optionsMenuItem);
         mPopupMenu.add(jSeparator2);
         mPopupMenu.add(aboutMenuItem);
@@ -131,13 +173,7 @@ public class MainFrame extends javax.swing.JFrame {
         mPopupMenu.add(quitMenuItem);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("se/trixon/filebydate/ui/Bundle"); // NOI18N
         setTitle(bundle.getString("MainFrame.title")); // NOI18N
-        addWindowListener(new java.awt.event.WindowAdapter() {
-            public void windowClosing(java.awt.event.WindowEvent evt) {
-                formWindowClosing(evt);
-            }
-        });
 
         toolBar.setFloatable(false);
         toolBar.setRollover(true);
@@ -154,16 +190,6 @@ public class MainFrame extends javax.swing.JFrame {
         addButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         addButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         toolBar.add(addButton);
-
-        editButton.setFocusable(false);
-        editButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        editButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        toolBar.add(editButton);
-
-        cloneButton.setFocusable(false);
-        cloneButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        cloneButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        toolBar.add(cloneButton);
 
         removeButton.setFocusable(false);
         removeButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -182,18 +208,18 @@ public class MainFrame extends javax.swing.JFrame {
 
         getContentPane().add(toolBar, java.awt.BorderLayout.PAGE_START);
 
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 701, Short.MAX_VALUE)
+        javax.swing.GroupLayout mainPanelLayout = new javax.swing.GroupLayout(mainPanel);
+        mainPanel.setLayout(mainPanelLayout);
+        mainPanelLayout.setHorizontalGroup(
+            mainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 540, Short.MAX_VALUE)
         );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 451, Short.MAX_VALUE)
+        mainPanelLayout.setVerticalGroup(
+            mainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 312, Short.MAX_VALUE)
         );
 
-        getContentPane().add(jPanel1, java.awt.BorderLayout.CENTER);
+        getContentPane().add(mainPanel, java.awt.BorderLayout.CENTER);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -228,25 +254,22 @@ public class MainFrame extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_menuButtonMousePressed
 
-    private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
-        SwingHelper.frameStateSave(this);
-    }//GEN-LAST:event_formWindowClosing
-
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JMenuItem aboutMenuItem;
     private javax.swing.JButton addButton;
-    private javax.swing.JButton cloneButton;
-    private javax.swing.JButton editButton;
-    private javax.swing.JPanel jPanel1;
+    private javax.swing.JMenuItem cloneMenuItem;
+    private javax.swing.JSeparator jSeparator1;
     private javax.swing.JPopupMenu.Separator jSeparator2;
     private javax.swing.JPopupMenu.Separator jSeparator6;
     private javax.swing.JPopupMenu mPopupMenu;
+    private javax.swing.JPanel mainPanel;
     private javax.swing.JButton menuButton;
     private javax.swing.JMenuItem optionsMenuItem;
     private javax.swing.JComboBox<String> profileComboBox;
     private javax.swing.JMenuItem quitMenuItem;
     private javax.swing.JMenuItem removeAllProfilesMenuItem;
     private javax.swing.JButton removeButton;
+    private javax.swing.JMenuItem renameMenuItem;
     private javax.swing.JButton startButton;
     private javax.swing.JToolBar toolBar;
     // End of variables declaration//GEN-END:variables
@@ -256,12 +279,12 @@ public class MainFrame extends javax.swing.JFrame {
         static final String ABOUT = "about";
         static final String ADD = "add";
         static final String CLONE = "clone";
-        static final String EDIT = "edit";
         static final String MENU = "menu";
         static final String OPTIONS = "options";
         static final String QUIT = "shutdownServerAndWindow";
         static final String REMOVE = "remove";
         static final String REMOVE_ALL = "remove_all";
+        static final String RENAME = "rename";
         static final String START = "start";
 
         private ActionManager() {
@@ -304,6 +327,7 @@ public class MainFrame extends javax.swing.JFrame {
 
                 @Override
                 public void actionPerformed(ActionEvent e) {
+                    System.out.println("toggle menu");
 //                    menuButtonMousePressed(null);
                 }
             };
@@ -331,6 +355,7 @@ public class MainFrame extends javax.swing.JFrame {
 
                 @Override
                 public void actionPerformed(ActionEvent e) {
+                    System.out.println("start");
                 }
             };
 
@@ -338,11 +363,13 @@ public class MainFrame extends javax.swing.JFrame {
             startButton.setAction(action);
 
             //add
-            keyStroke = null;
+            keyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, 0);
+
             action = new AlmondAction(Dict.ADD.toString()) {
 
                 @Override
                 public void actionPerformed(ActionEvent e) {
+                    System.out.println("add");
                 }
             };
 
@@ -350,35 +377,38 @@ public class MainFrame extends javax.swing.JFrame {
             addButton.setAction(action);
 
             //clone
-            keyStroke = null;
+            keyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_C, commandMask);
             action = new AlmondAction(Dict.CLONE.toString()) {
 
                 @Override
                 public void actionPerformed(ActionEvent e) {
+                    System.out.println("clone");
                 }
             };
 
             initAction(action, CLONE, keyStroke, MaterialIcon.Content.CONTENT_COPY, false);
-            cloneButton.setAction(action);
+            cloneMenuItem.setAction(action);
 
-            //edit
-            keyStroke = null;
-            action = new AlmondAction(Dict.EDIT.toString()) {
+            //rename
+            keyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_R, commandMask);
+            action = new AlmondAction(Dict.RENAME.toString()) {
 
                 @Override
                 public void actionPerformed(ActionEvent e) {
+                    System.out.println("rename");
                 }
             };
 
-            initAction(action, EDIT, keyStroke, MaterialIcon.Editor.MODE_EDIT, false);
-            editButton.setAction(action);
+            initAction(action, RENAME, keyStroke, MaterialIcon.Editor.MODE_EDIT, false);
+            renameMenuItem.setAction(action);
 
             //remove
-            keyStroke = null;
+            keyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0);
             action = new AlmondAction(Dict.REMOVE.toString()) {
 
                 @Override
                 public void actionPerformed(ActionEvent e) {
+                    System.out.println("remove");
                 }
             };
 
@@ -386,11 +416,12 @@ public class MainFrame extends javax.swing.JFrame {
             removeButton.setAction(action);
 
             //remove all
-            keyStroke = null;
+            keyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, InputEvent.SHIFT_DOWN_MASK);
             action = new AlmondAction(Dict.REMOVE_ALL.toString()) {
 
                 @Override
                 public void actionPerformed(ActionEvent e) {
+                    System.out.println("remove all");
                 }
             };
 

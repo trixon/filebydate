@@ -29,7 +29,7 @@ public class OptionsPanel extends javax.swing.JPanel {
     }
 
     void save() {
-
+        lookAndFeelPanel.save();
     }
 
     /**
@@ -41,18 +41,21 @@ public class OptionsPanel extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        lookAndFeelPanel = new se.trixon.almond.util.swing.dialogs.LookAndFeelPanel();
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
+            .addComponent(lookAndFeelPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 300, Short.MAX_VALUE)
+            .addComponent(lookAndFeelPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
         );
     }// </editor-fold>//GEN-END:initComponents
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private se.trixon.almond.util.swing.dialogs.LookAndFeelPanel lookAndFeelPanel;
     // End of variables declaration//GEN-END:variables
 }
