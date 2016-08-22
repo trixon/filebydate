@@ -19,8 +19,6 @@ import java.awt.GraphicsEnvironment;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.ResourceBundle;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -30,11 +28,11 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.SystemUtils;
 import se.trixon.almond.util.AlmondOptions;
+import se.trixon.almond.util.AlmondUI;
 import se.trixon.almond.util.BundleHelper;
 import se.trixon.almond.util.Dict;
 import se.trixon.almond.util.SystemHelper;
 import se.trixon.almond.util.Xlog;
-import se.trixon.almond.util.swing.SwingHelper;
 import se.trixon.filebydate.ui.MainFrame;
 
 /**
@@ -47,6 +45,7 @@ public class FileByDate implements OperationListener {
     private Options mOptions;
     private MainFrame mMainFrame = null;
     private final AlmondOptions mAlmondOptions = AlmondOptions.getInstance();
+    private final AlmondUI mAlmondUI = AlmondUI.getInstance();
 
     /**
      * @param args the command line arguments
@@ -128,15 +127,8 @@ public class FileByDate implements OperationListener {
             return;
         }
 
-        UIManager.installLookAndFeel("Darcula", "com.bulenkov.darcula.DarculaLaf");
-
-        if (mAlmondOptions.isForceLookAndFeel()) {
-            try {
-                UIManager.setLookAndFeel(SwingHelper.getLookAndFeelClassName(mAlmondOptions.getLookAndFeel()));
-            } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex) {
-                Xlog.timedErr(ex.getMessage());
-            }
-        }
+        mAlmondUI.installDarcula();
+        mAlmondUI.initLookAndFeel();
 
         java.awt.EventQueue.invokeLater(() -> {
             mMainFrame = new MainFrame();
