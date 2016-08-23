@@ -107,6 +107,21 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         mAlmondUI.addOptionsWatcher(this);
         mAlmondUI.addWindowWatcher(this);
         mAlmondUI.initoptions();
+
+        InputMap inputMap = mPopupMenu.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        ActionMap actionMap = mPopupMenu.getActionMap();
+        Action action = new AbstractAction("HideMenu") {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                mPopupMenu.setVisible(false);
+            }
+        };
+
+        String key = "HideMenu";
+        actionMap.put(key, action);
+        KeyStroke keyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
+        inputMap.put(keyStroke, key);
     }
 
     private void showOptions() {
@@ -226,21 +241,6 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
 
     private void menuButtonMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_menuButtonMousePressed
         if (evt == null || evt.getButton() == MouseEvent.BUTTON1) {
-            InputMap inputMap = mPopupMenu.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-            ActionMap actionMap = mPopupMenu.getActionMap();
-            Action action = new AbstractAction("HideMenu") {
-
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    mPopupMenu.setVisible(false);
-                }
-            };
-
-            String key = "HideMenu";
-            actionMap.put(key, action);
-            KeyStroke keyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
-            inputMap.put(keyStroke, key);
-
             if (mPopupMenu.isVisible()) {
                 mPopupMenu.setVisible(false);
             } else {
@@ -327,8 +327,9 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
 
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    System.out.println("toggle menu");
-//                    menuButtonMousePressed(null);
+                    if (e.getSource() != menuButton) {
+                        menuButtonMousePressed(null);
+                    }
                 }
             };
 
