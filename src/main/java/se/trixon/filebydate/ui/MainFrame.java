@@ -176,32 +176,25 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         sourceChooserPanel = new se.trixon.almond.util.swing.dialogs.FileChooserPanel();
         destChooserPanel = new se.trixon.almond.util.swing.dialogs.FileChooserPanel();
         options1Panel = new javax.swing.JPanel();
-        patternPanel = new javax.swing.JPanel();
         patternLabel = new javax.swing.JLabel();
         patternTextField = new javax.swing.JTextField();
-        dateSourcePanel = new javax.swing.JPanel();
         dateSourceLabel = new javax.swing.JLabel();
         dateSourceComboBox = new javax.swing.JComboBox();
-        dateFormatPanel = new javax.swing.JPanel();
         dateFormatLabel = new javax.swing.JLabel();
         dateFormatTextField = new javax.swing.JTextField();
         options2Panel = new javax.swing.JPanel();
-        dryRunCheckBox = new javax.swing.JCheckBox();
-        followLinksCheckBox = new javax.swing.JCheckBox();
+        operationLabel = new javax.swing.JLabel();
         opComboBox = new javax.swing.JComboBox();
+        followLinksCheckBox = new javax.swing.JCheckBox();
         recursiveCheckBox = new javax.swing.JCheckBox();
         jLabel1 = new javax.swing.JLabel();
         jComboBox2 = new javax.swing.JComboBox<>();
         jLabel2 = new javax.swing.JLabel();
         jComboBox3 = new javax.swing.JComboBox<>();
-        jLabel3 = new javax.swing.JLabel();
+        jPanel1 = new javax.swing.JPanel();
         logPanel = new se.trixon.almond.util.swing.LogPanel();
 
-        java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("se/trixon/filebydate/ui/Bundle"); // NOI18N
-        renameMenuItem.setText(bundle.getString("MainFrame.renameMenuItem.text")); // NOI18N
         mPopupMenu.add(renameMenuItem);
-
-        cloneMenuItem.setText(bundle.getString("MainFrame.cloneMenuItem.text")); // NOI18N
         mPopupMenu.add(cloneMenuItem);
         mPopupMenu.add(removeAllProfilesMenuItem);
         mPopupMenu.add(jSeparator1);
@@ -212,12 +205,11 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         mPopupMenu.add(quitMenuItem);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("se/trixon/filebydate/ui/Bundle"); // NOI18N
         setTitle(bundle.getString("MainFrame.title")); // NOI18N
 
         toolBar.setFloatable(false);
         toolBar.setRollover(true);
-
-        profileComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
         toolBar.add(profileComboBox);
 
         startButton.setFocusable(false);
@@ -265,85 +257,49 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         gridBagConstraints.insets = new java.awt.Insets(8, 8, 0, 8);
         mainPanel.add(destChooserPanel, gridBagConstraints);
 
-        options1Panel.setLayout(new java.awt.GridLayout(1, 0));
+        options1Panel.setLayout(new java.awt.GridBagLayout());
 
         patternLabel.setText(Dict.FILE_PATTERN.getString());
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.FIRST_LINE_START;
+        options1Panel.add(patternLabel, gridBagConstraints);
 
         patternTextField.setText("*"); // NOI18N
-
-        javax.swing.GroupLayout patternPanelLayout = new javax.swing.GroupLayout(patternPanel);
-        patternPanel.setLayout(patternPanelLayout);
-        patternPanelLayout.setHorizontalGroup(
-            patternPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(patternPanelLayout.createSequentialGroup()
-                .addGap(0, 0, 0)
-                .addGroup(patternPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(patternPanelLayout.createSequentialGroup()
-                        .addComponent(patternLabel)
-                        .addGap(0, 113, Short.MAX_VALUE))
-                    .addComponent(patternTextField))
-                .addContainerGap())
-        );
-        patternPanelLayout.setVerticalGroup(
-            patternPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(patternPanelLayout.createSequentialGroup()
-                .addComponent(patternLabel)
-                .addGap(0, 0, 0)
-                .addComponent(patternTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 6, Short.MAX_VALUE))
-        );
-
-        options1Panel.add(patternPanel);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.weightx = 1.0;
+        options1Panel.add(patternTextField, gridBagConstraints);
 
         dateSourceLabel.setText(bundle.getString("MainFrame.dateSourceLabel.text")); // NOI18N
-
-        javax.swing.GroupLayout dateSourcePanelLayout = new javax.swing.GroupLayout(dateSourcePanel);
-        dateSourcePanel.setLayout(dateSourcePanelLayout);
-        dateSourcePanelLayout.setHorizontalGroup(
-            dateSourcePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(dateSourcePanelLayout.createSequentialGroup()
-                .addGap(0, 0, 0)
-                .addGroup(dateSourcePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(dateSourceComboBox, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(dateSourcePanelLayout.createSequentialGroup()
-                        .addComponent(dateSourceLabel)
-                        .addGap(0, 121, Short.MAX_VALUE)))
-                .addContainerGap())
-        );
-        dateSourcePanelLayout.setVerticalGroup(
-            dateSourcePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(dateSourcePanelLayout.createSequentialGroup()
-                .addComponent(dateSourceLabel)
-                .addGap(0, 0, 0)
-                .addComponent(dateSourceComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 4, Short.MAX_VALUE))
-        );
-
-        options1Panel.add(dateSourcePanel);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.FIRST_LINE_START;
+        gridBagConstraints.insets = new java.awt.Insets(0, 8, 0, 8);
+        options1Panel.add(dateSourceLabel, gridBagConstraints);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(0, 8, 0, 8);
+        options1Panel.add(dateSourceComboBox, gridBagConstraints);
 
         dateFormatLabel.setText(Dict.DATE_PATTERN.getString());
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.FIRST_LINE_START;
+        options1Panel.add(dateFormatLabel, gridBagConstraints);
 
         dateFormatTextField.setToolTipText("<html>\n <h3>Date and Time Patterns</h3>\n <p>\n Date and time formats are specified by <em>date and time pattern</em>\n strings.\n Within date and time pattern strings, unquoted letters<br />from\n <code>'A'</code> to <code>'Z'</code> and from <code>'a'</code> to\n <code>'z'</code> are interpreted as pattern letters representing the\n components of a date or time string.<br />\n Text can be quoted using single quotes (<code>'</code>) to avoid\n interpretation.\n <code>\"''\"</code> represents a single quote.<br />\n All other characters are not interpreted; they're simply copied into the\n output string during formatting or matched against<br />the input string\n during parsing.\n <p>\nThe following pattern letters are defined (all other characters from\n <code>'A'</code> to <code>'Z'</code> and from <code>'a'</code> to\n <code>'z'</code> are reserved):\n <blockquote>\n <table border=0 cellspacing=3 cellpadding=0 summary=\"Chart shows pattern letters, date/time component, presentation, and examples.\">\n     <tr style=\"background-color: rgb(204, 204, 255);\">\n         <th align=left>Letter\n         <th align=left>Date or Time Component\n         <th align=left>Presentation\n         <th align=left>Examples\n     <tr>\n         <td><code>G</code>\n         <td>Era designator\n         <td><a href=\"#text\">Text</a>\n         <td><code>AD</code>\n     <tr style=\"background-color: rgb(238, 238, 255);\">\n         <td><code>y</code>\n         <td>Year\n         <td><a href=\"#year\">Year</a>\n         <td><code>1996</code>; <code>96</code>\n     <tr>\n         <td><code>Y</code>\n         <td>Week year\n         <td><a href=\"#year\">Year</a>\n         <td><code>2009</code>; <code>09</code>\n     <tr style=\"background-color: rgb(238, 238, 255);\">\n         <td><code>M</code>\n         <td>Month in year (context sensitive)\n         <td><a href=\"#month\">Month</a>\n         <td><code>July</code>; <code>Jul</code>; <code>07</code>\n     <tr>\n         <td><code>L</code>\n         <td>Month in year (standalone form)\n         <td><a href=\"#month\">Month</a>\n         <td><code>July</code>; <code>Jul</code>; <code>07</code>\n     <tr style=\"background-color: rgb(238, 238, 255);\">\n         <td><code>w</code>\n         <td>Week in year\n         <td><a href=\"#number\">Number</a>\n         <td><code>27</code>\n     <tr>\n         <td><code>W</code>\n         <td>Week in month\n         <td><a href=\"#number\">Number</a>\n         <td><code>2</code>\n     <tr style=\"background-color: rgb(238, 238, 255);\">\n         <td><code>D</code>\n         <td>Day in year\n         <td><a href=\"#number\">Number</a>\n         <td><code>189</code>\n     <tr>\n         <td><code>d</code>\n         <td>Day in month\n         <td><a href=\"#number\">Number</a>\n         <td><code>10</code>\n     <tr style=\"background-color: rgb(238, 238, 255);\">\n         <td><code>F</code>\n         <td>Day of week in month\n         <td><a href=\"#number\">Number</a>\n         <td><code>2</code>\n     <tr>\n         <td><code>E</code>\n         <td>Day name in week\n         <td><a href=\"#text\">Text</a>\n         <td><code>Tuesday</code>; <code>Tue</code>\n     <tr style=\"background-color: rgb(238, 238, 255);\">\n         <td><code>u</code>\n         <td>Day number of week (1 = Monday, ..., 7 = Sunday)\n         <td><a href=\"#number\">Number</a>\n         <td><code>1</code>\n     <tr>\n         <td><code>a</code>\n         <td>Am/pm marker\n         <td><a href=\"#text\">Text</a>\n         <td><code>PM</code>\n     <tr style=\"background-color: rgb(238, 238, 255);\">\n         <td><code>H</code>\n         <td>Hour in day (0-23)\n         <td><a href=\"#number\">Number</a>\n         <td><code>0</code>\n     <tr>\n         <td><code>k</code>\n         <td>Hour in day (1-24)\n         <td><a href=\"#number\">Number</a>\n         <td><code>24</code>\n     <tr style=\"background-color: rgb(238, 238, 255);\">\n         <td><code>K</code>\n         <td>Hour in am/pm (0-11)\n         <td><a href=\"#number\">Number</a>\n         <td><code>0</code>\n     <tr>\n         <td><code>h</code>\n         <td>Hour in am/pm (1-12)\n         <td><a href=\"#number\">Number</a>\n         <td><code>12</code>\n     <tr style=\"background-color: rgb(238, 238, 255);\">\n         <td><code>m</code>\n         <td>Minute in hour\n         <td><a href=\"#number\">Number</a>\n         <td><code>30</code>\n     <tr>\n         <td><code>s</code>\n         <td>Second in minute\n         <td><a href=\"#number\">Number</a>\n         <td><code>55</code>\n     <tr style=\"background-color: rgb(238, 238, 255);\">\n         <td><code>S</code>\n         <td>Millisecond\n         <td><a href=\"#number\">Number</a>\n         <td><code>978</code>\n     <tr>\n         <td><code>z</code>\n         <td>Time zone\n         <td><a href=\"#timezone\">General time zone</a>\n         <td><code>Pacific Standard Time</code>; <code>PST</code>; <code>GMT-08:00</code>\n     <tr style=\"background-color: rgb(238, 238, 255);\">\n         <td><code>Z</code>\n         <td>Time zone\n         <td><a href=\"#rfc822timezone\">RFC 822 time zone</a>\n         <td><code>-0800</code>\n     <tr>\n         <td><code>X</code>\n         <td>Time zone\n         <td><a href=\"#iso8601timezone\">ISO 8601 time zone</a>\n         <td><code>-08</code>; <code>-0800</code>;  <code>-08:00</code>\n </table>\n </blockquote>"); // NOI18N
-
-        javax.swing.GroupLayout dateFormatPanelLayout = new javax.swing.GroupLayout(dateFormatPanel);
-        dateFormatPanel.setLayout(dateFormatPanelLayout);
-        dateFormatPanelLayout.setHorizontalGroup(
-            dateFormatPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(dateFormatPanelLayout.createSequentialGroup()
-                .addComponent(dateFormatLabel)
-                .addGap(0, 119, Short.MAX_VALUE))
-            .addComponent(dateFormatTextField)
-        );
-        dateFormatPanelLayout.setVerticalGroup(
-            dateFormatPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(dateFormatPanelLayout.createSequentialGroup()
-                .addComponent(dateFormatLabel)
-                .addGap(0, 0, 0)
-                .addComponent(dateFormatTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-
-        options1Panel.add(dateFormatPanel);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.weightx = 1.0;
+        options1Panel.add(dateFormatTextField, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -352,83 +308,90 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         gridBagConstraints.insets = new java.awt.Insets(8, 8, 0, 8);
         mainPanel.add(options1Panel, gridBagConstraints);
 
-        dryRunCheckBox.setText(Dict.DRY_RUN.getString());
-        dryRunCheckBox.setFocusable(false);
-        dryRunCheckBox.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        options2Panel.setLayout(new java.awt.GridBagLayout());
+
+        operationLabel.setText(bundle.getString("MainFrame.operationLabel.text")); // NOI18N
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(1, 0, 0, 0);
+        options2Panel.add(operationLabel, gridBagConstraints);
+
+        opComboBox.setMaximumSize(new java.awt.Dimension(200, 32767));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        options2Panel.add(opComboBox, gridBagConstraints);
 
         followLinksCheckBox.setText(Dict.FOLLOW_LINKS.getString());
         followLinksCheckBox.setFocusable(false);
         followLinksCheckBox.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-
-        opComboBox.setMaximumSize(new java.awt.Dimension(200, 32767));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 8, 0, 0);
+        options2Panel.add(followLinksCheckBox, gridBagConstraints);
 
         recursiveCheckBox.setText(Dict.RECURSIVE.getString());
         recursiveCheckBox.setFocusable(false);
         recursiveCheckBox.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 8, 0, 0);
+        options2Panel.add(recursiveCheckBox, gridBagConstraints);
 
         jLabel1.setText(bundle.getString("MainFrame.jLabel1.text")); // NOI18N
-
-        jComboBox2.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 8, 0, 0);
+        options2Panel.add(jLabel1, gridBagConstraints);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 8, 0, 0);
+        options2Panel.add(jComboBox2, gridBagConstraints);
 
         jLabel2.setText(bundle.getString("MainFrame.jLabel2.text")); // NOI18N
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 8, 0, 0);
+        options2Panel.add(jLabel2, gridBagConstraints);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 8, 0, 0);
+        options2Panel.add(jComboBox3, gridBagConstraints);
 
-        jComboBox3.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-
-        jLabel3.setText(bundle.getString("MainFrame.jLabel3.text")); // NOI18N
-
-        javax.swing.GroupLayout options2PanelLayout = new javax.swing.GroupLayout(options2Panel);
-        options2Panel.setLayout(options2PanelLayout);
-        options2PanelLayout.setHorizontalGroup(
-            options2PanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(options2PanelLayout.createSequentialGroup()
-                .addGap(0, 0, 0)
-                .addGroup(options2PanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel3)
-                    .addGroup(options2PanelLayout.createSequentialGroup()
-                        .addComponent(opComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(recursiveCheckBox)
-                        .addGap(18, 18, 18)
-                        .addComponent(followLinksCheckBox)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(dryRunCheckBox)))
-                .addGap(33, 33, 33)
-                .addGroup(options2PanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(options2PanelLayout.createSequentialGroup()
-                        .addComponent(jLabel1)
-                        .addGap(42, 42, 42)
-                        .addComponent(jLabel2))
-                    .addGroup(options2PanelLayout.createSequentialGroup()
-                        .addComponent(jComboBox2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(jComboBox3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 0, Short.MAX_VALUE)
         );
-        options2PanelLayout.setVerticalGroup(
-            options2PanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(options2PanelLayout.createSequentialGroup()
-                .addGap(0, 0, 0)
-                .addGroup(options2PanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(options2PanelLayout.createSequentialGroup()
-                        .addComponent(jLabel3)
-                        .addGroup(options2PanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(options2PanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                .addComponent(opComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(recursiveCheckBox))
-                            .addGroup(options2PanelLayout.createSequentialGroup()
-                                .addGap(6, 6, 6)
-                                .addComponent(followLinksCheckBox))))
-                    .addGroup(options2PanelLayout.createSequentialGroup()
-                        .addGroup(options2PanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLabel1)
-                            .addComponent(jLabel2))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(options2PanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jComboBox2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jComboBox3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                    .addComponent(dryRunCheckBox))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 0, Short.MAX_VALUE)
         );
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 5;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridheight = java.awt.GridBagConstraints.REMAINDER;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 1.0;
+        options2Panel.add(jPanel1, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -442,6 +405,7 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(8, 0, 0, 0);
         mainPanel.add(logPanel, gridBagConstraints);
 
         getContentPane().add(mainPanel, java.awt.BorderLayout.CENTER);
@@ -469,19 +433,16 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
     private javax.swing.JButton addButton;
     private javax.swing.JMenuItem cloneMenuItem;
     private javax.swing.JLabel dateFormatLabel;
-    private javax.swing.JPanel dateFormatPanel;
     private javax.swing.JTextField dateFormatTextField;
     private javax.swing.JComboBox dateSourceComboBox;
     private javax.swing.JLabel dateSourceLabel;
-    private javax.swing.JPanel dateSourcePanel;
     private se.trixon.almond.util.swing.dialogs.FileChooserPanel destChooserPanel;
-    private javax.swing.JCheckBox dryRunCheckBox;
     private javax.swing.JCheckBox followLinksCheckBox;
     private javax.swing.JComboBox<String> jComboBox2;
     private javax.swing.JComboBox<String> jComboBox3;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
+    private javax.swing.JPanel jPanel1;
     private javax.swing.JPopupMenu.Separator jSeparator1;
     private javax.swing.JPopupMenu.Separator jSeparator2;
     private javax.swing.JPopupMenu.Separator jSeparator6;
@@ -490,11 +451,11 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
     private javax.swing.JPanel mainPanel;
     private javax.swing.JButton menuButton;
     private javax.swing.JComboBox opComboBox;
+    private javax.swing.JLabel operationLabel;
     private javax.swing.JPanel options1Panel;
     private javax.swing.JPanel options2Panel;
     private javax.swing.JMenuItem optionsMenuItem;
     private javax.swing.JLabel patternLabel;
-    private javax.swing.JPanel patternPanel;
     private javax.swing.JTextField patternTextField;
     private javax.swing.JComboBox<String> profileComboBox;
     private javax.swing.JMenuItem quitMenuItem;
