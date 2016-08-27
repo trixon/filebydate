@@ -21,19 +21,28 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.ResourceBundle;
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
 import javax.swing.Action;
 import javax.swing.ActionMap;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.InputMap;
 import javax.swing.JComponent;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import se.trixon.almond.util.AlmondAction;
 import se.trixon.almond.util.AlmondOptions;
@@ -45,6 +54,7 @@ import se.trixon.almond.util.SystemHelper;
 import se.trixon.almond.util.icon.Pict;
 import se.trixon.almond.util.icons.material.MaterialIcon;
 import se.trixon.almond.util.swing.SwingHelper;
+import se.trixon.almond.util.swing.dialogs.FileChooserPanel;
 import se.trixon.almond.util.swing.dialogs.Message;
 import se.trixon.filebydate.FileByDate;
 
@@ -52,9 +62,10 @@ import se.trixon.filebydate.FileByDate;
  *
  * @author Patrik Karlsson
  */
-public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatcher {
+public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatcher, FileChooserPanel.FileChooserButtonListener {
 
     private final ResourceBundle mBundle = BundleHelper.getBundle(FileByDate.class, "Bundle");
+    private final ResourceBundle mBundleUI = BundleHelper.getBundle(MainFrame.class, "Bundle");
     private ActionManager mActionManager;
     private final AlmondUI mAlmondUI = AlmondUI.getInstance();
     private final LinkedList<AlmondAction> mServerActions = new LinkedList<>();
@@ -100,7 +111,87 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         }
     }
 
+    @Override
+    public void onFileChooserCancel(FileChooserPanel fileChooserPanel) {
+        // nvm
+    }
+
+    @Override
+    public void onFileChooserCheckBoxChange(FileChooserPanel fileChooserPanel, boolean isSelected) {
+        // nvm
+    }
+
+    @Override
+    public void onFileChooserDrop(FileChooserPanel fileChooserPanel) {
+        if (fileChooserPanel == sourceChooserPanel) {
+        }
+    }
+
+    @Override
+    public void onFileChooserOk(FileChooserPanel fileChooserPanel, File file) {
+        JFileChooser fileChooser = fileChooserPanel.getFileChooser();
+
+        if (fileChooserPanel == sourceChooserPanel) {
+            if (fileChooser.isMultiSelectionEnabled()) {
+                String paths = StringUtils.join(fileChooser.getSelectedFiles(), SystemUtils.PATH_SEPARATOR);
+                fileChooserPanel.setPath(paths);
+            }
+        }
+    }
+
+    @Override
+    public void onFileChooserPreSelect(FileChooserPanel fileChooserPanel) {
+        if (fileChooserPanel == sourceChooserPanel) {
+            final String[] paths = sourceChooserPanel.getPath().split(SystemUtils.PATH_SEPARATOR);
+            File[] files = new File[paths.length];
+
+            for (int i = 0; i < files.length; i++) {
+                files[i] = new File(paths[i]);
+            }
+
+            sourceChooserPanel.getFileChooser().setSelectedFiles(files);
+        }
+    }
+
     private void init() {
+        String fileName = String.format("/%s/calendar-icon-1024px.png", getClass().getPackage().getName().replace(".", "/"));
+        ImageIcon imageIcon = new ImageIcon(getClass().getResource(fileName));
+        setIconImage(imageIcon.getImage());
+
+        opComboBox.setModel(new DefaultComboBoxModel(mBundleUI.getString("operations").split("\\|")));
+        dateSourceComboBox.setModel(new DefaultComboBoxModel(mBundleUI.getString("dateSource").split("\\|")));
+        caseBaseComboBox.setModel(new DefaultComboBoxModel(mBundleUI.getString("case").split("\\|")));
+        caseSuffixComboBox.setModel(new DefaultComboBoxModel(mBundleUI.getString("case").split("\\|")));
+        followLinksCheckBox.setEnabled(!SystemUtils.IS_OS_WINDOWS);
+
+        destChooserPanel.setDropMode(FileChooserPanel.DropMode.SINGLE);
+        destChooserPanel.setMode(JFileChooser.DIRECTORIES_ONLY);
+
+        sourceChooserPanel.setDropMode(FileChooserPanel.DropMode.SINGLE);
+        sourceChooserPanel.setMode(JFileChooser.FILES_AND_DIRECTORIES);
+        sourceChooserPanel.getFileChooser().setMultiSelectionEnabled(true);
+        sourceChooserPanel.setButtonListener(this);
+
+        previewDateFormat();
+
+        dateFormatTextField.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                previewDateFormat();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                previewDateFormat();
+            }
+
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                previewDateFormat();
+            }
+
+        });
+
         mActionManager = new ActionManager();
         mActionManager.initActions();
 
@@ -122,6 +213,20 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         actionMap.put(key, action);
         KeyStroke keyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
         inputMap.put(keyStroke, key);
+    }
+
+    private void previewDateFormat() {
+        String datePreview;
+
+        try {
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat(dateFormatTextField.getText());
+            datePreview = simpleDateFormat.format(new Date(System.currentTimeMillis()));
+        } catch (IllegalArgumentException ex) {
+            datePreview = Dict.ERROR.toString();
+        }
+
+        String dateLabel = String.format("%s (%s)", Dict.DATE_PATTERN.getString(), datePreview);
+        dateFormatLabel.setText(dateLabel);
     }
 
     private void showOptions() {
@@ -188,9 +293,9 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         followLinksCheckBox = new javax.swing.JCheckBox();
         recursiveCheckBox = new javax.swing.JCheckBox();
         jLabel1 = new javax.swing.JLabel();
-        jComboBox2 = new javax.swing.JComboBox<>();
+        caseBaseComboBox = new javax.swing.JComboBox<>();
         jLabel2 = new javax.swing.JLabel();
-        jComboBox3 = new javax.swing.JComboBox<>();
+        caseSuffixComboBox = new javax.swing.JComboBox<>();
         jPanel1 = new javax.swing.JPanel();
         logPanel = new se.trixon.almond.util.swing.LogPanel();
 
@@ -273,7 +378,7 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         gridBagConstraints.weightx = 1.0;
         options1Panel.add(patternTextField, gridBagConstraints);
 
-        dateSourceLabel.setText(bundle.getString("MainFrame.dateSourceLabel.text")); // NOI18N
+        dateSourceLabel.setText(Dict.DATE_SOURCE.toString());
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.anchor = java.awt.GridBagConstraints.FIRST_LINE_START;
         gridBagConstraints.insets = new java.awt.Insets(0, 8, 0, 8);
@@ -283,7 +388,7 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
-        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weightx = 0.25;
         gridBagConstraints.insets = new java.awt.Insets(0, 8, 0, 8);
         options1Panel.add(dateSourceComboBox, gridBagConstraints);
 
@@ -358,7 +463,7 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         gridBagConstraints.insets = new java.awt.Insets(0, 8, 0, 0);
-        options2Panel.add(jComboBox2, gridBagConstraints);
+        options2Panel.add(caseBaseComboBox, gridBagConstraints);
 
         jLabel2.setText(bundle.getString("MainFrame.jLabel2.text")); // NOI18N
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -372,7 +477,7 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         gridBagConstraints.insets = new java.awt.Insets(0, 8, 0, 0);
-        options2Panel.add(jComboBox3, gridBagConstraints);
+        options2Panel.add(caseSuffixComboBox, gridBagConstraints);
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -431,6 +536,8 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JMenuItem aboutMenuItem;
     private javax.swing.JButton addButton;
+    private javax.swing.JComboBox<String> caseBaseComboBox;
+    private javax.swing.JComboBox<String> caseSuffixComboBox;
     private javax.swing.JMenuItem cloneMenuItem;
     private javax.swing.JLabel dateFormatLabel;
     private javax.swing.JTextField dateFormatTextField;
@@ -438,8 +545,6 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
     private javax.swing.JLabel dateSourceLabel;
     private se.trixon.almond.util.swing.dialogs.FileChooserPanel destChooserPanel;
     private javax.swing.JCheckBox followLinksCheckBox;
-    private javax.swing.JComboBox<String> jComboBox2;
-    private javax.swing.JComboBox<String> jComboBox3;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JPanel jPanel1;
