@@ -73,7 +73,6 @@ public class FileByDate implements OperationListener {
                     System.exit(0);
                 } else if (commandLine.hasOption("gui")) {
                     displayGui();
-                    System.exit(0);
                 } else {
                     OptionsHolder optionsHolder = new OptionsHolder(commandLine);
 

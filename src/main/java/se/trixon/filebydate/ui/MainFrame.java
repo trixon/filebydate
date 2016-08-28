@@ -21,11 +21,14 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
-import java.io.File;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
 import javax.swing.Action;
@@ -42,7 +45,7 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import org.apache.commons.lang3.StringUtils;
+import javax.swing.text.Document;
 import org.apache.commons.lang3.SystemUtils;
 import se.trixon.almond.util.AlmondAction;
 import se.trixon.almond.util.AlmondOptions;
@@ -57,20 +60,25 @@ import se.trixon.almond.util.swing.SwingHelper;
 import se.trixon.almond.util.swing.dialogs.FileChooserPanel;
 import se.trixon.almond.util.swing.dialogs.Message;
 import se.trixon.filebydate.FileByDate;
+import se.trixon.filebydate.Profile;
+import se.trixon.filebydate.ProfileManager;
 
 /**
  *
  * @author Patrik Karlsson
  */
-public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatcher, FileChooserPanel.FileChooserButtonListener {
+public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatcher {
 
     private final ResourceBundle mBundle = BundleHelper.getBundle(FileByDate.class, "Bundle");
     private final ResourceBundle mBundleUI = BundleHelper.getBundle(MainFrame.class, "Bundle");
     private ActionManager mActionManager;
     private final AlmondUI mAlmondUI = AlmondUI.getInstance();
-    private final LinkedList<AlmondAction> mServerActions = new LinkedList<>();
+    private final LinkedList<AlmondAction> mBaseActions = new LinkedList<>();
     private final LinkedList<AlmondAction> mAllActions = new LinkedList<>();
     private final AlmondOptions mAlmondOptions = AlmondOptions.getInstance();
+    private final ProfileManager mProfileManager = ProfileManager.getInstance();
+    private final LinkedList<Profile> mProfiles = mProfileManager.getProfiles();
+    private DefaultComboBoxModel mModel;
 
     /**
      * Creates new form MainFrame
@@ -111,52 +119,12 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         }
     }
 
-    @Override
-    public void onFileChooserCancel(FileChooserPanel fileChooserPanel) {
-        // nvm
-    }
-
-    @Override
-    public void onFileChooserCheckBoxChange(FileChooserPanel fileChooserPanel, boolean isSelected) {
-        // nvm
-    }
-
-    @Override
-    public void onFileChooserDrop(FileChooserPanel fileChooserPanel) {
-        if (fileChooserPanel == sourceChooserPanel) {
-        }
-    }
-
-    @Override
-    public void onFileChooserOk(FileChooserPanel fileChooserPanel, File file) {
-        JFileChooser fileChooser = fileChooserPanel.getFileChooser();
-
-        if (fileChooserPanel == sourceChooserPanel) {
-            if (fileChooser.isMultiSelectionEnabled()) {
-                String paths = StringUtils.join(fileChooser.getSelectedFiles(), SystemUtils.PATH_SEPARATOR);
-                fileChooserPanel.setPath(paths);
-            }
-        }
-    }
-
-    @Override
-    public void onFileChooserPreSelect(FileChooserPanel fileChooserPanel) {
-        if (fileChooserPanel == sourceChooserPanel) {
-            final String[] paths = sourceChooserPanel.getPath().split(SystemUtils.PATH_SEPARATOR);
-            File[] files = new File[paths.length];
-
-            for (int i = 0; i < files.length; i++) {
-                files[i] = new File(paths[i]);
-            }
-
-            sourceChooserPanel.getFileChooser().setSelectedFiles(files);
-        }
-    }
-
     private void init() {
         String fileName = String.format("/%s/calendar-icon-1024px.png", getClass().getPackage().getName().replace(".", "/"));
         ImageIcon imageIcon = new ImageIcon(getClass().getResource(fileName));
         setIconImage(imageIcon.getImage());
+
+        mModel = (DefaultComboBoxModel) profileComboBox.getModel();
 
         opComboBox.setModel(new DefaultComboBoxModel(mBundleUI.getString("operations").split("\\|")));
         dateSourceComboBox.setModel(new DefaultComboBoxModel(mBundleUI.getString("dateSource").split("\\|")));
@@ -164,13 +132,11 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         caseSuffixComboBox.setModel(new DefaultComboBoxModel(mBundleUI.getString("case").split("\\|")));
         followLinksCheckBox.setEnabled(!SystemUtils.IS_OS_WINDOWS);
 
+        sourceChooserPanel.setDropMode(FileChooserPanel.DropMode.SINGLE);
+        sourceChooserPanel.setMode(JFileChooser.DIRECTORIES_ONLY);
+
         destChooserPanel.setDropMode(FileChooserPanel.DropMode.SINGLE);
         destChooserPanel.setMode(JFileChooser.DIRECTORIES_ONLY);
-
-        sourceChooserPanel.setDropMode(FileChooserPanel.DropMode.SINGLE);
-        sourceChooserPanel.setMode(JFileChooser.FILES_AND_DIRECTORIES);
-        sourceChooserPanel.getFileChooser().setMultiSelectionEnabled(true);
-        sourceChooserPanel.setButtonListener(this);
 
         previewDateFormat();
 
@@ -189,7 +155,6 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
             public void insertUpdate(DocumentEvent e) {
                 previewDateFormat();
             }
-
         });
 
         mActionManager = new ActionManager();
@@ -213,6 +178,84 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         actionMap.put(key, action);
         KeyStroke keyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
         inputMap.put(keyStroke, key);
+
+        loadProfiles();
+        populateProfiles(null);
+        initListeners();
+    }
+
+    private Profile getSelectedProfile() {
+        if (mModel.getSize() == 0) {
+            return new Profile();
+        } else {
+            return (Profile) mModel.getSelectedItem();
+        }
+    }
+
+    private void initListeners() {
+        DocumentListener documentListener = new DocumentListener() {
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                handle(e.getDocument());
+            }
+
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                handle(e.getDocument());
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                handle(e.getDocument());
+            }
+
+            private void handle(Document document) {
+
+                Profile p = getSelectedProfile();
+                if (document == patternTextField.getDocument()) {
+                    p.setFilePattern(patternTextField.getText());
+                } else if (document == dateFormatTextField.getDocument()) {
+                    p.setDatePattern(dateFormatTextField.getText());
+                } else if (document == sourceChooserPanel.getTextField().getDocument()) {
+                    p.setSource(sourceChooserPanel.getPath());
+                } else if (document == destChooserPanel.getTextField().getDocument()) {
+                    p.setDest(destChooserPanel.getPath());
+                }
+            }
+        };
+
+        sourceChooserPanel.getTextField().getDocument().addDocumentListener(documentListener);
+        destChooserPanel.getTextField().getDocument().addDocumentListener(documentListener);
+        patternTextField.getDocument().addDocumentListener(documentListener);
+        dateFormatTextField.getDocument().addDocumentListener(documentListener);
+    }
+
+    private void populateProfiles(Profile profile) {
+        mModel.removeAllElements();
+        //resetForm();
+        Collections.sort(mProfiles);
+
+        mProfiles.stream().forEach((item) -> {
+            mModel.addElement(item);
+        });
+
+        if (profile != null) {
+            mModel.setSelectedItem(profile);
+        }
+
+        boolean hasProfiles = !mProfiles.isEmpty();
+        SwingHelper.enableComponents(mainPanel, hasProfiles);
+        //SwingHelper.enableComponents(profileComboBox, hasProfiles);
+    }
+
+    private void loadProfiles() {
+        SwingHelper.enableComponents(mainPanel, false);
+
+        try {
+            mProfileManager.load();
+        } catch (IOException ex) {
+            Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     private void previewDateFormat() {
@@ -227,6 +270,96 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
 
         String dateLabel = String.format("%s (%s)", Dict.DATE_PATTERN.getString(), datePreview);
         dateFormatLabel.setText(dateLabel);
+    }
+
+    private String requestProfileName(String title, String value) {
+        return (String) JOptionPane.showInputDialog(
+                this,
+                null,
+                title,
+                JOptionPane.PLAIN_MESSAGE,
+                null,
+                null,
+                value);
+    }
+
+    private void profileAdd() {
+        String s = requestProfileName(mBundleUI.getString("title_profile_add"), null);
+        if (s != null) {
+            Profile p = new Profile();
+            p.setName(s);
+            mProfiles.add(p);
+            populateProfiles(p);
+            resetForm();
+        }
+    }
+
+    private void profileClone() throws CloneNotSupportedException {
+        Profile original = getSelectedProfile();
+        Profile p = original.clone();
+        mProfiles.add(p);
+        populateProfiles(p);
+        String s = requestProfileName(mBundleUI.getString("title_profile_clone"), p.getName());
+        if (s != null) {
+            p.setName(s);
+            populateProfiles(getSelectedProfile());
+        } else {
+            mProfiles.remove(p);
+            populateProfiles(original);
+        }
+
+    }
+
+    private void profileRename() {
+        String s = requestProfileName(mBundleUI.getString("title_profile_rename"), getSelectedProfile().getName());
+        if (s != null) {
+            getSelectedProfile().setName(s);
+            populateProfiles(getSelectedProfile());
+        }
+    }
+
+    private void profileRemove() {
+        if (!mProfiles.isEmpty()) {
+            String message = String.format(mBundleUI.getString("message_profile_remove"), getSelectedProfile().getName());
+            int retval = JOptionPane.showConfirmDialog(this,
+                    message,
+                    mBundleUI.getString("title_profile_remove"),
+                    JOptionPane.OK_CANCEL_OPTION,
+                    JOptionPane.WARNING_MESSAGE);
+
+            if (retval == JOptionPane.OK_OPTION) {
+                mProfiles.remove(getSelectedProfile());
+                populateProfiles(null);
+            }
+        }
+    }
+
+    private void profileRemoveAll() {
+        if (!mProfiles.isEmpty()) {
+            String message = String.format(mBundleUI.getString("message_profile_remove_all"), getSelectedProfile().getName());
+            int retval = JOptionPane.showConfirmDialog(this,
+                    message,
+                    mBundleUI.getString("title_profile_remove_all"),
+                    JOptionPane.OK_CANCEL_OPTION,
+                    JOptionPane.WARNING_MESSAGE);
+
+            if (retval == JOptionPane.OK_OPTION) {
+                mProfiles.clear();
+                populateProfiles(null);
+            }
+        }
+    }
+
+    private void resetForm() {
+        sourceChooserPanel.setPath("");
+        destChooserPanel.setPath("");
+        patternTextField.setText("*");
+        dateFormatTextField.setText("yyyy/MM/yyyy-MM-dd");
+        opComboBox.setSelectedIndex(0);
+        followLinksCheckBox.setSelected(true);
+        recursiveCheckBox.setSelected(true);
+        caseBaseComboBox.setSelectedIndex(0);
+        caseSuffixComboBox.setSelectedIndex(0);
     }
 
     private void showOptions() {
@@ -312,9 +445,20 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("se/trixon/filebydate/ui/Bundle"); // NOI18N
         setTitle(bundle.getString("MainFrame.title")); // NOI18N
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent evt) {
+                formWindowClosing(evt);
+            }
+        });
 
         toolBar.setFloatable(false);
         toolBar.setRollover(true);
+
+        profileComboBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                profileComboBoxActionPerformed(evt);
+            }
+        });
         toolBar.add(profileComboBox);
 
         startButton.setFocusable(false);
@@ -366,7 +510,9 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
 
         patternLabel.setText(Dict.FILE_PATTERN.getString());
         gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.FIRST_LINE_START;
+        gridBagConstraints.weightx = 1.0;
         options1Panel.add(patternLabel, gridBagConstraints);
 
         patternTextField.setText("*"); // NOI18N
@@ -380,9 +526,17 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
 
         dateSourceLabel.setText(Dict.DATE_SOURCE.toString());
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.FIRST_LINE_START;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.weightx = 0.25;
         gridBagConstraints.insets = new java.awt.Insets(0, 8, 0, 8);
         options1Panel.add(dateSourceLabel, gridBagConstraints);
+
+        dateSourceComboBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                dateSourceComboBoxActionPerformed(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
@@ -394,7 +548,9 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
 
         dateFormatLabel.setText(Dict.DATE_PATTERN.getString());
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.FIRST_LINE_START;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.LINE_START;
+        gridBagConstraints.weightx = 1.0;
         options1Panel.add(dateFormatLabel, gridBagConstraints);
 
         dateFormatTextField.setToolTipText("<html>\n <h3>Date and Time Patterns</h3>\n <p>\n Date and time formats are specified by <em>date and time pattern</em>\n strings.\n Within date and time pattern strings, unquoted letters<br />from\n <code>'A'</code> to <code>'Z'</code> and from <code>'a'</code> to\n <code>'z'</code> are interpreted as pattern letters representing the\n components of a date or time string.<br />\n Text can be quoted using single quotes (<code>'</code>) to avoid\n interpretation.\n <code>\"''\"</code> represents a single quote.<br />\n All other characters are not interpreted; they're simply copied into the\n output string during formatting or matched against<br />the input string\n during parsing.\n <p>\nThe following pattern letters are defined (all other characters from\n <code>'A'</code> to <code>'Z'</code> and from <code>'a'</code> to\n <code>'z'</code> are reserved):\n <blockquote>\n <table border=0 cellspacing=3 cellpadding=0 summary=\"Chart shows pattern letters, date/time component, presentation, and examples.\">\n     <tr style=\"background-color: rgb(204, 204, 255);\">\n         <th align=left>Letter\n         <th align=left>Date or Time Component\n         <th align=left>Presentation\n         <th align=left>Examples\n     <tr>\n         <td><code>G</code>\n         <td>Era designator\n         <td><a href=\"#text\">Text</a>\n         <td><code>AD</code>\n     <tr style=\"background-color: rgb(238, 238, 255);\">\n         <td><code>y</code>\n         <td>Year\n         <td><a href=\"#year\">Year</a>\n         <td><code>1996</code>; <code>96</code>\n     <tr>\n         <td><code>Y</code>\n         <td>Week year\n         <td><a href=\"#year\">Year</a>\n         <td><code>2009</code>; <code>09</code>\n     <tr style=\"background-color: rgb(238, 238, 255);\">\n         <td><code>M</code>\n         <td>Month in year (context sensitive)\n         <td><a href=\"#month\">Month</a>\n         <td><code>July</code>; <code>Jul</code>; <code>07</code>\n     <tr>\n         <td><code>L</code>\n         <td>Month in year (standalone form)\n         <td><a href=\"#month\">Month</a>\n         <td><code>July</code>; <code>Jul</code>; <code>07</code>\n     <tr style=\"background-color: rgb(238, 238, 255);\">\n         <td><code>w</code>\n         <td>Week in year\n         <td><a href=\"#number\">Number</a>\n         <td><code>27</code>\n     <tr>\n         <td><code>W</code>\n         <td>Week in month\n         <td><a href=\"#number\">Number</a>\n         <td><code>2</code>\n     <tr style=\"background-color: rgb(238, 238, 255);\">\n         <td><code>D</code>\n         <td>Day in year\n         <td><a href=\"#number\">Number</a>\n         <td><code>189</code>\n     <tr>\n         <td><code>d</code>\n         <td>Day in month\n         <td><a href=\"#number\">Number</a>\n         <td><code>10</code>\n     <tr style=\"background-color: rgb(238, 238, 255);\">\n         <td><code>F</code>\n         <td>Day of week in month\n         <td><a href=\"#number\">Number</a>\n         <td><code>2</code>\n     <tr>\n         <td><code>E</code>\n         <td>Day name in week\n         <td><a href=\"#text\">Text</a>\n         <td><code>Tuesday</code>; <code>Tue</code>\n     <tr style=\"background-color: rgb(238, 238, 255);\">\n         <td><code>u</code>\n         <td>Day number of week (1 = Monday, ..., 7 = Sunday)\n         <td><a href=\"#number\">Number</a>\n         <td><code>1</code>\n     <tr>\n         <td><code>a</code>\n         <td>Am/pm marker\n         <td><a href=\"#text\">Text</a>\n         <td><code>PM</code>\n     <tr style=\"background-color: rgb(238, 238, 255);\">\n         <td><code>H</code>\n         <td>Hour in day (0-23)\n         <td><a href=\"#number\">Number</a>\n         <td><code>0</code>\n     <tr>\n         <td><code>k</code>\n         <td>Hour in day (1-24)\n         <td><a href=\"#number\">Number</a>\n         <td><code>24</code>\n     <tr style=\"background-color: rgb(238, 238, 255);\">\n         <td><code>K</code>\n         <td>Hour in am/pm (0-11)\n         <td><a href=\"#number\">Number</a>\n         <td><code>0</code>\n     <tr>\n         <td><code>h</code>\n         <td>Hour in am/pm (1-12)\n         <td><a href=\"#number\">Number</a>\n         <td><code>12</code>\n     <tr style=\"background-color: rgb(238, 238, 255);\">\n         <td><code>m</code>\n         <td>Minute in hour\n         <td><a href=\"#number\">Number</a>\n         <td><code>30</code>\n     <tr>\n         <td><code>s</code>\n         <td>Second in minute\n         <td><a href=\"#number\">Number</a>\n         <td><code>55</code>\n     <tr style=\"background-color: rgb(238, 238, 255);\">\n         <td><code>S</code>\n         <td>Millisecond\n         <td><a href=\"#number\">Number</a>\n         <td><code>978</code>\n     <tr>\n         <td><code>z</code>\n         <td>Time zone\n         <td><a href=\"#timezone\">General time zone</a>\n         <td><code>Pacific Standard Time</code>; <code>PST</code>; <code>GMT-08:00</code>\n     <tr style=\"background-color: rgb(238, 238, 255);\">\n         <td><code>Z</code>\n         <td>Time zone\n         <td><a href=\"#rfc822timezone\">RFC 822 time zone</a>\n         <td><code>-0800</code>\n     <tr>\n         <td><code>X</code>\n         <td>Time zone\n         <td><a href=\"#iso8601timezone\">ISO 8601 time zone</a>\n         <td><code>-08</code>; <code>-0800</code>;  <code>-08:00</code>\n </table>\n </blockquote>"); // NOI18N
@@ -424,6 +580,11 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         options2Panel.add(operationLabel, gridBagConstraints);
 
         opComboBox.setMaximumSize(new java.awt.Dimension(200, 32767));
+        opComboBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                opComboBoxActionPerformed(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
@@ -434,6 +595,11 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         followLinksCheckBox.setText(Dict.FOLLOW_LINKS.getString());
         followLinksCheckBox.setFocusable(false);
         followLinksCheckBox.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        followLinksCheckBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                followLinksCheckBoxActionPerformed(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
@@ -444,6 +610,11 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         recursiveCheckBox.setText(Dict.RECURSIVE.getString());
         recursiveCheckBox.setFocusable(false);
         recursiveCheckBox.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        recursiveCheckBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                recursiveCheckBoxActionPerformed(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
@@ -458,6 +629,12 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         gridBagConstraints.insets = new java.awt.Insets(0, 8, 0, 0);
         options2Panel.add(jLabel1, gridBagConstraints);
+
+        caseBaseComboBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                caseBaseComboBoxActionPerformed(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 1;
@@ -472,6 +649,12 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         gridBagConstraints.insets = new java.awt.Insets(0, 8, 0, 0);
         options2Panel.add(jLabel2, gridBagConstraints);
+
+        caseSuffixComboBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                caseSuffixComboBoxActionPerformed(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 1;
@@ -533,6 +716,57 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         }
     }//GEN-LAST:event_menuButtonMousePressed
 
+    private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
+        try {
+            mProfileManager.save();
+        } catch (IOException ex) {
+            Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_formWindowClosing
+
+    private void followLinksCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_followLinksCheckBoxActionPerformed
+        getSelectedProfile().setFollowLinks(followLinksCheckBox.isSelected());
+    }//GEN-LAST:event_followLinksCheckBoxActionPerformed
+
+    private void recursiveCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_recursiveCheckBoxActionPerformed
+        getSelectedProfile().setRecursive(recursiveCheckBox.isSelected());
+    }//GEN-LAST:event_recursiveCheckBoxActionPerformed
+
+    private void opComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_opComboBoxActionPerformed
+        getSelectedProfile().setOperation(opComboBox.getSelectedIndex());
+    }//GEN-LAST:event_opComboBoxActionPerformed
+
+    private void caseBaseComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_caseBaseComboBoxActionPerformed
+        getSelectedProfile().setCaseBasename(caseBaseComboBox.getSelectedIndex());
+    }//GEN-LAST:event_caseBaseComboBoxActionPerformed
+
+    private void caseSuffixComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_caseSuffixComboBoxActionPerformed
+        getSelectedProfile().setCaseSuffix(caseSuffixComboBox.getSelectedIndex());
+    }//GEN-LAST:event_caseSuffixComboBoxActionPerformed
+
+    private void dateSourceComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dateSourceComboBoxActionPerformed
+        getSelectedProfile().setDateSource(dateSourceComboBox.getSelectedIndex());
+    }//GEN-LAST:event_dateSourceComboBoxActionPerformed
+
+    private void profileComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_profileComboBoxActionPerformed
+        Profile p = getSelectedProfile();
+        if (p != null) {
+            opComboBox.setSelectedIndex(p.getOperation());
+            dateSourceComboBox.setSelectedIndex(p.getDateSource());
+            caseBaseComboBox.setSelectedIndex(p.getCaseBasename());
+            caseSuffixComboBox.setSelectedIndex(p.getCaseSuffix());
+
+            followLinksCheckBox.setSelected(p.isFollowLinks());
+            recursiveCheckBox.setSelected(p.isRecursive());
+
+            sourceChooserPanel.setPath(p.getSource());
+            destChooserPanel.setPath(p.getDest());
+
+            patternTextField.setText(p.getFilePattern());
+            dateFormatTextField.setText(p.getDatePattern());
+        }
+    }//GEN-LAST:event_profileComboBoxActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JMenuItem aboutMenuItem;
     private javax.swing.JButton addButton;
@@ -562,7 +796,7 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
     private javax.swing.JMenuItem optionsMenuItem;
     private javax.swing.JLabel patternLabel;
     private javax.swing.JTextField patternTextField;
-    private javax.swing.JComboBox<String> profileComboBox;
+    private javax.swing.JComboBox<Profile> profileComboBox;
     private javax.swing.JMenuItem quitMenuItem;
     private javax.swing.JCheckBox recursiveCheckBox;
     private javax.swing.JMenuItem removeAllProfilesMenuItem;
@@ -594,7 +828,7 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
             return getRootPane().getActionMap().get(key);
         }
 
-        private void initAction(AlmondAction action, String key, KeyStroke keyStroke, Enum iconEnum, boolean serverAction) {
+        private void initAction(AlmondAction action, String key, KeyStroke keyStroke, Enum iconEnum, boolean baseAction) {
             InputMap inputMap = getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
             ActionMap actionMap = getRootPane().getActionMap();
 
@@ -607,8 +841,8 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
             inputMap.put(keyStroke, key);
             actionMap.put(key, action);
 
-            if (serverAction) {
-                mServerActions.add(action);
+            if (baseAction) {
+                mBaseActions.add(action);
             }
 
             mAllActions.add(action);
@@ -632,7 +866,7 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
                 }
             };
 
-            initAction(action, MENU, keyStroke, MaterialIcon.Navigation.MENU, false);
+            initAction(action, MENU, keyStroke, MaterialIcon.Navigation.MENU, true);
             menuButton.setAction(action);
 
             //options
@@ -646,7 +880,7 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
                 }
             };
 
-            initAction(action, OPTIONS, keyStroke, MaterialIcon.Action.SETTINGS, false);
+            initAction(action, OPTIONS, keyStroke, MaterialIcon.Action.SETTINGS, true);
             optionsMenuItem.setAction(action);
 
             //start
@@ -669,11 +903,11 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
 
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    System.out.println("add");
+                    profileAdd();
                 }
             };
 
-            initAction(action, ADD, keyStroke, MaterialIcon.Content.ADD, false);
+            initAction(action, ADD, keyStroke, MaterialIcon.Content.ADD, true);
             addButton.setAction(action);
 
             //clone
@@ -682,7 +916,11 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
 
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    System.out.println("clone");
+                    try {
+                        profileClone();
+                    } catch (CloneNotSupportedException ex) {
+                        Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+                    }
                 }
             };
 
@@ -695,7 +933,7 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
 
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    System.out.println("rename");
+                    profileRename();
                 }
             };
 
@@ -708,7 +946,7 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
 
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    System.out.println("remove");
+                    profileRemove();
                 }
             };
 
@@ -721,7 +959,7 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
 
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    System.out.println("remove all");
+                    profileRemoveAll();
                 }
             };
 
@@ -739,7 +977,7 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
                 }
             };
 
-            initAction(action, ABOUT, keyStroke, null, false);
+            initAction(action, ABOUT, keyStroke, null, true);
             aboutMenuItem.setAction(action);
 
             //quit
@@ -752,7 +990,7 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
                 }
             };
 
-            initAction(action, QUIT, keyStroke, Pict.Actions.APPLICATION_EXIT, false);
+            initAction(action, QUIT, keyStroke, Pict.Actions.APPLICATION_EXIT, true);
             quitMenuItem.setAction(action);
 
             for (Component component : mPopupMenu.getComponents()) {
