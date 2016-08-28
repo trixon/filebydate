@@ -17,8 +17,11 @@ package se.trixon.filebydate;
 
 import java.awt.GraphicsEnvironment;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -27,7 +30,6 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.SystemUtils;
-import se.trixon.almond.util.AlmondOptions;
 import se.trixon.almond.util.AlmondUI;
 import se.trixon.almond.util.BundleHelper;
 import se.trixon.almond.util.Dict;
@@ -41,11 +43,11 @@ import se.trixon.filebydate.ui.MainFrame;
  */
 public class FileByDate implements OperationListener {
 
-    private final ResourceBundle mBundle = BundleHelper.getBundle(FileByDate.class, "Bundle");
-    private Options mOptions;
-    private MainFrame mMainFrame = null;
-    private final AlmondOptions mAlmondOptions = AlmondOptions.getInstance();
     private final AlmondUI mAlmondUI = AlmondUI.getInstance();
+    private final ResourceBundle mBundle = BundleHelper.getBundle(FileByDate.class, "Bundle");
+    private MainFrame mMainFrame = null;
+    private Options mOptions;
+    private final ProfileManager mProfileManager = ProfileManager.getInstance();
 
     /**
      * @param args the command line arguments
@@ -71,10 +73,25 @@ public class FileByDate implements OperationListener {
                 } else if (commandLine.hasOption("version")) {
                     displayVersion();
                     System.exit(0);
+                } else if (commandLine.hasOption("list-profiles")) {
+                    displayProfiles();
                 } else if (commandLine.hasOption("gui")) {
                     displayGui();
                 } else {
-                    OptionsHolder optionsHolder = new OptionsHolder(commandLine);
+                    OptionsHolder optionsHolder = null;
+
+                    if (commandLine.hasOption("profile")) {
+                        loadProfiles();
+                        Profile profile = mProfileManager.getProfile(commandLine.getOptionValue("profile"));
+                        if (profile == null) {
+                            System.err.println("Profile not found!");
+                            System.exit(1);
+                        } else {
+                            optionsHolder = mProfileManager.getOptionsHolder(profile);
+                        }
+                    } else {
+                        optionsHolder = new OptionsHolder(commandLine);
+                    }
 
                     if (optionsHolder.isValid()) {
                         Operation operation = new Operation(this, optionsHolder);
@@ -155,8 +172,20 @@ public class FileByDate implements OperationListener {
         System.out.println(sb.toString());
     }
 
+    private void displayProfiles() {
+        loadProfiles();
+        if (mProfileManager.hasProfiles()) {
+            for (Profile profile : mProfileManager.getProfiles()) {
+                System.out.println(profile.getName());
+            }
+        } else {
+            System.out.println(mBundle.getString("no_profiles_found"));
+        }
+    }
+
     private void displayVersion() {
-        System.out.println(String.format(mBundle.getString("version_info"), SystemHelper.getJarVersion(FileByDate.class)));
+        System.out.println(String.format(mBundle.getString("version_info"), SystemHelper.getJarVersion(FileByDate.class
+        )));
     }
 
     private void initOptions() {
@@ -233,6 +262,18 @@ public class FileByDate implements OperationListener {
                 .desc(mBundle.getString("opt_gui_desc"))
                 .build();
 
+        Option profile = Option.builder("p")
+                .longOpt("profile")
+                .hasArg()
+                .numberOfArgs(1)
+                .desc(mBundle.getString("opt_profile_desc"))
+                .build();
+
+        Option listProfiles = Option.builder("lp")
+                .longOpt("list-profiles")
+                .desc(mBundle.getString("opt_list_profiles_desc"))
+                .build();
+
         mOptions = new Options();
 
         mOptions.addOption(copy);
@@ -249,9 +290,21 @@ public class FileByDate implements OperationListener {
         mOptions.addOption(caseBase);
         mOptions.addOption(caseExt);
 
+        mOptions.addOption(listProfiles);
+        mOptions.addOption(profile);
+
         mOptions.addOption(gui);
 
         mOptions.addOption(help);
         mOptions.addOption(version);
+    }
+
+    private void loadProfiles() {
+        try {
+            mProfileManager.load();
+        } catch (IOException ex) {
+            Logger.getLogger(FileByDate.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
     }
 }

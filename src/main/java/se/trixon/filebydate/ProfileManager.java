@@ -88,6 +88,36 @@ public class ProfileManager {
         return array;
     }
 
+    public OptionsHolder getOptionsHolder(Profile profile) {
+        OptionsHolder holder = new OptionsHolder();
+        holder.setSourceDir(new File(profile.getSource()));
+        holder.setDestDir(new File(profile.getDest()));
+
+        holder.setFilePattern(profile.getFilePattern());
+        holder.setDateSource(DateSource.values()[profile.getDateSource()]);
+        holder.setDatePattern(profile.getDatePattern());
+        if (profile.getOperation() == 0) {
+            holder.setModeCopy(true);
+        } else {
+            holder.setModeMove(true);
+        }
+//        holder.setCommand(Operation.Command.values()[profile.getOperation()]);
+
+        holder.setDryRun(true);
+
+        return holder;
+    }
+
+    public Profile getProfile(String name) {
+        for (Profile profile : mProfiles) {
+            if (profile.getName().equalsIgnoreCase(name)) {
+                return profile;
+            }
+        }
+
+        return null;
+    }
+
     public LinkedList<Profile> getProfiles() {
         return mProfiles;
     }

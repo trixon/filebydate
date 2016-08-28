@@ -60,6 +60,9 @@ import se.trixon.almond.util.swing.SwingHelper;
 import se.trixon.almond.util.swing.dialogs.FileChooserPanel;
 import se.trixon.almond.util.swing.dialogs.Message;
 import se.trixon.filebydate.FileByDate;
+import se.trixon.filebydate.Operation;
+import se.trixon.filebydate.OperationListener;
+import se.trixon.filebydate.OptionsHolder;
 import se.trixon.filebydate.Profile;
 import se.trixon.filebydate.ProfileManager;
 
@@ -67,7 +70,7 @@ import se.trixon.filebydate.ProfileManager;
  *
  * @author Patrik Karlsson
  */
-public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatcher {
+public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatcher, OperationListener {
 
     private final ResourceBundle mBundle = BundleHelper.getBundle(FileByDate.class, "Bundle");
     private final ResourceBundle mBundleUI = BundleHelper.getBundle(MainFrame.class, "Bundle");
@@ -117,6 +120,32 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
             default:
                 throw new AssertionError();
         }
+    }
+
+    @Override
+    public void onOperationFailed(String message) {
+    }
+
+    @Override
+    public void onOperationFinished(String message) {
+        logPanel.println(Dict.DONE.toString());
+    }
+
+    @Override
+    public void onOperationInterrupted() {
+        logPanel.println(Dict.OPERATION_INTERRUPTED.toString());
+    }
+
+    @Override
+    public void onOperationLog(String message) {
+    }
+
+    @Override
+    public void onOperationProcessingStarted() {
+    }
+
+    @Override
+    public void onOperationStarted() {
     }
 
     private void init() {
@@ -350,6 +379,22 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         }
     }
 
+    private void profileRun(Profile profile) {
+        saveProfiles();
+        OptionsHolder optionsHolder = mProfileManager.getOptionsHolder(profile);
+        logPanel.clear();
+        if (optionsHolder.isValid()) {
+            logPanel.println(optionsHolder.toString());
+            Operation operation = new Operation(this, optionsHolder);
+            operation.start();
+        } else {
+            logPanel.println(optionsHolder.toString());
+            logPanel.println(optionsHolder.getValidationError());
+            logPanel.println(Dict.ABORTING.toString());
+        }
+
+    }
+
     private void resetForm() {
         sourceChooserPanel.setPath("");
         destChooserPanel.setPath("");
@@ -360,6 +405,14 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         recursiveCheckBox.setSelected(true);
         caseBaseComboBox.setSelectedIndex(0);
         caseSuffixComboBox.setSelectedIndex(0);
+    }
+
+    private void saveProfiles() {
+        try {
+            mProfileManager.save();
+        } catch (IOException ex) {
+            Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     private void showOptions() {
@@ -717,11 +770,7 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
     }//GEN-LAST:event_menuButtonMousePressed
 
     private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
-        try {
-            mProfileManager.save();
-        } catch (IOException ex) {
-            Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        saveProfiles();
     }//GEN-LAST:event_formWindowClosing
 
     private void followLinksCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_followLinksCheckBoxActionPerformed
@@ -889,8 +938,9 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
 
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    System.out.println("start");
+                    profileRun(getSelectedProfile());
                 }
+
             };
 
             initAction(action, START, keyStroke, MaterialIcon.Av.PLAY_ARROW, false);
