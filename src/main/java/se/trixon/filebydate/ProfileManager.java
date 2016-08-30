@@ -40,6 +40,7 @@ public class ProfileManager {
     private static final String KEY_FOLLOW_LINKS = "follow_links";
     private static final String KEY_NAME = "name";
     private static final String KEY_OPERATION = "operation";
+    private static final String KEY_OVERWRITE = "overwrite";
     private static final String KEY_PROFILES = "profiles";
     private static final String KEY_RECURSIVE = "recursive";
     private static final String KEY_SOURCE = "source";
@@ -79,6 +80,7 @@ public class ProfileManager {
             object.put(KEY_OPERATION, profile.getOperation());
             object.put(KEY_FOLLOW_LINKS, profile.isFollowLinks());
             object.put(KEY_RECURSIVE, profile.isRecursive());
+            object.put(KEY_OVERWRITE, profile.isOverwrite());
             object.put(KEY_CASE_BASE, profile.getCaseBasename());
             object.put(KEY_CASE_SUFFIX, profile.getCaseSuffix());
 
@@ -174,6 +176,7 @@ public class ProfileManager {
             profile.setOperation(getInt(object, KEY_OPERATION));
             profile.setFollowLinks(getBoolean(object, KEY_FOLLOW_LINKS));
             profile.setRecursive(getBoolean(object, KEY_RECURSIVE));
+            profile.setOverwrite(getBoolean(object, KEY_OVERWRITE));
             profile.setCaseBasename(getInt(object, KEY_CASE_BASE));
             profile.setCaseSuffix(getInt(object, KEY_CASE_SUFFIX));
 

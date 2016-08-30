@@ -489,6 +489,7 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         opComboBox = new javax.swing.JComboBox();
         followLinksCheckBox = new javax.swing.JCheckBox();
         recursiveCheckBox = new javax.swing.JCheckBox();
+        overwriteCheckBox = new javax.swing.JCheckBox();
         jLabel1 = new javax.swing.JLabel();
         caseBaseComboBox = new javax.swing.JComboBox<>();
         jLabel2 = new javax.swing.JLabel();
@@ -686,9 +687,22 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         gridBagConstraints.insets = new java.awt.Insets(0, 8, 0, 0);
         options2Panel.add(recursiveCheckBox, gridBagConstraints);
 
-        jLabel1.setText(bundle.getString("MainFrame.jLabel1.text")); // NOI18N
+        overwriteCheckBox.setText(bundle.getString("MainFrame.overwriteCheckBox.text")); // NOI18N
+        overwriteCheckBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                overwriteCheckBoxActionPerformed(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 8, 0, 0);
+        options2Panel.add(overwriteCheckBox, gridBagConstraints);
+
+        jLabel1.setText(bundle.getString("MainFrame.jLabel1.text")); // NOI18N
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         gridBagConstraints.insets = new java.awt.Insets(0, 8, 0, 0);
@@ -700,7 +714,7 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         gridBagConstraints.insets = new java.awt.Insets(0, 8, 0, 0);
@@ -708,7 +722,7 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
 
         jLabel2.setText(bundle.getString("MainFrame.jLabel2.text")); // NOI18N
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridx = 5;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         gridBagConstraints.insets = new java.awt.Insets(0, 8, 0, 0);
@@ -720,7 +734,7 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridx = 5;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         gridBagConstraints.insets = new java.awt.Insets(0, 8, 0, 0);
@@ -730,15 +744,15 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 0, Short.MAX_VALUE)
+            .addGap(0, 71, Short.MAX_VALUE)
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 0, Short.MAX_VALUE)
+            .addGap(0, 41, Short.MAX_VALUE)
         );
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 5;
+        gridBagConstraints.gridx = 6;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridheight = java.awt.GridBagConstraints.REMAINDER;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
@@ -818,6 +832,7 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
 
             followLinksCheckBox.setSelected(p.isFollowLinks());
             recursiveCheckBox.setSelected(p.isRecursive());
+            overwriteCheckBox.setSelected(p.isOverwrite());
 
             sourceChooserPanel.setPath(p.getSource());
             destChooserPanel.setPath(p.getDest());
@@ -826,6 +841,10 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
             dateFormatTextField.setText(p.getDatePattern());
         }
     }//GEN-LAST:event_profileComboBoxActionPerformed
+
+    private void overwriteCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_overwriteCheckBoxActionPerformed
+        getSelectedProfile().setOverwrite(overwriteCheckBox.isSelected());
+    }//GEN-LAST:event_overwriteCheckBoxActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JMenuItem aboutMenuItem;
@@ -854,6 +873,7 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
     private javax.swing.JPanel options1Panel;
     private javax.swing.JPanel options2Panel;
     private javax.swing.JMenuItem optionsMenuItem;
+    private javax.swing.JCheckBox overwriteCheckBox;
     private javax.swing.JLabel patternLabel;
     private javax.swing.JTextField patternTextField;
     private javax.swing.JComboBox<Profile> profileComboBox;

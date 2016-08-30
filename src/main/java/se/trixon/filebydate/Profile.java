@@ -30,6 +30,7 @@ public class Profile implements Comparable<Profile>, Cloneable {
     private boolean mFollowLinks;
     private String mName;
     private int mOperation;
+    private boolean mOverwrite;
     private boolean mRecursive;
     private String mSource;
 
@@ -83,6 +84,10 @@ public class Profile implements Comparable<Profile>, Cloneable {
         return mFollowLinks;
     }
 
+    public boolean isOverwrite() {
+        return mOverwrite;
+    }
+
     public boolean isRecursive() {
         return mRecursive;
     }
@@ -121,6 +126,10 @@ public class Profile implements Comparable<Profile>, Cloneable {
 
     public void setOperation(int operation) {
         mOperation = operation;
+    }
+
+    public void setOverwrite(boolean overwrite) {
+        mOverwrite = overwrite;
     }
 
     public void setRecursive(boolean recursive) {
