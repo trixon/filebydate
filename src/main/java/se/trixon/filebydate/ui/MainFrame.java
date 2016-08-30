@@ -312,14 +312,20 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
                 value);
     }
 
-    private void profileAdd() {
-        String s = requestProfileName(mBundleUI.getString("title_profile_add"), null);
+    private void profileAdd(String defaultName) {
+        String s = requestProfileName(mBundleUI.getString("title_profile_add"), defaultName);
         if (s != null) {
-            Profile p = new Profile();
-            p.setName(s);
-            mProfiles.add(p);
-            populateProfiles(p);
-            resetForm();
+            Profile existingProfile = mProfileManager.getProfile(s);
+            if (existingProfile == null) {
+                Profile p = new Profile();
+                p.setName(s);
+                mProfiles.add(p);
+                populateProfiles(p);
+                resetForm();
+            } else {
+                Message.error(this, Dict.ERROR.toString(), String.format(mBundleUI.getString("error_profile_exist"), s));
+                profileAdd(s);
+            }
         }
     }
 
@@ -336,14 +342,19 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
             mProfiles.remove(p);
             populateProfiles(original);
         }
-
     }
 
-    private void profileRename() {
-        String s = requestProfileName(mBundleUI.getString("title_profile_rename"), getSelectedProfile().getName());
+    private void profileRename(String defaultName) {
+        String s = requestProfileName(mBundleUI.getString("title_profile_rename"), defaultName);
         if (s != null) {
-            getSelectedProfile().setName(s);
-            populateProfiles(getSelectedProfile());
+            Profile existingProfile = mProfileManager.getProfile(s);
+            if (existingProfile == null) {
+                getSelectedProfile().setName(s);
+                populateProfiles(getSelectedProfile());
+            } else if (existingProfile != getSelectedProfile()) {
+                Message.error(this, Dict.ERROR.toString(), String.format(mBundleUI.getString("error_profile_exist"), s));
+                profileRename(s);
+            }
         }
     }
 
@@ -953,7 +964,7 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
 
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    profileAdd();
+                    profileAdd(null);
                 }
             };
 
@@ -983,7 +994,7 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
 
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    profileRename();
+                    profileRename(getSelectedProfile().getName());
                 }
             };
 
