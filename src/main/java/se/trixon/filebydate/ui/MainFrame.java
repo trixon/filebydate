@@ -21,6 +21,7 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
+import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
@@ -59,10 +60,11 @@ import se.trixon.almond.util.icons.material.MaterialIcon;
 import se.trixon.almond.util.swing.SwingHelper;
 import se.trixon.almond.util.swing.dialogs.FileChooserPanel;
 import se.trixon.almond.util.swing.dialogs.Message;
+import se.trixon.filebydate.DateSource;
 import se.trixon.filebydate.FileByDate;
+import se.trixon.filebydate.NameCase;
 import se.trixon.filebydate.Operation;
 import se.trixon.filebydate.OperationListener;
-import se.trixon.filebydate.OptionsHolder;
 import se.trixon.filebydate.Profile;
 import se.trixon.filebydate.ProfileManager;
 
@@ -156,9 +158,9 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         mModel = (DefaultComboBoxModel) profileComboBox.getModel();
 
         opComboBox.setModel(new DefaultComboBoxModel(mBundleUI.getString("operations").split("\\|")));
-        dateSourceComboBox.setModel(new DefaultComboBoxModel(mBundleUI.getString("dateSource").split("\\|")));
-        caseBaseComboBox.setModel(new DefaultComboBoxModel(mBundleUI.getString("case").split("\\|")));
-        caseSuffixComboBox.setModel(new DefaultComboBoxModel(mBundleUI.getString("case").split("\\|")));
+        dateSourceComboBox.setModel(new DefaultComboBoxModel(DateSource.values()));
+        caseBaseComboBox.setModel(new DefaultComboBoxModel(NameCase.values()));
+        caseSuffixComboBox.setModel(new DefaultComboBoxModel(NameCase.values()));
         followLinksCheckBox.setEnabled(!SystemUtils.IS_OS_WINDOWS);
 
         sourceChooserPanel.setDropMode(FileChooserPanel.DropMode.SINGLE);
@@ -246,9 +248,9 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
                 } else if (document == dateFormatTextField.getDocument()) {
                     p.setDatePattern(dateFormatTextField.getText());
                 } else if (document == sourceChooserPanel.getTextField().getDocument()) {
-                    p.setSource(sourceChooserPanel.getPath());
+                    p.setSourceDir(new File(sourceChooserPanel.getPath()));
                 } else if (document == destChooserPanel.getTextField().getDocument()) {
-                    p.setDest(destChooserPanel.getPath());
+                    p.setDestDir(new File(destChooserPanel.getPath()));
                 }
             }
         };
@@ -390,17 +392,19 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         }
     }
 
-    private void profileRun(Profile profile) {
+    private void profileRun() {
         saveProfiles();
-        OptionsHolder optionsHolder = mProfileManager.getOptionsHolder(profile);
+        Profile profile = getSelectedProfile().clone();
+        profile.setDryRun(true);
         logPanel.clear();
-        if (optionsHolder.isValid()) {
-            logPanel.println(optionsHolder.toString());
-            Operation operation = new Operation(this, optionsHolder);
+
+        if (profile.isValid()) {
+            logPanel.println(profile.toDebugString());
+            Operation operation = new Operation(this, profile);
             operation.start();
         } else {
-            logPanel.println(optionsHolder.toString());
-            logPanel.println(optionsHolder.getValidationError());
+            logPanel.println(profile.toDebugString());
+            logPanel.println(profile.getValidationError());
             logPanel.println(Dict.ABORTING.toString());
         }
 
@@ -481,7 +485,7 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         patternLabel = new javax.swing.JLabel();
         patternTextField = new javax.swing.JTextField();
         dateSourceLabel = new javax.swing.JLabel();
-        dateSourceComboBox = new javax.swing.JComboBox();
+        dateSourceComboBox = new javax.swing.JComboBox<>();
         dateFormatLabel = new javax.swing.JLabel();
         dateFormatTextField = new javax.swing.JTextField();
         options2Panel = new javax.swing.JPanel();
@@ -811,31 +815,36 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
     }//GEN-LAST:event_opComboBoxActionPerformed
 
     private void caseBaseComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_caseBaseComboBoxActionPerformed
-        getSelectedProfile().setCaseBasename(caseBaseComboBox.getSelectedIndex());
+        getSelectedProfile().setBaseNameCase((NameCase) caseBaseComboBox.getSelectedItem());
     }//GEN-LAST:event_caseBaseComboBoxActionPerformed
 
     private void caseSuffixComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_caseSuffixComboBoxActionPerformed
-        getSelectedProfile().setCaseSuffix(caseSuffixComboBox.getSelectedIndex());
+        getSelectedProfile().setExtNameCase((NameCase) caseSuffixComboBox.getSelectedItem());
     }//GEN-LAST:event_caseSuffixComboBoxActionPerformed
 
     private void dateSourceComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dateSourceComboBoxActionPerformed
-        getSelectedProfile().setDateSource(dateSourceComboBox.getSelectedIndex());
+        getSelectedProfile().setDateSource((DateSource) dateSourceComboBox.getSelectedItem());
     }//GEN-LAST:event_dateSourceComboBoxActionPerformed
 
     private void profileComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_profileComboBoxActionPerformed
         Profile p = getSelectedProfile();
         if (p != null) {
             opComboBox.setSelectedIndex(p.getOperation());
-            dateSourceComboBox.setSelectedIndex(p.getDateSource());
-            caseBaseComboBox.setSelectedIndex(p.getCaseBasename());
-            caseSuffixComboBox.setSelectedIndex(p.getCaseSuffix());
+            dateSourceComboBox.setSelectedItem(p.getDateSource());
+            caseBaseComboBox.setSelectedItem(p.getBaseNameCase());
+            caseSuffixComboBox.setSelectedItem(p.getExtNameCase());
 
             followLinksCheckBox.setSelected(p.isFollowLinks());
             recursiveCheckBox.setSelected(p.isRecursive());
-            overwriteCheckBox.setSelected(p.isOverwrite());
+            overwriteCheckBox.setSelected(p.isReplaceExisting());
 
-            sourceChooserPanel.setPath(p.getSource());
-            destChooserPanel.setPath(p.getDest());
+            if (p.getSourceDir() != null) {
+                sourceChooserPanel.setPath(p.getSourceDir().getAbsolutePath());
+            }
+
+            if (p.getDestDir() != null) {
+                destChooserPanel.setPath(p.getDestDir().getAbsolutePath());
+            }
 
             patternTextField.setText(p.getFilePattern());
             dateFormatTextField.setText(p.getDatePattern());
@@ -843,18 +852,18 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
     }//GEN-LAST:event_profileComboBoxActionPerformed
 
     private void overwriteCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_overwriteCheckBoxActionPerformed
-        getSelectedProfile().setOverwrite(overwriteCheckBox.isSelected());
+        getSelectedProfile().setReplaceExisting(overwriteCheckBox.isSelected());
     }//GEN-LAST:event_overwriteCheckBoxActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JMenuItem aboutMenuItem;
     private javax.swing.JButton addButton;
-    private javax.swing.JComboBox<String> caseBaseComboBox;
-    private javax.swing.JComboBox<String> caseSuffixComboBox;
+    private javax.swing.JComboBox<NameCase> caseBaseComboBox;
+    private javax.swing.JComboBox<NameCase> caseSuffixComboBox;
     private javax.swing.JMenuItem cloneMenuItem;
     private javax.swing.JLabel dateFormatLabel;
     private javax.swing.JTextField dateFormatTextField;
-    private javax.swing.JComboBox dateSourceComboBox;
+    private javax.swing.JComboBox<DateSource> dateSourceComboBox;
     private javax.swing.JLabel dateSourceLabel;
     private se.trixon.almond.util.swing.dialogs.FileChooserPanel destChooserPanel;
     private javax.swing.JCheckBox followLinksCheckBox;
@@ -969,9 +978,10 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
 
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    profileRun(getSelectedProfile());
+                    if (!mProfiles.isEmpty()) {
+                        profileRun();
+                    }
                 }
-
             };
 
             initAction(action, START, keyStroke, MaterialIcon.Av.PLAY_ARROW, false);

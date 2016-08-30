@@ -51,11 +51,11 @@ public class Operation {
     private final List<File> mFiles = new ArrayList<>();
     private boolean mInterrupted;
     private final OperationListener mListener;
-    private final OptionsHolder mOptionsHolder;
+    private final Profile mProfile;
 
-    public Operation(OperationListener operationListener, OptionsHolder optionsHolder) {
+    public Operation(OperationListener operationListener, Profile profile) {
         mListener = operationListener;
-        mOptionsHolder = optionsHolder;
+        mProfile = profile;
         mBundle = BundleHelper.getBundle(Operation.class, "Bundle");
     }
 
@@ -71,23 +71,23 @@ public class Operation {
 
             for (File sourceFile : mFiles) {
                 try {
-                    SimpleDateFormat simpleDateFormat = mOptionsHolder.getDateFormat();
+                    SimpleDateFormat simpleDateFormat = mProfile.getDateFormat();
 
                     String fileDate = simpleDateFormat.format(getDate(sourceFile));
-                    File destDir = new File(mOptionsHolder.getDestDir(), fileDate);
+                    File destDir = new File(mProfile.getDestDir(), fileDate);
 
                     if (destDir.isFile()) {
                         mListener.onOperationLog(String.format(mBundle.getString("err_dest_dir_is_file"), destDir.getAbsolutePath()));
                         break;
-                    } else if (!destDir.exists() && !mOptionsHolder.isDryRun()) {
+                    } else if (!destDir.exists() && !mProfile.isDryRun()) {
                         FileUtils.forceMkdir(destDir);
                     }
 
                     String destFilename = sourceFile.getName();
                     String base = FilenameUtils.getBaseName(destFilename);
                     String ext = FilenameUtils.getExtension(destFilename);
-                    NameCase baseCase = mOptionsHolder.getBaseNameCase();
-                    NameCase extCase = mOptionsHolder.getExtNameCase();
+                    NameCase baseCase = mProfile.getBaseNameCase();
+                    NameCase extCase = mProfile.getExtNameCase();
 
                     if (baseCase != null || extCase != null) {
                         if (baseCase != null) {
@@ -109,15 +109,15 @@ public class Operation {
 
                     File destFile = new File(destDir, destFilename);
                     String log;
-                    if (destFile.exists() && !mOptionsHolder.isReplaceExisting()) {
+                    if (destFile.exists() && !mProfile.isReplaceExisting()) {
                         log = String.format(mBundle.getString("err_dest_file_exists"), destFile.getAbsolutePath());
                     } else {
-                        Command command = mOptionsHolder.getCommand();
+                        Command command = mProfile.getCommand();
                         String cmd = command == Command.COPY ? "cp" : "mv";
                         log = String.format("%s %s  %s", cmd, sourceFile.getAbsolutePath(), destFile.toString());
 
                         if (destDir.canWrite()) {
-                            if (!mOptionsHolder.isDryRun()) {
+                            if (!mProfile.isDryRun()) {
                                 if (command == Command.COPY) {
                                     FileUtils.copyFile(sourceFile, destFile);
                                 } else if (command == Command.MOVE) {
@@ -129,7 +129,7 @@ public class Operation {
                                     }
                                 }
                             }
-                        } else if (!mOptionsHolder.isDryRun()) {
+                        } else if (!mProfile.isDryRun()) {
                             log = mBundle.getString("err_dest_cant_write");
                         }
                     }
@@ -164,18 +164,18 @@ public class Operation {
 
     private boolean generateFileList() {
         mListener.onOperationLog(Dict.GENERATING_FILELIST.toString());
-        PathMatcher pathMatcher = mOptionsHolder.getPathMatcher();
+        PathMatcher pathMatcher = mProfile.getPathMatcher();
 
         EnumSet<FileVisitOption> fileVisitOptions = EnumSet.noneOf(FileVisitOption.class);
-        if (mOptionsHolder.isFollowLinks()) {
+        if (mProfile.isFollowLinks()) {
             fileVisitOptions = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
         }
 
-        File file = mOptionsHolder.getSourceDir();
+        File file = mProfile.getSourceDir();
         if (file.isDirectory()) {
             FileVisitor fileVisitor = new FileVisitor(pathMatcher, mFiles);
             try {
-                if (mOptionsHolder.isRecursive()) {
+                if (mProfile.isRecursive()) {
                     Files.walkFileTree(file.toPath(), fileVisitOptions, Integer.MAX_VALUE, fileVisitor);
                 } else {
                     Files.walkFileTree(file.toPath(), fileVisitOptions, 1, fileVisitor);
@@ -202,7 +202,7 @@ public class Operation {
 
     private Date getDate(File sourceFile) throws IOException, ImageProcessingException {
         Date date = new Date(System.currentTimeMillis());
-        DateSource dateSource = mOptionsHolder.getDateSource();
+        DateSource dateSource = mProfile.getDateSource();
 
         if (dateSource == DateSource.FILE_CREATED) {
             BasicFileAttributes attr = Files.readAttributes(sourceFile.toPath(), BasicFileAttributes.class);
@@ -234,7 +234,7 @@ public class Operation {
     }
 
     private String getMessage(String message) {
-        if (mOptionsHolder.isDryRun()) {
+        if (mProfile.isDryRun()) {
             message = String.format("dry-run: %s", message);
         }
 

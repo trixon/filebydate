@@ -15,15 +15,17 @@
  */
 package se.trixon.filebydate;
 
+import java.util.ResourceBundle;
+import se.trixon.almond.util.BundleHelper;
+import se.trixon.filebydate.ui.MainFrame;
+
 /**
  *
  * @author Patrik Karlsson
  */
 public enum NameCase {
-    LOWER, UPPER;
-
-    private NameCase() {
-    }
+    UNCHANGED, LOWER, UPPER;
+    private final ResourceBundle mBundleUI = BundleHelper.getBundle(MainFrame.class, "Bundle");
 
     public static NameCase getCase(String key) {
         if (key != null) {
@@ -36,5 +38,13 @@ public enum NameCase {
         }
 
         return null;
+    }
+
+    private NameCase() {
+    }
+
+    @Override
+    public String toString() {
+        return mBundleUI.getString("case_" + name().toLowerCase());
     }
 }

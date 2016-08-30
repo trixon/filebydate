@@ -78,26 +78,24 @@ public class FileByDate implements OperationListener {
                 } else if (commandLine.hasOption("gui")) {
                     displayGui();
                 } else {
-                    OptionsHolder optionsHolder = null;
+                    Profile profile = null;
 
                     if (commandLine.hasOption("profile")) {
                         loadProfiles();
-                        Profile profile = mProfileManager.getProfile(commandLine.getOptionValue("profile"));
+                        profile = mProfileManager.getProfile(commandLine.getOptionValue("profile"));
                         if (profile == null) {
-                            System.err.println("Profile not found!");
+                            System.err.println(mBundle.getString("err_profile_not_found"));
                             System.exit(1);
-                        } else {
-                            optionsHolder = mProfileManager.getOptionsHolder(profile);
                         }
                     } else {
-                        optionsHolder = new OptionsHolder(commandLine);
+                        profile = new Profile(commandLine);
                     }
 
-                    if (optionsHolder.isValid()) {
-                        Operation operation = new Operation(this, optionsHolder);
+                    if (profile.isValid()) {
+                        Operation operation = new Operation(this, profile);
                         operation.start();
                     } else {
-                        System.out.println(optionsHolder.getValidationError());
+                        System.out.println(profile.getValidationError());
                         System.out.println(Dict.ABORTING.toString());
                     }
                 }
@@ -305,6 +303,5 @@ public class FileByDate implements OperationListener {
         } catch (IOException ex) {
             Logger.getLogger(FileByDate.class.getName()).log(Level.SEVERE, null, ex);
         }
-
     }
 }

@@ -72,42 +72,22 @@ public class ProfileManager {
         for (Profile profile : mProfiles) {
             JSONObject object = new JSONObject();
             object.put(KEY_NAME, profile.getName());
-            object.put(KEY_SOURCE, profile.getSource());
-            object.put(KEY_DEST, profile.getDest());
+            object.put(KEY_SOURCE, profile.getSourceDirAsString());
+            object.put(KEY_DEST, profile.getDestDirAsString());
             object.put(KEY_FILE_PATTERN, profile.getFilePattern());
-            object.put(KEY_DATE_SOURCE, profile.getDateSource());
+            object.put(KEY_DATE_SOURCE, profile.getDateSource().name());
             object.put(KEY_DATE_PATTERN, profile.getDatePattern());
             object.put(KEY_OPERATION, profile.getOperation());
             object.put(KEY_FOLLOW_LINKS, profile.isFollowLinks());
             object.put(KEY_RECURSIVE, profile.isRecursive());
-            object.put(KEY_OVERWRITE, profile.isOverwrite());
-            object.put(KEY_CASE_BASE, profile.getCaseBasename());
-            object.put(KEY_CASE_SUFFIX, profile.getCaseSuffix());
+            object.put(KEY_OVERWRITE, profile.isReplaceExisting());
+            object.put(KEY_CASE_BASE, profile.getBaseNameCase().name());
+            object.put(KEY_CASE_SUFFIX, profile.getExtNameCase().name());
 
             array.add(object);
         }
 
         return array;
-    }
-
-    public OptionsHolder getOptionsHolder(Profile profile) {
-        OptionsHolder holder = new OptionsHolder();
-        holder.setSourceDir(new File(profile.getSource()));
-        holder.setDestDir(new File(profile.getDest()));
-
-        holder.setFilePattern(profile.getFilePattern());
-        holder.setDateSource(DateSource.values()[profile.getDateSource()]);
-        holder.setDatePattern(profile.getDatePattern());
-        if (profile.getOperation() == 0) {
-            holder.setModeCopy(true);
-        } else {
-            holder.setModeMove(true);
-        }
-//        holder.setCommand(Operation.Command.values()[profile.getOperation()]);
-
-        holder.setDryRun(true);
-
-        return holder;
     }
 
     public Profile getProfile(String name) {
@@ -157,6 +137,14 @@ public class ProfileManager {
         return (boolean) object.get(key);
     }
 
+    private File getFileObject(JSONObject object, String key) {
+        try {
+            return new File((String) object.get(key));
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     private int getInt(JSONObject object, String key) {
         return ((Long) object.get(key)).intValue();
     }
@@ -168,17 +156,20 @@ public class ProfileManager {
             JSONObject object = (JSONObject) arrayItem;
             Profile profile = new Profile();
             profile.setName((String) object.get(KEY_NAME));
-            profile.setSource((String) object.get(KEY_SOURCE));
-            profile.setDest((String) object.get(KEY_DEST));
+            profile.setSourceDir(getFileObject(object, KEY_SOURCE));
+            profile.setDestDir(getFileObject(object, KEY_DEST));
             profile.setFilePattern((String) object.get(KEY_FILE_PATTERN));
-            profile.setDateSource(getInt(object, KEY_DATE_SOURCE));
+            DateSource dateSource = DateSource.valueOf((String) object.get(KEY_DATE_SOURCE));
+            profile.setDateSource(dateSource);
             profile.setDatePattern((String) object.get(KEY_DATE_PATTERN));
             profile.setOperation(getInt(object, KEY_OPERATION));
             profile.setFollowLinks(getBoolean(object, KEY_FOLLOW_LINKS));
             profile.setRecursive(getBoolean(object, KEY_RECURSIVE));
-            profile.setOverwrite(getBoolean(object, KEY_OVERWRITE));
-            profile.setCaseBasename(getInt(object, KEY_CASE_BASE));
-            profile.setCaseSuffix(getInt(object, KEY_CASE_SUFFIX));
+            profile.setReplaceExisting(getBoolean(object, KEY_OVERWRITE));
+            NameCase nameCase = NameCase.valueOf((String) object.get(KEY_CASE_BASE));
+            profile.setBaseNameCase(nameCase);
+            nameCase = NameCase.valueOf((String) object.get(KEY_CASE_SUFFIX));
+            profile.setExtNameCase(nameCase);
 
             mProfiles.add(profile);
         }
