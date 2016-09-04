@@ -33,7 +33,7 @@ import se.trixon.filebydate.Operation.Command;
  */
 public class Profile implements Comparable<Profile>, Cloneable {
 
-    private NameCase mBaseNameCase;
+    private NameCase mBaseNameCase = NameCase.UNCHANGED;
     private final ResourceBundle mBundle = BundleHelper.getBundle(Profile.class, "Bundle");
     private String mCaseBase;
     private String mCaseExt;
@@ -44,7 +44,7 @@ public class Profile implements Comparable<Profile>, Cloneable {
     private String mDateSourceString;
     private File mDestDir;
     private boolean mDryRun;
-    private NameCase mExtNameCase;
+    private NameCase mExtNameCase = NameCase.UNCHANGED;
     private String mFilePattern;
     private boolean mFollowLinks;
     private boolean mModeCopy;
@@ -208,20 +208,27 @@ public class Profile implements Comparable<Profile>, Cloneable {
             addValidationError(String.format(mBundle.getString("invalid_date_pattern"), mDatePattern));
         }
 
-        try {
-            mDateSource = DateSource.valueOf(mDateSourceString.toUpperCase());
-        } catch (Exception e) {
-            addValidationError(String.format(mBundle.getString("invalid_date_source"), mDateSourceString));
+        if (mDateSourceString != null) {
+            try {
+                mDateSource = DateSource.valueOf(mDateSourceString.toUpperCase());
+            } catch (Exception e) {
+                addValidationError(String.format(mBundle.getString("invalid_date_source"), mDateSourceString));
+            }
         }
 
-        mBaseNameCase = NameCase.getCase(mCaseBase);
-        if (mBaseNameCase == null && mCaseBase != null) {
-            addValidationError(String.format(mBundle.getString("invalid_case_base"), mCaseBase));
+        if (mCaseBase != null) {
+            mBaseNameCase = NameCase.getCase(mCaseBase);
+            if (mBaseNameCase == null) {
+                addValidationError(String.format(mBundle.getString("invalid_case_base"), mCaseBase));
+            }
+
         }
 
-        mExtNameCase = NameCase.getCase(mCaseExt);
-        if (mExtNameCase == null && mCaseExt != null) {
-            addValidationError(String.format(mBundle.getString("invalid_case_base"), mCaseExt));
+        if (mCaseExt != null) {
+            mExtNameCase = NameCase.getCase(mCaseExt);
+            if (mExtNameCase == null) {
+                addValidationError(String.format(mBundle.getString("invalid_case_ext"), mCaseExt));
+            }
         }
 
         if (mSourceDir == null || !mSourceDir.isDirectory()) {
@@ -342,7 +349,7 @@ public class Profile implements Comparable<Profile>, Cloneable {
     }
 
     public String toDebugString() {
-        return "OptionsHolder {"
+        return "Profile {"
                 + "\n OperationMode=" + mCommand
                 + "\n"
                 + "\n DateSource=" + mDateSource
@@ -353,6 +360,9 @@ public class Profile implements Comparable<Profile>, Cloneable {
                 + "\n Links=" + mFollowLinks
                 + "\n Overwrite=" + mReplaceExisting
                 + "\n Recursive=" + mRecursive
+                + "\n"
+                + "\n CaseBase=" + mBaseNameCase
+                + "\n CaseExt=" + mExtNameCase
                 + "\n"
                 + "\n Source=" + mSourceDir
                 + "\n Dest=" + mDestDir

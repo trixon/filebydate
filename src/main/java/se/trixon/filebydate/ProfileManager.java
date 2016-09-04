@@ -17,6 +17,7 @@ package se.trixon.filebydate;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.LinkedList;
 import org.apache.commons.io.FileUtils;
@@ -114,7 +115,7 @@ public class ProfileManager {
 
     public void load() throws IOException {
         if (mProfileFile.exists()) {
-            JSONObject jsonObject = (JSONObject) JSONValue.parse(FileUtils.readFileToString(mProfileFile));
+            JSONObject jsonObject = (JSONObject) JSONValue.parse(FileUtils.readFileToString(mProfileFile, Charset.defaultCharset()));
             mVersion = getInt(jsonObject, KEY_VERSION);
             JSONArray jobsArray = (JSONArray) jsonObject.get(KEY_PROFILES);
 
@@ -128,9 +129,7 @@ public class ProfileManager {
         jsonObject.put(KEY_VERSION, sVersion);
 
         String jsonString = jsonObject.toJSONString();
-        FileUtils.writeStringToFile(mProfileFile, jsonString);
-
-        load();
+        FileUtils.writeStringToFile(mProfileFile, jsonString, Charset.defaultCharset());
     }
 
     private boolean getBoolean(JSONObject object, String key) {

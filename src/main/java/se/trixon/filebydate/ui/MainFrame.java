@@ -47,6 +47,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.Document;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.SystemUtils;
 import se.trixon.almond.util.AlmondAction;
 import se.trixon.almond.util.AlmondOptions;
@@ -140,6 +141,7 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
 
     @Override
     public void onOperationLog(String message) {
+        logPanel.println(message);
     }
 
     @Override
@@ -263,7 +265,6 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
 
     private void populateProfiles(Profile profile) {
         mModel.removeAllElements();
-        //resetForm();
         Collections.sort(mProfiles);
 
         mProfiles.stream().forEach((item) -> {
@@ -276,7 +277,6 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
 
         boolean hasProfiles = !mProfiles.isEmpty();
         SwingHelper.enableComponents(mainPanel, hasProfiles);
-        //SwingHelper.enableComponents(profileComboBox, hasProfiles);
     }
 
     private void loadProfiles() {
@@ -321,9 +321,19 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
             if (existingProfile == null) {
                 Profile p = new Profile();
                 p.setName(s);
+                p.setSourceDir(FileUtils.getUserDirectory());
+                p.setDestDir(FileUtils.getUserDirectory());
+                p.setFilePattern("{*.jpg,*.JPG}");
+                p.setDatePattern("yyyy/MM/yyyy-MM-dd");
+                p.setOperation(0);
+                p.setFollowLinks(true);
+                p.setRecursive(true);
+                p.setReplaceExisting(false);
+                p.setBaseNameCase(NameCase.UNCHANGED);
+                p.setExtNameCase(NameCase.UNCHANGED);
+
                 mProfiles.add(p);
                 populateProfiles(p);
-                resetForm();
             } else {
                 Message.error(this, Dict.ERROR.toString(), String.format(mBundleUI.getString("error_profile_exist"), s));
                 profileAdd(s);
@@ -393,6 +403,7 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
     }
 
     private void profileRun() {
+        //TODO Add confirmation dialog with run, dry run, cancel.
         saveProfiles();
         Profile profile = getSelectedProfile().clone();
         profile.setDryRun(true);
@@ -407,19 +418,6 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
             logPanel.println(profile.getValidationError());
             logPanel.println(Dict.ABORTING.toString());
         }
-
-    }
-
-    private void resetForm() {
-        sourceChooserPanel.setPath("");
-        destChooserPanel.setPath("");
-        patternTextField.setText("*");
-        dateFormatTextField.setText("yyyy/MM/yyyy-MM-dd");
-        opComboBox.setSelectedIndex(0);
-        followLinksCheckBox.setSelected(true);
-        recursiveCheckBox.setSelected(true);
-        caseBaseComboBox.setSelectedIndex(0);
-        caseSuffixComboBox.setSelectedIndex(0);
     }
 
     private void saveProfiles() {
