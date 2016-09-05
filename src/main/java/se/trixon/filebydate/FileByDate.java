@@ -96,6 +96,8 @@ public class FileByDate implements OperationListener {
                         if (profile == null) {
                             System.err.println(mBundle.getString("err_profile_not_found"));
                             System.exit(1);
+                        } else {
+                            profile.setDryRun(commandLine.hasOption("dry-run"));
                         }
                     } else {
                         profile = new Profile(commandLine);
