@@ -403,20 +403,40 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
     }
 
     private void profileRun() {
-        //TODO Add confirmation dialog with run, dry run, cancel.
-        saveProfiles();
         Profile profile = getSelectedProfile().clone();
-        profile.setDryRun(true);
-        logPanel.clear();
+        Object[] options = {Dict.RUN.toString(), Dict.DRY_RUN.toString(), Dict.CANCEL.toString()};
+        String message = String.format(mBundleUI.getString("confirm_start"), profile.getName());
 
-        if (profile.isValid()) {
-            logPanel.println(profile.toDebugString());
-            Operation operation = new Operation(this, profile);
-            operation.start();
-        } else {
-            logPanel.println(profile.toDebugString());
-            logPanel.println(profile.getValidationError());
-            logPanel.println(Dict.ABORTING.toString());
+        int result = JOptionPane.showOptionDialog(this,
+                message,
+                Dict.RUN.toString(),
+                JOptionPane.YES_NO_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE,
+                null,
+                options,
+                options[0]);
+
+        if (result > -1 && result < 2) {
+            boolean dryRun = result == 1;
+            saveProfiles();
+            profile.setDryRun(dryRun);
+
+            logPanel.clear();
+
+            if (profile.isValid()) {
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        logPanel.println(profile.toDebugString());
+                        Operation operation = new Operation(MainFrame.this, profile);
+                        operation.start();
+                    }
+                }).start();
+            } else {
+                logPanel.println(profile.toDebugString());
+                logPanel.println(profile.getValidationError());
+                logPanel.println(Dict.ABORTING.toString());
+            }
         }
     }
 
