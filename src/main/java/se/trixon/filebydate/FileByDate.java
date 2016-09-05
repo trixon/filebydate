@@ -75,6 +75,16 @@ public class FileByDate implements OperationListener {
                     System.exit(0);
                 } else if (commandLine.hasOption("list-profiles")) {
                     displayProfiles();
+                } else if (commandLine.hasOption("view-profile")) {
+                    loadProfiles();
+                    Profile profile = mProfileManager.getProfile(commandLine.getOptionValue("view-profile"));
+                    if (profile == null) {
+                        System.err.println(mBundle.getString("err_profile_not_found"));
+                        System.exit(1);
+                    } else {
+                        profile.isValid();
+                        System.out.println(profile.toDebugString());
+                    }
                 } else if (commandLine.hasOption("gui")) {
                     displayGui();
                 } else {
@@ -272,6 +282,13 @@ public class FileByDate implements OperationListener {
                 .desc(mBundle.getString("opt_list_profiles_desc"))
                 .build();
 
+        Option viewProfile = Option.builder("vp")
+                .longOpt("view-profile")
+                .hasArg()
+                .numberOfArgs(1)
+                .desc(mBundle.getString("opt_view_profile_desc"))
+                .build();
+
         mOptions = new Options();
 
         mOptions.addOption(copy);
@@ -289,6 +306,7 @@ public class FileByDate implements OperationListener {
         mOptions.addOption(caseExt);
 
         mOptions.addOption(listProfiles);
+        mOptions.addOption(viewProfile);
         mOptions.addOption(profile);
 
         mOptions.addOption(gui);
