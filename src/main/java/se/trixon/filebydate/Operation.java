@@ -89,13 +89,17 @@ public class Operation {
                     NameCase baseCase = mProfile.getBaseNameCase();
                     NameCase extCase = mProfile.getExtNameCase();
 
-                    if (baseCase != null || extCase != null) {
-                        if (baseCase != null) {
-                            base = baseCase == NameCase.LOWER ? base.toLowerCase() : base.toUpperCase();
+                    if (baseCase != NameCase.UNCHANGED || extCase != NameCase.UNCHANGED) {
+                        if (baseCase == NameCase.LOWER) {
+                            base = base.toLowerCase();
+                        } else if (baseCase == NameCase.UPPER) {
+                            base = base.toUpperCase();
                         }
 
-                        if (extCase != null) {
-                            ext = extCase == NameCase.LOWER ? ext.toLowerCase() : ext.toUpperCase();
+                        if (extCase == NameCase.LOWER) {
+                            ext = ext.toLowerCase();
+                        } else if (baseCase == NameCase.UPPER) {
+                            ext = ext.toUpperCase();
                         }
 
                         if (base.length() == 0) {
