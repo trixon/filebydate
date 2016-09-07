@@ -490,8 +490,9 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         aboutMenuItem = new javax.swing.JMenuItem();
         jSeparator6 = new javax.swing.JPopupMenu.Separator();
         quitMenuItem = new javax.swing.JMenuItem();
-        toolBar = new javax.swing.JToolBar();
+        topPanel = new javax.swing.JPanel();
         profileComboBox = new javax.swing.JComboBox<>();
+        toolBar = new javax.swing.JToolBar();
         startButton = new javax.swing.JButton();
         addButton = new javax.swing.JButton();
         removeButton = new javax.swing.JButton();
@@ -538,15 +539,23 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
             }
         });
 
-        toolBar.setFloatable(false);
-        toolBar.setRollover(true);
+        topPanel.setLayout(new java.awt.GridBagLayout());
 
         profileComboBox.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 profileComboBoxActionPerformed(evt);
             }
         });
-        toolBar.add(profileComboBox);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
+        topPanel.add(profileComboBox, gridBagConstraints);
+
+        toolBar.setFloatable(false);
+        toolBar.setRollover(true);
 
         startButton.setFocusable(false);
         startButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -573,7 +582,13 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         });
         toolBar.add(menuButton);
 
-        getContentPane().add(toolBar, java.awt.BorderLayout.PAGE_START);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        topPanel.add(toolBar, gridBagConstraints);
+
+        getContentPane().add(topPanel, java.awt.BorderLayout.PAGE_START);
 
         mainPanel.setLayout(new java.awt.GridBagLayout());
 
@@ -912,6 +927,7 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
     private se.trixon.almond.util.swing.dialogs.FileChooserPanel sourceChooserPanel;
     private javax.swing.JButton startButton;
     private javax.swing.JToolBar toolBar;
+    private javax.swing.JPanel topPanel;
     // End of variables declaration//GEN-END:variables
 
     class ActionManager {
