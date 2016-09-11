@@ -79,7 +79,7 @@ public class FileByDate implements OperationListener {
                     loadProfiles();
                     Profile profile = mProfileManager.getProfile(commandLine.getOptionValue("view-profile"));
                     if (profile == null) {
-                        System.err.println(mBundle.getString("err_profile_not_found"));
+                        System.err.println(Dict.Dialog.ERROR_PROFILE_NOT_FOUND.toString());
                         System.exit(1);
                     } else {
                         profile.isValid();
@@ -94,7 +94,7 @@ public class FileByDate implements OperationListener {
                         loadProfiles();
                         profile = mProfileManager.getProfile(commandLine.getOptionValue("profile"));
                         if (profile == null) {
-                            System.err.println(mBundle.getString("err_profile_not_found"));
+                            System.err.println(Dict.Dialog.ERROR_PROFILE_NOT_FOUND.toString());
                             System.exit(1);
                         } else {
                             profile.setDryRun(commandLine.hasOption("dry-run"));
@@ -147,7 +147,7 @@ public class FileByDate implements OperationListener {
 
     private void displayGui() {
         if (GraphicsEnvironment.isHeadless()) {
-            Xlog.timedErr(mBundle.getString("headless"));
+            Xlog.timedErr(Dict.Dialog.ERROR_NO_GUI_IN_HEADLESS.toString());
             System.exit(1);
 
             return;
@@ -189,7 +189,7 @@ public class FileByDate implements OperationListener {
                 System.out.println(profile.getName());
             }
         } else {
-            System.out.println(mBundle.getString("no_profiles_found"));
+            System.out.println(Dict.Dialog.MESSAGE_NO_PROFILES_FOUND.toString());
         }
     }
 

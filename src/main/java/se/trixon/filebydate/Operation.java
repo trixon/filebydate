@@ -77,7 +77,7 @@ public class Operation {
                     File destDir = new File(mProfile.getDestDir(), fileDate);
 
                     if (destDir.isFile()) {
-                        mListener.onOperationLog(String.format(mBundle.getString("err_dest_dir_is_file"), destDir.getAbsolutePath()));
+                        mListener.onOperationLog(String.format(Dict.Dialog.ERROR_DEST_DIR_IS_FILE.toString(), destDir.getAbsolutePath()));
                         break;
                     } else if (!destDir.exists() && !mProfile.isDryRun()) {
                         FileUtils.forceMkdir(destDir);
@@ -114,7 +114,7 @@ public class Operation {
                     File destFile = new File(destDir, destFilename);
                     String log;
                     if (destFile.exists() && !mProfile.isReplaceExisting()) {
-                        log = String.format(mBundle.getString("err_dest_file_exists"), destFile.getAbsolutePath());
+                        log = String.format(Dict.Dialog.ERROR_DEST_FILE_EXISTS.toString(), destFile.getAbsolutePath());
                     } else {
                         Command command = mProfile.getCommand();
                         String cmd = command == Command.COPY ? "cp" : "mv";
@@ -134,7 +134,7 @@ public class Operation {
                                 }
                             }
                         } else if (!mProfile.isDryRun()) {
-                            log = mBundle.getString("err_dest_cant_write");
+                            log = Dict.Dialog.ERROR_DEST_CANT_WRITE.toString();
                         }
                     }
 
@@ -225,9 +225,9 @@ public class Operation {
             } catch (NullPointerException | ImageProcessingException ex) {
                 String message;
                 if (directory == null) {
-                    message = String.format(mBundle.getString("err_exif"), sourceFile.getAbsolutePath());
+                    message = String.format(Dict.Dialog.ERROR_EXIF_NOT_FOUND.toString(), sourceFile.getAbsolutePath());
                 } else {
-                    message = String.format(mBundle.getString("err_file_format"), sourceFile.getAbsolutePath());
+                    message = String.format(Dict.Dialog.ERROR_FILE_FORMAT_NOT_SUPPORTED.toString(), sourceFile.getAbsolutePath());
                 }
 
                 throw new ImageProcessingException(message);
