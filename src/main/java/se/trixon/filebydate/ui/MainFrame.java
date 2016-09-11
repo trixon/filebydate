@@ -315,7 +315,7 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
     }
 
     private void profileAdd(String defaultName) {
-        String s = requestProfileName(mBundleUI.getString("title_profile_add"), defaultName);
+        String s = requestProfileName(Dict.Dialog.TITLE_PROFILE_ADD.toString(), defaultName);
         if (s != null) {
             Profile existingProfile = mProfileManager.getProfile(s);
             if (existingProfile == null) {
@@ -335,7 +335,7 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
                 mProfiles.add(p);
                 populateProfiles(p);
             } else {
-                Message.error(this, Dict.ERROR.toString(), String.format(mBundleUI.getString("error_profile_exist"), s));
+                Message.error(this, Dict.ERROR.toString(), String.format(Dict.Dialog.ERROR_PROFILE_EXIST.toString(), s));
                 profileAdd(s);
             }
         }
@@ -346,7 +346,7 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         Profile p = original.clone();
         mProfiles.add(p);
         populateProfiles(p);
-        String s = requestProfileName(mBundleUI.getString("title_profile_clone"), p.getName());
+        String s = requestProfileName(Dict.Dialog.TITLE_PROFILE_CLONE.toString(), p.getName());
         if (s != null) {
             p.setName(s);
             populateProfiles(getSelectedProfile());
@@ -357,14 +357,14 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
     }
 
     private void profileRename(String defaultName) {
-        String s = requestProfileName(mBundleUI.getString("title_profile_rename"), defaultName);
+        String s = requestProfileName(Dict.Dialog.TITLE_PROFILE_RENAME.toString(), defaultName);
         if (s != null) {
             Profile existingProfile = mProfileManager.getProfile(s);
             if (existingProfile == null) {
                 getSelectedProfile().setName(s);
                 populateProfiles(getSelectedProfile());
             } else if (existingProfile != getSelectedProfile()) {
-                Message.error(this, Dict.ERROR.toString(), String.format(mBundleUI.getString("error_profile_exist"), s));
+                Message.error(this, Dict.ERROR.toString(), String.format(Dict.Dialog.ERROR_PROFILE_EXIST.toString(), s));
                 profileRename(s);
             }
         }
@@ -372,10 +372,10 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
 
     private void profileRemove() {
         if (!mProfiles.isEmpty()) {
-            String message = String.format(mBundleUI.getString("message_profile_remove"), getSelectedProfile().getName());
+            String message = String.format(Dict.Dialog.MESSAGE_PROFILE_REMOVE.toString(), getSelectedProfile().getName());
             int retval = JOptionPane.showConfirmDialog(this,
                     message,
-                    mBundleUI.getString("title_profile_remove"),
+                    Dict.Dialog.TITLE_PROFILE_REMOVE.toString(),
                     JOptionPane.OK_CANCEL_OPTION,
                     JOptionPane.WARNING_MESSAGE);
 
@@ -388,10 +388,10 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
 
     private void profileRemoveAll() {
         if (!mProfiles.isEmpty()) {
-            String message = String.format(mBundleUI.getString("message_profile_remove_all"), getSelectedProfile().getName());
+            String message = String.format(Dict.Dialog.MESSAGE_PROFILE_REMOVE_ALL.toString(), getSelectedProfile().getName());
             int retval = JOptionPane.showConfirmDialog(this,
                     message,
-                    mBundleUI.getString("title_profile_remove_all"),
+                    Dict.Dialog.TITLE_PROFILE_REMOVE_ALL.toString(),
                     JOptionPane.OK_CANCEL_OPTION,
                     JOptionPane.WARNING_MESSAGE);
 
@@ -405,7 +405,7 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
     private void profileRun() {
         Profile profile = getSelectedProfile().clone();
         Object[] options = {Dict.RUN.toString(), Dict.DRY_RUN.toString(), Dict.CANCEL.toString()};
-        String message = String.format(mBundleUI.getString("confirm_start"), profile.getName());
+        String message = String.format(Dict.Dialog.TITLE_PROFILE_RUN.toString(), profile.getName());
 
         int result = JOptionPane.showOptionDialog(this,
                 message,
