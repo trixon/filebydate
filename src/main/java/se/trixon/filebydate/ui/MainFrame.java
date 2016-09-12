@@ -296,7 +296,7 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat(dateFormatTextField.getText());
             datePreview = simpleDateFormat.format(new Date(System.currentTimeMillis()));
         } catch (IllegalArgumentException ex) {
-            datePreview = Dict.ERROR.toString();
+            datePreview = Dict.Dialog.ERROR.toString();
         }
 
         String dateLabel = String.format("%s (%s)", Dict.DATE_PATTERN.getString(), datePreview);
@@ -335,7 +335,7 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
                 mProfiles.add(p);
                 populateProfiles(p);
             } else {
-                Message.error(this, Dict.ERROR.toString(), String.format(Dict.Dialog.ERROR_PROFILE_EXIST.toString(), s));
+                Message.error(this, Dict.Dialog.ERROR.toString(), String.format(Dict.Dialog.ERROR_PROFILE_EXIST.toString(), s));
                 profileAdd(s);
             }
         }
@@ -364,7 +364,7 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
                 getSelectedProfile().setName(s);
                 populateProfiles(getSelectedProfile());
             } else if (existingProfile != getSelectedProfile()) {
-                Message.error(this, Dict.ERROR.toString(), String.format(Dict.Dialog.ERROR_PROFILE_EXIST.toString(), s));
+                Message.error(this, Dict.Dialog.ERROR.toString(), String.format(Dict.Dialog.ERROR_PROFILE_EXIST.toString(), s));
                 profileRename(s);
             }
         }
