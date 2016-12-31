@@ -103,11 +103,20 @@
                             <filters>
                                 <filter>
                                     <artifact>se.trixon.almond:almond-util</artifact>
-                                    <excludes>
-                                        <exclude>se/trixon/util/icon/**</exclude>
-                                        <exclude>se/trixon/util/icons/**</exclude>
-                                        <exclude>se/trixon/util/swing/**</exclude>
-                                    </excludes>
+                                    <includes>
+                                        <include>se/trixon/almond/util/*</include>
+                                        <include>se/trixon/almond/util/swing/**</include>
+                                        <include>se/trixon/almond/util/icon/*</include>
+                                        <include>se/trixon/almond/util/icons/*</include>
+                                        <include>se/trixon/almond/util/icons/material/*</include>
+                                        <include>se/trixon/almond/util/icons/material/_action/*.png</include>
+                                        <include>se/trixon/almond/util/icons/material/_alert/*.png</include>
+                                        <include>se/trixon/almond/util/icons/material/_av/*.png</include>
+                                        <include>se/trixon/almond/util/icons/material/_communication/*.png</include>
+                                        <include>se/trixon/almond/util/icons/material/_content/*.png</include>
+                                        <include>se/trixon/almond/util/icons/material/_editor/*.png</include>
+                                        <include>se/trixon/almond/util/icons/material/_navigation/*.png</include>
+                                    </includes>
                                 </filter>
                                 <filter>
                                     <artifact>com.bulenkov:darcula</artifact>
