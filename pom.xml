@@ -54,7 +54,7 @@
         <dependency>
             <groupId>se.trixon.almond</groupId>
             <artifactId>almond-util</artifactId>
-            <version>1.1.9</version>
+            <version>1.1.10-SNAPSHOT</version>
             <type>jar</type>
         </dependency>
         <dependency>
@@ -106,7 +106,6 @@
                                     <includes>
                                         <include>se/trixon/almond/util/*</include>
                                         <include>se/trixon/almond/util/swing/**</include>
-                                        <include>se/trixon/almond/util/icon/*</include>
                                         <include>se/trixon/almond/util/icons/*</include>
                                         <include>se/trixon/almond/util/icons/material/*</include>
                                         <include>se/trixon/almond/util/icons/material/_action/*.png</include>
