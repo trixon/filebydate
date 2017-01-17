@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 Patrik Karlsson.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -55,6 +55,7 @@ import se.trixon.almond.util.AlmondOptions.AlmondOptionsEvent;
 import se.trixon.almond.util.AlmondUI;
 import se.trixon.almond.util.BundleHelper;
 import se.trixon.almond.util.Dict;
+import se.trixon.almond.util.PomInfo;
 import se.trixon.almond.util.SystemHelper;
 import se.trixon.almond.util.icons.material.MaterialIcon;
 import se.trixon.almond.util.swing.SwingHelper;
@@ -1096,7 +1097,8 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
 
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    String versionInfo = String.format(mBundle.getString("version_info"), SystemHelper.getJarVersion(FileByDate.class));
+                    PomInfo pomInfo = new PomInfo(FileByDate.class, "se.trixon", "filebydate");
+                    String versionInfo = String.format(mBundle.getString("version_info"), pomInfo.getVersion());
                     Message.information(MainFrame.this, Dict.ABOUT.toString(), versionInfo);
                 }
             };

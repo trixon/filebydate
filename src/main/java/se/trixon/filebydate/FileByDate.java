@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 Patrik Karlsson.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,7 +33,7 @@ import org.apache.commons.lang3.SystemUtils;
 import se.trixon.almond.util.AlmondUI;
 import se.trixon.almond.util.BundleHelper;
 import se.trixon.almond.util.Dict;
-import se.trixon.almond.util.SystemHelper;
+import se.trixon.almond.util.PomInfo;
 import se.trixon.almond.util.Xlog;
 import se.trixon.filebydate.ui.MainFrame;
 
@@ -194,8 +194,8 @@ public class FileByDate implements OperationListener {
     }
 
     private void displayVersion() {
-        System.out.println(String.format(mBundle.getString("version_info"), SystemHelper.getJarVersion(FileByDate.class
-        )));
+        PomInfo pomInfo = new PomInfo(FileByDate.class, "se.trixon", "filebydate");
+        System.out.println(String.format(mBundle.getString("version_info"), pomInfo.getVersion()));
     }
 
     private void initOptions() {
