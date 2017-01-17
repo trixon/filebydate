@@ -33,9 +33,9 @@
         </developer>
     </developers>
     <scm>
-        <url>https://github.com/trixon/java-tt_filebydate</url>
-        <connection>scm:git:git://github.com/trixon/java-tt_filebydate.git</connection>
-        <developerConnection>scm:git:git@github.com:trixon/java-tt_filebydate.git</developerConnection>
+        <url>https://github.com/trixon/java-filebydate</url>
+        <connection>scm:git:git://github.com/trixon/java-filebydate.git</connection>
+        <developerConnection>scm:git:git@github.com:trixon/java-filebydate.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
     <dependencies>
