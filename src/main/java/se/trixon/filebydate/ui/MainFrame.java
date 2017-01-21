@@ -1009,7 +1009,7 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
             startButton.setAction(action);
 
             //add
-            keyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, 0);
+            keyStroke = null;
 
             action = new AlmondAction(Dict.ADD.toString()) {
 
