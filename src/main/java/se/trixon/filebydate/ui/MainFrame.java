@@ -38,6 +38,7 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.InputMap;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -47,6 +48,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.Document;
+import javax.swing.text.JTextComponent;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.SystemUtils;
 import se.trixon.almond.util.AlmondAction;
@@ -172,8 +174,7 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         destChooserPanel.setMode(JFileChooser.DIRECTORIES_ONLY);
 
         previewDateFormat();
-
-        dateFormatTextField.getDocument().addDocumentListener(new DocumentListener() {
+        getTextComponent(dateFormatComboBox).getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void changedUpdate(DocumentEvent e) {
                 previewDateFormat();
@@ -193,10 +194,10 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         mActionManager = new ActionManager();
         mActionManager.initActions();
 
-        mAlmondUI.addOptionsWatcher(this);
         mAlmondUI.addWindowWatcher(this);
-        mAlmondUI.initoptions();
-
+        mAlmondUI.addOptionsWatcher(this);
+        //FIXME
+        //mAlmondUI.initoptions();
         InputMap inputMap = mPopupMenu.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
         ActionMap actionMap = mPopupMenu.getActionMap();
         Action action = new AbstractAction("HideMenu") {
@@ -217,12 +218,20 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         initListeners();
     }
 
+    private String getComboInEditValue(JComboBox comboBox) {
+        return getTextComponent(comboBox).getText();
+    }
+
     private Profile getSelectedProfile() {
         if (mModel.getSize() == 0) {
             return new Profile();
         } else {
             return (Profile) mModel.getSelectedItem();
         }
+    }
+
+    private JTextComponent getTextComponent(JComboBox comboBox) {
+        return (JTextComponent) comboBox.getEditor().getEditorComponent();
     }
 
     private void initListeners() {
@@ -245,10 +254,10 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
             private void handle(Document document) {
 
                 Profile p = getSelectedProfile();
-                if (document == patternTextField.getDocument()) {
-                    p.setFilePattern(patternTextField.getText());
-                } else if (document == dateFormatTextField.getDocument()) {
-                    p.setDatePattern(dateFormatTextField.getText());
+                if (document == getTextComponent(patternComboBox).getDocument()) {
+                    p.setFilePattern(getComboInEditValue(patternComboBox));
+                } else if (document == getTextComponent(dateFormatComboBox).getDocument()) {
+                    p.setDatePattern(getComboInEditValue(dateFormatComboBox));
                 } else if (document == sourceChooserPanel.getTextField().getDocument()) {
                     p.setSourceDir(new File(sourceChooserPanel.getPath()));
                 } else if (document == destChooserPanel.getTextField().getDocument()) {
@@ -259,8 +268,8 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
 
         sourceChooserPanel.getTextField().getDocument().addDocumentListener(documentListener);
         destChooserPanel.getTextField().getDocument().addDocumentListener(documentListener);
-        patternTextField.getDocument().addDocumentListener(documentListener);
-        dateFormatTextField.getDocument().addDocumentListener(documentListener);
+        getTextComponent(patternComboBox).getDocument().addDocumentListener(documentListener);
+        getTextComponent(dateFormatComboBox).getDocument().addDocumentListener(documentListener);
     }
 
     private void populateProfiles(Profile profile) {
@@ -291,15 +300,16 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
 
     private void previewDateFormat() {
         String datePreview;
+        dateFormatComboBox.setSelectedItem(getComboInEditValue(dateFormatComboBox));
 
         try {
-            SimpleDateFormat simpleDateFormat = new SimpleDateFormat(dateFormatTextField.getText());
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat((String) dateFormatComboBox.getSelectedItem());
             datePreview = simpleDateFormat.format(new Date(System.currentTimeMillis()));
         } catch (IllegalArgumentException ex) {
             datePreview = Dict.Dialog.ERROR.toString();
         }
 
-        String dateLabel = String.format("%s (%s)", Dict.DATE_PATTERN.getString(), datePreview);
+        String dateLabel = String.format("%s (%s)", Dict.DATE_PATTERN.toString(), datePreview);
         dateFormatLabel.setText(dateLabel);
     }
 
@@ -503,13 +513,13 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         options1Panel = new javax.swing.JPanel();
         options11Panel = new javax.swing.JPanel();
         patternLabel = new javax.swing.JLabel();
-        patternTextField = new javax.swing.JTextField();
+        patternComboBox = new javax.swing.JComboBox<>();
         options12Panel = new javax.swing.JPanel();
         dateSourceLabel = new javax.swing.JLabel();
         dateSourceComboBox = new javax.swing.JComboBox<>();
         options13Panel = new javax.swing.JPanel();
         dateFormatLabel = new javax.swing.JLabel();
-        dateFormatTextField = new javax.swing.JTextField();
+        dateFormatComboBox = new javax.swing.JComboBox<>();
         options2Panel = new javax.swing.JPanel();
         operationLabel = new javax.swing.JLabel();
         opComboBox = new javax.swing.JComboBox();
@@ -611,15 +621,16 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         gridBagConstraints.insets = new java.awt.Insets(8, 8, 0, 8);
         mainPanel.add(destChooserPanel, gridBagConstraints);
 
-        options1Panel.setLayout(new java.awt.GridLayout());
+        options1Panel.setLayout(new java.awt.GridLayout(1, 0));
 
         options11Panel.setLayout(new java.awt.GridLayout(2, 0));
 
         patternLabel.setText(Dict.FILE_PATTERN.getString());
         options11Panel.add(patternLabel);
 
-        patternTextField.setText("*"); // NOI18N
-        options11Panel.add(patternTextField);
+        patternComboBox.setEditable(true);
+        patternComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "*", "{*.jpg,*.JPG}", "{*.mp4,*.MP4}" }));
+        options11Panel.add(patternComboBox);
 
         options1Panel.add(options11Panel);
 
@@ -638,13 +649,15 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
 
         options1Panel.add(options12Panel);
 
-        options13Panel.setLayout(new java.awt.GridLayout(2, 0));
+        options13Panel.setLayout(new java.awt.GridLayout(2, 1));
 
         dateFormatLabel.setText(Dict.DATE_PATTERN.getString());
         options13Panel.add(dateFormatLabel);
 
-        dateFormatTextField.setToolTipText("<html>\n <h3>Date and Time Patterns</h3>\n <p>\n Date and time formats are specified by <em>date and time pattern</em>\n strings.\n Within date and time pattern strings, unquoted letters<br />from\n <code>'A'</code> to <code>'Z'</code> and from <code>'a'</code> to\n <code>'z'</code> are interpreted as pattern letters representing the\n components of a date or time string.<br />\n Text can be quoted using single quotes (<code>'</code>) to avoid\n interpretation.\n <code>\"''\"</code> represents a single quote.<br />\n All other characters are not interpreted; they're simply copied into the\n output string during formatting or matched against<br />the input string\n during parsing.\n <p>\nThe following pattern letters are defined (all other characters from\n <code>'A'</code> to <code>'Z'</code> and from <code>'a'</code> to\n <code>'z'</code> are reserved):\n <blockquote>\n <table border=0 cellspacing=3 cellpadding=0 summary=\"Chart shows pattern letters, date/time component, presentation, and examples.\">\n     <tr style=\"background-color: rgb(204, 204, 255);\">\n         <th align=left>Letter\n         <th align=left>Date or Time Component\n         <th align=left>Presentation\n         <th align=left>Examples\n     <tr>\n         <td><code>G</code>\n         <td>Era designator\n         <td><a href=\"#text\">Text</a>\n         <td><code>AD</code>\n     <tr style=\"background-color: rgb(238, 238, 255);\">\n         <td><code>y</code>\n         <td>Year\n         <td><a href=\"#year\">Year</a>\n         <td><code>1996</code>; <code>96</code>\n     <tr>\n         <td><code>Y</code>\n         <td>Week year\n         <td><a href=\"#year\">Year</a>\n         <td><code>2009</code>; <code>09</code>\n     <tr style=\"background-color: rgb(238, 238, 255);\">\n         <td><code>M</code>\n         <td>Month in year (context sensitive)\n         <td><a href=\"#month\">Month</a>\n         <td><code>July</code>; <code>Jul</code>; <code>07</code>\n     <tr>\n         <td><code>L</code>\n         <td>Month in year (standalone form)\n         <td><a href=\"#month\">Month</a>\n         <td><code>July</code>; <code>Jul</code>; <code>07</code>\n     <tr style=\"background-color: rgb(238, 238, 255);\">\n         <td><code>w</code>\n         <td>Week in year\n         <td><a href=\"#number\">Number</a>\n         <td><code>27</code>\n     <tr>\n         <td><code>W</code>\n         <td>Week in month\n         <td><a href=\"#number\">Number</a>\n         <td><code>2</code>\n     <tr style=\"background-color: rgb(238, 238, 255);\">\n         <td><code>D</code>\n         <td>Day in year\n         <td><a href=\"#number\">Number</a>\n         <td><code>189</code>\n     <tr>\n         <td><code>d</code>\n         <td>Day in month\n         <td><a href=\"#number\">Number</a>\n         <td><code>10</code>\n     <tr style=\"background-color: rgb(238, 238, 255);\">\n         <td><code>F</code>\n         <td>Day of week in month\n         <td><a href=\"#number\">Number</a>\n         <td><code>2</code>\n     <tr>\n         <td><code>E</code>\n         <td>Day name in week\n         <td><a href=\"#text\">Text</a>\n         <td><code>Tuesday</code>; <code>Tue</code>\n     <tr style=\"background-color: rgb(238, 238, 255);\">\n         <td><code>u</code>\n         <td>Day number of week (1 = Monday, ..., 7 = Sunday)\n         <td><a href=\"#number\">Number</a>\n         <td><code>1</code>\n     <tr>\n         <td><code>a</code>\n         <td>Am/pm marker\n         <td><a href=\"#text\">Text</a>\n         <td><code>PM</code>\n     <tr style=\"background-color: rgb(238, 238, 255);\">\n         <td><code>H</code>\n         <td>Hour in day (0-23)\n         <td><a href=\"#number\">Number</a>\n         <td><code>0</code>\n     <tr>\n         <td><code>k</code>\n         <td>Hour in day (1-24)\n         <td><a href=\"#number\">Number</a>\n         <td><code>24</code>\n     <tr style=\"background-color: rgb(238, 238, 255);\">\n         <td><code>K</code>\n         <td>Hour in am/pm (0-11)\n         <td><a href=\"#number\">Number</a>\n         <td><code>0</code>\n     <tr>\n         <td><code>h</code>\n         <td>Hour in am/pm (1-12)\n         <td><a href=\"#number\">Number</a>\n         <td><code>12</code>\n     <tr style=\"background-color: rgb(238, 238, 255);\">\n         <td><code>m</code>\n         <td>Minute in hour\n         <td><a href=\"#number\">Number</a>\n         <td><code>30</code>\n     <tr>\n         <td><code>s</code>\n         <td>Second in minute\n         <td><a href=\"#number\">Number</a>\n         <td><code>55</code>\n     <tr style=\"background-color: rgb(238, 238, 255);\">\n         <td><code>S</code>\n         <td>Millisecond\n         <td><a href=\"#number\">Number</a>\n         <td><code>978</code>\n     <tr>\n         <td><code>z</code>\n         <td>Time zone\n         <td><a href=\"#timezone\">General time zone</a>\n         <td><code>Pacific Standard Time</code>; <code>PST</code>; <code>GMT-08:00</code>\n     <tr style=\"background-color: rgb(238, 238, 255);\">\n         <td><code>Z</code>\n         <td>Time zone\n         <td><a href=\"#rfc822timezone\">RFC 822 time zone</a>\n         <td><code>-0800</code>\n     <tr>\n         <td><code>X</code>\n         <td>Time zone\n         <td><a href=\"#iso8601timezone\">ISO 8601 time zone</a>\n         <td><code>-08</code>; <code>-0800</code>;  <code>-08:00</code>\n </table>\n </blockquote>"); // NOI18N
-        options13Panel.add(dateFormatTextField);
+        dateFormatComboBox.setEditable(true);
+        dateFormatComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "yyyy/MM/yyyy-MM-dd", "yyyy/MM/yyyy-MM-dd/HH", "yyyy/MM/dd", "yyyy/ww", "yyyy/ww/u" }));
+        dateFormatComboBox.setToolTipText("<html>\n<h3>Date and Time Patterns</h3>\n <p>\n Date and time formats are specified by <em>date and time pattern</em>\n strings.\n Within date and time pattern strings,<br/>unquoted letters from\n <code>'A'</code> to <code>'Z'</code> and from <code>'a'</code> to\n <code>'z'</code> are interpreted as pattern letters representing the<br/>\n components of a date or time string.\n Text can be quoted using single quotes (<code>'</code>) to avoid\n interpretation.<br/>\n <code>\"''\"</code> represents a single quote.\n All other characters are not interpreted; they're simply copied into the<br/>\n output string during formatting or matched against the input string\n during parsing.\n <p>\n The following pattern letters are defined (all other characters from\n <code>'A'</code> to <code>'Z'</code> and from <code>'a'</code> to\n <code>'z'</code> are reserved):\n <blockquote>\n <table border=0 cellspacing=3 cellpadding=0 summary=\"Chart shows pattern letters, date/time component, presentation, and examples.\">\n     <tr style=\"background-color: rgb(204, 204, 255);\">\n         <th align=left>Letter\n         <th align=left>Date or Time Component\n         <th align=left>Presentation\n         <th align=left>Examples\n     <tr>\n         <td><code>G</code>\n         <td>Era designator\n         <td><a href=\"#text\">Text</a>\n         <td><code>AD</code>\n     <tr style=\"background-color: rgb(238, 238, 255);\">\n         <td><code>y</code>\n         <td>Year\n         <td><a href=\"#year\">Year</a>\n         <td><code>1996</code>; <code>96</code>\n     <tr>\n         <td><code>Y</code>\n         <td>Week year\n         <td><a href=\"#year\">Year</a>\n         <td><code>2009</code>; <code>09</code>\n     <tr style=\"background-color: rgb(238, 238, 255);\">\n         <td><code>M</code>\n         <td>Month in year (context sensitive)\n         <td><a href=\"#month\">Month</a>\n         <td><code>July</code>; <code>Jul</code>; <code>07</code>\n     <tr>\n         <td><code>L</code>\n         <td>Month in year (standalone form)\n         <td><a href=\"#month\">Month</a>\n         <td><code>July</code>; <code>Jul</code>; <code>07</code>\n     <tr style=\"background-color: rgb(238, 238, 255);\">\n         <td><code>w</code>\n         <td>Week in year\n         <td><a href=\"#number\">Number</a>\n         <td><code>27</code>\n     <tr>\n         <td><code>W</code>\n         <td>Week in month\n         <td><a href=\"#number\">Number</a>\n         <td><code>2</code>\n     <tr style=\"background-color: rgb(238, 238, 255);\">\n         <td><code>D</code>\n         <td>Day in year\n         <td><a href=\"#number\">Number</a>\n         <td><code>189</code>\n     <tr>\n         <td><code>d</code>\n         <td>Day in month\n         <td><a href=\"#number\">Number</a>\n         <td><code>10</code>\n     <tr style=\"background-color: rgb(238, 238, 255);\">\n         <td><code>F</code>\n         <td>Day of week in month\n         <td><a href=\"#number\">Number</a>\n         <td><code>2</code>\n     <tr>\n         <td><code>E</code>\n         <td>Day name in week\n         <td><a href=\"#text\">Text</a>\n         <td><code>Tuesday</code>; <code>Tue</code>\n     <tr style=\"background-color: rgb(238, 238, 255);\">\n         <td><code>u</code>\n         <td>Day number of week (1 = Monday, ..., 7 = Sunday)\n         <td><a href=\"#number\">Number</a>\n         <td><code>1</code>\n     <tr>\n         <td><code>a</code>\n         <td>Am/pm marker\n         <td><a href=\"#text\">Text</a>\n         <td><code>PM</code>\n     <tr style=\"background-color: rgb(238, 238, 255);\">\n         <td><code>H</code>\n         <td>Hour in day (0-23)\n         <td><a href=\"#number\">Number</a>\n         <td><code>0</code>\n     <tr>\n         <td><code>k</code>\n         <td>Hour in day (1-24)\n         <td><a href=\"#number\">Number</a>\n         <td><code>24</code>\n     <tr style=\"background-color: rgb(238, 238, 255);\">\n         <td><code>K</code>\n         <td>Hour in am/pm (0-11)\n         <td><a href=\"#number\">Number</a>\n         <td><code>0</code>\n     <tr>\n         <td><code>h</code>\n         <td>Hour in am/pm (1-12)\n         <td><a href=\"#number\">Number</a>\n         <td><code>12</code>\n     <tr style=\"background-color: rgb(238, 238, 255);\">\n         <td><code>m</code>\n         <td>Minute in hour\n         <td><a href=\"#number\">Number</a>\n         <td><code>30</code>\n     <tr>\n         <td><code>s</code>\n         <td>Second in minute\n         <td><a href=\"#number\">Number</a>\n         <td><code>55</code>\n     <tr style=\"background-color: rgb(238, 238, 255);\">\n         <td><code>S</code>\n         <td>Millisecond\n         <td><a href=\"#number\">Number</a>\n         <td><code>978</code>\n     <tr>\n         <td><code>z</code>\n         <td>Time zone\n         <td><a href=\"#timezone\">General time zone</a>\n         <td><code>Pacific Standard Time</code>; <code>PST</code>; <code>GMT-08:00</code>\n     <tr style=\"background-color: rgb(238, 238, 255);\">\n         <td><code>Z</code>\n         <td>Time zone\n         <td><a href=\"#rfc822timezone\">RFC 822 time zone</a>\n         <td><code>-0800</code>\n     <tr>\n         <td><code>X</code>\n         <td>Time zone\n         <td><a href=\"#iso8601timezone\">ISO 8601 time zone</a>\n         <td><code>-08</code>; <code>-0800</code>;  <code>-08:00</code>\n </table>\n</html>"); // NOI18N
+        options13Panel.add(dateFormatComboBox);
 
         options1Panel.add(options13Panel);
 
@@ -765,7 +778,7 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 242, Short.MAX_VALUE)
+            .addGap(0, 59, Short.MAX_VALUE)
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -863,8 +876,8 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
                 destChooserPanel.setPath(p.getDestDir().getAbsolutePath());
             }
 
-            patternTextField.setText(p.getFilePattern());
-            dateFormatTextField.setText(p.getDatePattern());
+            patternComboBox.setSelectedItem(p.getFilePattern());
+            dateFormatComboBox.setSelectedItem(p.getDatePattern());
         }
     }//GEN-LAST:event_profileComboBoxActionPerformed
 
@@ -878,8 +891,8 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
     private javax.swing.JComboBox<NameCase> caseBaseComboBox;
     private javax.swing.JComboBox<NameCase> caseSuffixComboBox;
     private javax.swing.JMenuItem cloneMenuItem;
+    private javax.swing.JComboBox<String> dateFormatComboBox;
     private javax.swing.JLabel dateFormatLabel;
-    private javax.swing.JTextField dateFormatTextField;
     private javax.swing.JComboBox<DateSource> dateSourceComboBox;
     private javax.swing.JLabel dateSourceLabel;
     private se.trixon.almond.util.swing.dialogs.FileChooserPanel destChooserPanel;
@@ -903,8 +916,8 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
     private javax.swing.JPanel options2Panel;
     private javax.swing.JMenuItem optionsMenuItem;
     private javax.swing.JCheckBox overwriteCheckBox;
+    private javax.swing.JComboBox<String> patternComboBox;
     private javax.swing.JLabel patternLabel;
-    private javax.swing.JTextField patternTextField;
     private javax.swing.JComboBox<Profile> profileComboBox;
     private javax.swing.JMenuItem quitMenuItem;
     private javax.swing.JCheckBox recursiveCheckBox;
