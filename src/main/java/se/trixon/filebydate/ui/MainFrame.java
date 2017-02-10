@@ -21,6 +21,8 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -30,6 +32,8 @@ import java.util.LinkedList;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.prefs.PreferenceChangeEvent;
+import java.util.prefs.PreferenceChangeListener;
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
 import javax.swing.Action;
@@ -68,6 +72,7 @@ import se.trixon.filebydate.FileByDate;
 import se.trixon.filebydate.NameCase;
 import se.trixon.filebydate.Operation;
 import se.trixon.filebydate.OperationListener;
+import se.trixon.filebydate.Options;
 import se.trixon.filebydate.Profile;
 import se.trixon.filebydate.ProfileManager;
 
@@ -77,6 +82,7 @@ import se.trixon.filebydate.ProfileManager;
  */
 public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatcher, OperationListener {
 
+    private DocumentListener mGeneralDocumentListener;
     private final ResourceBundle mBundle = BundleHelper.getBundle(FileByDate.class, "Bundle");
     private final ResourceBundle mBundleUI = BundleHelper.getBundle(MainFrame.class, "Bundle");
     private ActionManager mActionManager;
@@ -87,6 +93,7 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
     private final ProfileManager mProfileManager = ProfileManager.getInstance();
     private final LinkedList<Profile> mProfiles = mProfileManager.getProfiles();
     private DefaultComboBoxModel mModel;
+    private final Options mOptions = Options.getInstance();
 
     /**
      * Creates new form MainFrame
@@ -108,6 +115,12 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
             case LOOK_AND_FEEL:
                 SwingUtilities.updateComponentTreeUI(this);
                 SwingUtilities.updateComponentTreeUI(mPopupMenu);
+                getTextComponent(dateFormatComboBox).getDocument().addDocumentListener(mGeneralDocumentListener);
+                sourceChooserPanel.getTextField().getDocument().addDocumentListener(mGeneralDocumentListener);
+                destChooserPanel.getTextField().getDocument().addDocumentListener(mGeneralDocumentListener);
+                getTextComponent(patternComboBox).getDocument().addDocumentListener(mGeneralDocumentListener);
+                getTextComponent(dateFormatComboBox).getDocument().addDocumentListener(mGeneralDocumentListener);
+
                 break;
 
             case MENU_ICONS:
@@ -173,31 +186,13 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         destChooserPanel.setDropMode(FileChooserPanel.DropMode.SINGLE);
         destChooserPanel.setMode(JFileChooser.DIRECTORIES_ONLY);
 
-        previewDateFormat();
-        getTextComponent(dateFormatComboBox).getDocument().addDocumentListener(new DocumentListener() {
-            @Override
-            public void changedUpdate(DocumentEvent e) {
-                previewDateFormat();
-            }
-
-            @Override
-            public void removeUpdate(DocumentEvent e) {
-                previewDateFormat();
-            }
-
-            @Override
-            public void insertUpdate(DocumentEvent e) {
-                previewDateFormat();
-            }
-        });
-
         mActionManager = new ActionManager();
         mActionManager.initActions();
 
         mAlmondUI.addWindowWatcher(this);
         mAlmondUI.addOptionsWatcher(this);
-        //FIXME
-        //mAlmondUI.initoptions();
+
+        mAlmondUI.initoptions();
         InputMap inputMap = mPopupMenu.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
         ActionMap actionMap = mPopupMenu.getActionMap();
         Action action = new AbstractAction("HideMenu") {
@@ -216,6 +211,8 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         loadProfiles();
         populateProfiles(null);
         initListeners();
+
+        previewDateFormat();
     }
 
     private String getComboInEditValue(JComboBox comboBox) {
@@ -235,7 +232,7 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
     }
 
     private void initListeners() {
-        DocumentListener documentListener = new DocumentListener() {
+        mGeneralDocumentListener = new DocumentListener() {
             @Override
             public void changedUpdate(DocumentEvent e) {
                 handle(e.getDocument());
@@ -252,11 +249,11 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
             }
 
             private void handle(Document document) {
-
                 Profile p = getSelectedProfile();
                 if (document == getTextComponent(patternComboBox).getDocument()) {
                     p.setFilePattern(getComboInEditValue(patternComboBox));
                 } else if (document == getTextComponent(dateFormatComboBox).getDocument()) {
+                    previewDateFormat();
                     p.setDatePattern(getComboInEditValue(dateFormatComboBox));
                 } else if (document == sourceChooserPanel.getTextField().getDocument()) {
                     p.setSourceDir(new File(sourceChooserPanel.getPath()));
@@ -266,10 +263,26 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
             }
         };
 
-        sourceChooserPanel.getTextField().getDocument().addDocumentListener(documentListener);
-        destChooserPanel.getTextField().getDocument().addDocumentListener(documentListener);
-        getTextComponent(patternComboBox).getDocument().addDocumentListener(documentListener);
-        getTextComponent(dateFormatComboBox).getDocument().addDocumentListener(documentListener);
+        getTextComponent(dateFormatComboBox).getDocument().addDocumentListener(mGeneralDocumentListener);
+        sourceChooserPanel.getTextField().getDocument().addDocumentListener(mGeneralDocumentListener);
+        destChooserPanel.getTextField().getDocument().addDocumentListener(mGeneralDocumentListener);
+        getTextComponent(patternComboBox).getDocument().addDocumentListener(mGeneralDocumentListener);
+        getTextComponent(dateFormatComboBox).getDocument().addDocumentListener(mGeneralDocumentListener);
+
+        mOptions.getPreferences().addPreferenceChangeListener(new PreferenceChangeListener() {
+            @Override
+            public void preferenceChange(PreferenceChangeEvent evt) {
+                if (evt.getKey().equalsIgnoreCase(Options.KEY_LOCALE)) {
+                    previewDateFormat();
+                }
+            }
+        });
+
+        dateFormatComboBox.addPropertyChangeListener("UI", new PropertyChangeListener() {
+            @Override
+            public void propertyChange(PropertyChangeEvent evt) {
+            }
+        });
     }
 
     private void populateProfiles(Profile profile) {
@@ -303,7 +316,7 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         dateFormatComboBox.setSelectedItem(getComboInEditValue(dateFormatComboBox));
 
         try {
-            SimpleDateFormat simpleDateFormat = new SimpleDateFormat((String) dateFormatComboBox.getSelectedItem());
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat((String) dateFormatComboBox.getSelectedItem(), mOptions.getLocale());
             datePreview = simpleDateFormat.format(new Date(System.currentTimeMillis()));
         } catch (IllegalArgumentException ex) {
             datePreview = Dict.Dialog.ERROR.toString();
@@ -434,13 +447,10 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
             logPanel.clear();
 
             if (profile.isValid()) {
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        logPanel.println(profile.toDebugString());
-                        Operation operation = new Operation(MainFrame.this, profile);
-                        operation.start();
-                    }
+                new Thread(() -> {
+                    logPanel.println(profile.toDebugString());
+                    Operation operation = new Operation(MainFrame.this, profile);
+                    operation.start();
                 }).start();
             } else {
                 logPanel.println(profile.toDebugString());
