@@ -15,7 +15,6 @@
  */
 package se.trixon.filebydate.ui;
 
-import java.util.Locale;
 import se.trixon.almond.util.Dict;
 import se.trixon.filebydate.Options;
 
@@ -37,7 +36,7 @@ public class OptionsPanel extends javax.swing.JPanel {
 
     void save() {
         lookAndFeelPanel.save();
-        mOptions.setLocale((Locale) localeComboBox.getSelectedItem());
+        mOptions.setLocale(localeComboBox.getSelectedItem());
     }
 
     /**
@@ -73,7 +72,7 @@ public class OptionsPanel extends javax.swing.JPanel {
                 .addComponent(localeLabel)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(localeComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(124, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 

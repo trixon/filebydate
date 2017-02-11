@@ -39,12 +39,12 @@ public class Options {
         return Locale.forLanguageTag(mPreferences.get(KEY_LOCALE, DEFAULT_LOCALE.toLanguageTag()));
     }
 
-    public void setLocale(Locale locale) {
-        mPreferences.put(KEY_LOCALE, locale.toLanguageTag());
-    }
-
     public Preferences getPreferences() {
         return mPreferences;
+    }
+
+    public void setLocale(Locale locale) {
+        mPreferences.put(KEY_LOCALE, locale.toLanguageTag());
     }
 
     private static class Holder {
