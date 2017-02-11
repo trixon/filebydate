@@ -80,7 +80,7 @@ import se.trixon.filebydate.ProfileManager;
  *
  * @author Patrik Karlsson
  */
-public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatcher, OperationListener {
+public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatcher {
 
     private DocumentListener mGeneralDocumentListener;
     private final ResourceBundle mBundle = BundleHelper.getBundle(FileByDate.class, "Bundle");
@@ -94,6 +94,8 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
     private final LinkedList<Profile> mProfiles = mProfileManager.getProfiles();
     private DefaultComboBoxModel mModel;
     private final Options mOptions = Options.getInstance();
+    private Thread mOperationThread;
+    private OperationListener mOperationListener;
 
     /**
      * Creates new form MainFrame
@@ -140,33 +142,6 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         }
     }
 
-    @Override
-    public void onOperationFailed(String message) {
-    }
-
-    @Override
-    public void onOperationFinished(String message) {
-        logPanel.println(Dict.DONE.toString());
-    }
-
-    @Override
-    public void onOperationInterrupted() {
-        logPanel.println(Dict.OPERATION_INTERRUPTED.toString());
-    }
-
-    @Override
-    public void onOperationLog(String message) {
-        logPanel.println(message);
-    }
-
-    @Override
-    public void onOperationProcessingStarted() {
-    }
-
-    @Override
-    public void onOperationStarted() {
-    }
-
     private void init() {
         String fileName = String.format("/%s/calendar-icon-1024px.png", getClass().getPackage().getName().replace(".", "/"));
         ImageIcon imageIcon = new ImageIcon(getClass().getResource(fileName));
@@ -188,6 +163,7 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
 
         mActionManager = new ActionManager();
         mActionManager.initActions();
+        setRunningState(false);
 
         mAlmondUI.addWindowWatcher(this);
         mAlmondUI.addOptionsWatcher(this);
@@ -283,6 +259,53 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
             public void propertyChange(PropertyChangeEvent evt) {
             }
         });
+
+        mOperationListener = new OperationListener() {
+            @Override
+            public void onOperationFailed(String message) {
+            }
+
+            @Override
+            public void onOperationFinished(String message) {
+                logPanel.println(Dict.DONE.toString());
+                setRunningState(false);
+            }
+
+            @Override
+            public void onOperationInterrupted() {
+                setRunningState(false);
+            }
+
+            @Override
+            public void onOperationLog(String message) {
+                logPanel.println(message);
+            }
+
+            @Override
+            public void onOperationProcessingStarted() {
+            }
+
+            @Override
+            public void onOperationStarted() {
+                setRunningState(true);
+            }
+        };
+    }
+
+    private void setRunningState(boolean state) {
+        mActionManager.getAction(ActionManager.START).setEnabled(!state);
+        mActionManager.getAction(ActionManager.CANCEL).setEnabled(state);
+        mActionManager.getAction(ActionManager.ADD).setEnabled(!state);
+        mActionManager.getAction(ActionManager.REMOVE).setEnabled(!state);
+        mActionManager.getAction(ActionManager.CLONE).setEnabled(!state);
+        mActionManager.getAction(ActionManager.OPTIONS).setEnabled(!state);
+        mActionManager.getAction(ActionManager.REMOVE_ALL).setEnabled(!state);
+        mActionManager.getAction(ActionManager.RENAME).setEnabled(!state);
+
+        startButton.setVisible(!state);
+        cancelButton.setVisible(state);
+        SwingHelper.enableComponents(configPanel, !state);
+        profileComboBox.setEnabled(!state);
     }
 
     private void populateProfiles(Profile profile) {
@@ -298,11 +321,11 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         }
 
         boolean hasProfiles = !mProfiles.isEmpty();
-        SwingHelper.enableComponents(mainPanel, hasProfiles);
+        SwingHelper.enableComponents(configPanel, hasProfiles);
     }
 
     private void loadProfiles() {
-        SwingHelper.enableComponents(mainPanel, false);
+        SwingHelper.enableComponents(configPanel, false);
 
         try {
             mProfileManager.load();
@@ -447,11 +470,12 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
             logPanel.clear();
 
             if (profile.isValid()) {
-                new Thread(() -> {
+                mOperationThread = new Thread(() -> {
                     logPanel.println(profile.toDebugString());
-                    Operation operation = new Operation(MainFrame.this, profile);
+                    Operation operation = new Operation(mOperationListener, profile);
                     operation.start();
-                }).start();
+                });
+                mOperationThread.start();
             } else {
                 logPanel.println(profile.toDebugString());
                 logPanel.println(profile.getValidationError());
@@ -514,10 +538,11 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         profileComboBox = new javax.swing.JComboBox<>();
         toolBar = new javax.swing.JToolBar();
         startButton = new javax.swing.JButton();
+        cancelButton = new javax.swing.JButton();
         addButton = new javax.swing.JButton();
         removeButton = new javax.swing.JButton();
         menuButton = new javax.swing.JButton();
-        mainPanel = new javax.swing.JPanel();
+        configPanel = new javax.swing.JPanel();
         sourceChooserPanel = new se.trixon.almond.util.swing.dialogs.FileChooserPanel();
         destChooserPanel = new se.trixon.almond.util.swing.dialogs.FileChooserPanel();
         options1Panel = new javax.swing.JPanel();
@@ -561,6 +586,7 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
                 formWindowClosing(evt);
             }
         });
+        getContentPane().setLayout(new java.awt.GridBagLayout());
 
         topPanel.setLayout(new java.awt.GridBagLayout());
 
@@ -584,6 +610,11 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         startButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         startButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         toolBar.add(startButton);
+
+        cancelButton.setFocusable(false);
+        cancelButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        cancelButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        toolBar.add(cancelButton);
 
         addButton.setFocusable(false);
         addButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -611,17 +642,20 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         topPanel.add(toolBar, gridBagConstraints);
 
-        getContentPane().add(topPanel, java.awt.BorderLayout.PAGE_START);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        getContentPane().add(topPanel, gridBagConstraints);
 
-        mainPanel.setLayout(new java.awt.GridBagLayout());
+        configPanel.setLayout(new java.awt.GridBagLayout());
 
         sourceChooserPanel.setHeader(Dict.SOURCE.getString());
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(8, 8, 0, 8);
-        mainPanel.add(sourceChooserPanel, gridBagConstraints);
+        configPanel.add(sourceChooserPanel, gridBagConstraints);
 
         destChooserPanel.setHeader(Dict.DESTINATION.getString());
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -629,7 +663,7 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(8, 8, 0, 8);
-        mainPanel.add(destChooserPanel, gridBagConstraints);
+        configPanel.add(destChooserPanel, gridBagConstraints);
 
         options1Panel.setLayout(new java.awt.GridLayout(1, 0));
 
@@ -676,7 +710,7 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(8, 8, 0, 8);
-        mainPanel.add(options1Panel, gridBagConstraints);
+        configPanel.add(options1Panel, gridBagConstraints);
 
         options2Panel.setLayout(new java.awt.GridBagLayout());
 
@@ -788,7 +822,7 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 37, Short.MAX_VALUE)
+            .addGap(0, 135, Short.MAX_VALUE)
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -808,17 +842,22 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         gridBagConstraints.gridy = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(8, 8, 0, 8);
-        mainPanel.add(options2Panel, gridBagConstraints);
+        configPanel.add(options2Panel, gridBagConstraints);
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
+        getContentPane().add(configPanel, gridBagConstraints);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(8, 0, 0, 0);
-        mainPanel.add(logPanel, gridBagConstraints);
-
-        getContentPane().add(mainPanel, java.awt.BorderLayout.CENTER);
+        getContentPane().add(logPanel, gridBagConstraints);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -898,11 +937,13 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JMenuItem aboutMenuItem;
     private javax.swing.JButton addButton;
+    private javax.swing.JButton cancelButton;
     private javax.swing.JComboBox<NameCase> caseBaseComboBox;
     private javax.swing.JLabel caseBaseLabel;
     private javax.swing.JComboBox<NameCase> caseSuffixComboBox;
     private javax.swing.JLabel caseSuffixLabel;
     private javax.swing.JMenuItem cloneMenuItem;
+    private javax.swing.JPanel configPanel;
     private javax.swing.JComboBox<String> dateFormatComboBox;
     private javax.swing.JLabel dateFormatLabel;
     private javax.swing.JComboBox<DateSource> dateSourceComboBox;
@@ -915,7 +956,6 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
     private javax.swing.JPopupMenu.Separator jSeparator6;
     private se.trixon.almond.util.swing.LogPanel logPanel;
     private javax.swing.JPopupMenu mPopupMenu;
-    private javax.swing.JPanel mainPanel;
     private javax.swing.JButton menuButton;
     private javax.swing.JComboBox opComboBox;
     private javax.swing.JLabel operationLabel;
@@ -944,6 +984,7 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
 
         static final String ABOUT = "about";
         static final String ADD = "add";
+        static final String CANCEL = "cancel";
         static final String CLONE = "clone";
         static final String MENU = "menu";
         static final String OPTIONS = "options";
@@ -1030,6 +1071,19 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
 
             initAction(action, START, keyStroke, MaterialIcon._Av.PLAY_ARROW, false);
             startButton.setAction(action);
+
+            //cancel
+            keyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
+            action = new AlmondAction(Dict.CANCEL.toString()) {
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    mOperationThread.interrupt();
+                }
+            };
+
+            initAction(action, CANCEL, keyStroke, MaterialIcon._Content.CLEAR, false);
+            cancelButton.setAction(action);
 
             //add
             keyStroke = null;

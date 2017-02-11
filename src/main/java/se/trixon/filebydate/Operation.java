@@ -36,6 +36,7 @@ import java.util.ResourceBundle;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import se.trixon.almond.util.BundleHelper;
 import se.trixon.almond.util.Dict;
 import se.trixon.almond.util.Xlog;
@@ -153,7 +154,7 @@ public class Operation {
         if (mInterrupted) {
             status = Dict.TASK_ABORTED.toString();
             mListener.onOperationLog("\n" + status);
-
+            mListener.onOperationInterrupted();
         } else {
             mExceptions.stream().forEach((exception) -> {
                 mListener.onOperationLog(String.format("#%s", exception.getLocalizedMessage()));
@@ -242,7 +243,7 @@ public class Operation {
             message = String.format("dry-run: %s", message);
         }
 
-        return message;
+        return StringUtils.defaultString(message, "");
     }
 
     public enum Command {
