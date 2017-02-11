@@ -25,7 +25,9 @@ import java.util.logging.Logger;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.io.FilenameUtils;
 import se.trixon.almond.util.BundleHelper;
+import se.trixon.almond.util.Dict;
 import se.trixon.filebydate.Operation.Command;
+import se.trixon.filebydate.ui.MainFrame;
 
 /**
  *
@@ -35,6 +37,7 @@ public class Profile implements Comparable<Profile>, Cloneable {
 
     private NameCase mBaseNameCase = NameCase.UNCHANGED;
     private final ResourceBundle mBundle = BundleHelper.getBundle(Profile.class, "Bundle");
+    private final ResourceBundle mBundleUI = BundleHelper.getBundle(MainFrame.class, "Bundle");
     private String mCaseBase;
     private String mCaseExt;
     private Command mCommand;
@@ -349,24 +352,25 @@ public class Profile implements Comparable<Profile>, Cloneable {
     }
 
     public String toDebugString() {
-        return "Profile {"
-                + "\n OperationMode=" + mCommand
-                + "\n"
-                + "\n DateSource=" + mDateSource
-                + "\n DatePattern=" + mDatePattern
-                + "\n FilePattern=" + mFilePattern
-                + "\n"
-                + "\n DryRun=" + mDryRun
-                + "\n Links=" + mFollowLinks
-                + "\n Overwrite=" + mReplaceExisting
-                + "\n Recursive=" + mRecursive
-                + "\n"
-                + "\n CaseBase=" + mBaseNameCase
-                + "\n CaseExt=" + mExtNameCase
-                + "\n"
-                + "\n Source=" + mSourceDir
-                + "\n Dest=" + mDestDir
-                + "\n}";
+        isValid();
+        String s = String.format(mBundle.getString("profile"),
+                mCommand.toString(),
+                mSourceDir,
+                mFilePattern,
+                mDestDir,
+                mDatePattern,
+                mDateSource
+        );
+
+        StringBuilder b = new StringBuilder(s);
+
+        conditionalAppendDebugOption(b, mFollowLinks, Dict.FOLLOW_LINKS.toString());
+        conditionalAppendDebugOption(b, mRecursive, Dict.RECURSIVE.toString());
+        conditionalAppendDebugOption(b, mReplaceExisting, Dict.REPLACE.toString());
+        conditionalAppendDebugOption(b, mBaseNameCase != NameCase.UNCHANGED, mBundleUI.getString("MainFrame.caseBaseLabel.text") + " " + mBaseNameCase);
+        conditionalAppendDebugOption(b, mExtNameCase != NameCase.UNCHANGED, mBundleUI.getString("MainFrame.caseSuffixLabel.text") + " " + mExtNameCase);
+
+        return b.toString();
     }
 
     @Override
@@ -376,5 +380,13 @@ public class Profile implements Comparable<Profile>, Cloneable {
 
     private void addValidationError(String string) {
         mValidationErrorBuilder.append(string).append("\n");
+    }
+
+    private void conditionalAppendDebugOption(StringBuilder b, boolean append, String string) {
+        String itemFormat = "\n • %s";
+
+        if (append) {
+            b.append(String.format(itemFormat, string));
+        }
     }
 }

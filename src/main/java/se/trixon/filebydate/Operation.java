@@ -248,5 +248,10 @@ public class Operation {
     public enum Command {
 
         COPY, MOVE;
+
+        @Override
+        public String toString() {
+            return Dict.valueOf(name()).toString();
+        }
     }
 }

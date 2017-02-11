@@ -272,8 +272,8 @@ public class FileByDate implements OperationListener {
                 .desc(mBundle.getString("opt_gui_desc"))
                 .build();
 
-        Option profile = Option.builder("p")
-                .longOpt("profile")
+        Option profile = Option.builder("rp")
+                .longOpt("run-profile")
                 .hasArg()
                 .numberOfArgs(1)
                 .desc(mBundle.getString("opt_profile_desc"))

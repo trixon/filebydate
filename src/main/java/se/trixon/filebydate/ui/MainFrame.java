@@ -428,11 +428,11 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
     private void profileRun() {
         Profile profile = getSelectedProfile().clone();
         Object[] options = {Dict.RUN.toString(), Dict.DRY_RUN.toString(), Dict.CANCEL.toString()};
-        String message = String.format(Dict.Dialog.TITLE_PROFILE_RUN.toString(), profile.getName());
+        String title = String.format(Dict.Dialog.TITLE_PROFILE_RUN.toString(), profile.getName());
 
         int result = JOptionPane.showOptionDialog(this,
-                message,
-                Dict.RUN.toString(),
+                profile.toDebugString(),
+                title,
                 JOptionPane.YES_NO_CANCEL_OPTION,
                 JOptionPane.PLAIN_MESSAGE,
                 null,
@@ -536,9 +536,9 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         followLinksCheckBox = new javax.swing.JCheckBox();
         recursiveCheckBox = new javax.swing.JCheckBox();
         overwriteCheckBox = new javax.swing.JCheckBox();
-        jLabel1 = new javax.swing.JLabel();
+        caseBaseLabel = new javax.swing.JLabel();
         caseBaseComboBox = new javax.swing.JComboBox<>();
-        jLabel2 = new javax.swing.JLabel();
+        caseSuffixLabel = new javax.swing.JLabel();
         caseSuffixComboBox = new javax.swing.JComboBox<>();
         jPanel1 = new javax.swing.JPanel();
         logPanel = new se.trixon.almond.util.swing.LogPanel();
@@ -731,7 +731,7 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         gridBagConstraints.insets = new java.awt.Insets(0, 8, 0, 0);
         options2Panel.add(recursiveCheckBox, gridBagConstraints);
 
-        overwriteCheckBox.setText(bundle.getString("MainFrame.overwriteCheckBox.text")); // NOI18N
+        overwriteCheckBox.setText(Dict.REPLACE.toString());
         overwriteCheckBox.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 overwriteCheckBoxActionPerformed(evt);
@@ -744,13 +744,13 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         gridBagConstraints.insets = new java.awt.Insets(0, 8, 0, 0);
         options2Panel.add(overwriteCheckBox, gridBagConstraints);
 
-        jLabel1.setText(bundle.getString("MainFrame.jLabel1.text")); // NOI18N
+        caseBaseLabel.setText(bundle.getString("MainFrame.caseBaseLabel.text")); // NOI18N
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         gridBagConstraints.insets = new java.awt.Insets(0, 8, 0, 0);
-        options2Panel.add(jLabel1, gridBagConstraints);
+        options2Panel.add(caseBaseLabel, gridBagConstraints);
 
         caseBaseComboBox.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -764,13 +764,13 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         gridBagConstraints.insets = new java.awt.Insets(0, 8, 0, 0);
         options2Panel.add(caseBaseComboBox, gridBagConstraints);
 
-        jLabel2.setText(bundle.getString("MainFrame.jLabel2.text")); // NOI18N
+        caseSuffixLabel.setText(bundle.getString("MainFrame.caseSuffixLabel.text")); // NOI18N
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 5;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         gridBagConstraints.insets = new java.awt.Insets(0, 8, 0, 0);
-        options2Panel.add(jLabel2, gridBagConstraints);
+        options2Panel.add(caseSuffixLabel, gridBagConstraints);
 
         caseSuffixComboBox.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -788,7 +788,7 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 59, Short.MAX_VALUE)
+            .addGap(0, 37, Short.MAX_VALUE)
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -899,7 +899,9 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
     private javax.swing.JMenuItem aboutMenuItem;
     private javax.swing.JButton addButton;
     private javax.swing.JComboBox<NameCase> caseBaseComboBox;
+    private javax.swing.JLabel caseBaseLabel;
     private javax.swing.JComboBox<NameCase> caseSuffixComboBox;
+    private javax.swing.JLabel caseSuffixLabel;
     private javax.swing.JMenuItem cloneMenuItem;
     private javax.swing.JComboBox<String> dateFormatComboBox;
     private javax.swing.JLabel dateFormatLabel;
@@ -907,8 +909,6 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
     private javax.swing.JLabel dateSourceLabel;
     private se.trixon.almond.util.swing.dialogs.FileChooserPanel destChooserPanel;
     private javax.swing.JCheckBox followLinksCheckBox;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPopupMenu.Separator jSeparator1;
     private javax.swing.JPopupMenu.Separator jSeparator2;
