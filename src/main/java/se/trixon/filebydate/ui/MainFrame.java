@@ -120,7 +120,6 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
                     SwingUtilities.updateComponentTreeUI(window);
                 }
                 SwingUtilities.updateComponentTreeUI(mPopupMenu);
-                getTextComponent(dateFormatComboBox).getDocument().addDocumentListener(mGeneralDocumentListener);
                 sourceChooserPanel.getTextField().getDocument().addDocumentListener(mGeneralDocumentListener);
                 destChooserPanel.getTextField().getDocument().addDocumentListener(mGeneralDocumentListener);
                 getTextComponent(patternComboBox).getDocument().addDocumentListener(mGeneralDocumentListener);
@@ -242,7 +241,6 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
             }
         };
 
-        getTextComponent(dateFormatComboBox).getDocument().addDocumentListener(mGeneralDocumentListener);
         sourceChooserPanel.getTextField().getDocument().addDocumentListener(mGeneralDocumentListener);
         destChooserPanel.getTextField().getDocument().addDocumentListener(mGeneralDocumentListener);
         getTextComponent(patternComboBox).getDocument().addDocumentListener(mGeneralDocumentListener);
