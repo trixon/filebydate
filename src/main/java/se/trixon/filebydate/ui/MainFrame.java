@@ -16,6 +16,7 @@
 package se.trixon.filebydate.ui;
 
 import java.awt.Component;
+import java.awt.Desktop;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
@@ -26,6 +27,8 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
@@ -1181,7 +1184,11 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
 
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    Message.dateFormatInfo(MainFrame.this, false);
+                    try {
+                        Desktop.getDesktop().browse(new URI("https://docs.oracle.com/javase/8/docs/api/java/text/SimpleDateFormat.html"));
+                    } catch (URISyntaxException | IOException ex) {
+                        Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+                    }
                 }
             };
 
