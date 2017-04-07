@@ -1115,21 +1115,23 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
             KeyStroke keyStroke;
             int commandMask = SystemHelper.getCommandMask();
 
-            //menu
-            int menuKey = KeyEvent.VK_M;
-            keyStroke = KeyStroke.getKeyStroke(menuKey, commandMask);
-            action = new AlmondAction(Dict.MENU.toString()) {
+            if (mAlmondOptions.getMenuMode() == MenuModePanel.MenuMode.BUTTON) {
+                //menu
+                int menuKey = KeyEvent.VK_M;
+                keyStroke = KeyStroke.getKeyStroke(menuKey, commandMask);
+                action = new AlmondAction(Dict.MENU.toString()) {
 
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    if (e.getSource() != menuButton) {
-                        menuButtonMousePressed(null);
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        if (e.getSource() != menuButton) {
+                            menuButtonMousePressed(null);
+                        }
                     }
-                }
-            };
+                };
 
-            initAction(action, MENU, keyStroke, MaterialIcon._Navigation.MENU, true);
-            menuButton.setAction(action);
+                initAction(action, MENU, keyStroke, MaterialIcon._Navigation.MENU, true);
+                menuButton.setAction(action);
+            }
 
             //options
             int optionsKey = SystemUtils.IS_OS_MAC ? KeyEvent.VK_COMMA : KeyEvent.VK_P;
