@@ -34,6 +34,7 @@ import se.trixon.almond.util.AlmondUI;
 import se.trixon.almond.util.BundleHelper;
 import se.trixon.almond.util.Dict;
 import se.trixon.almond.util.PomInfo;
+import se.trixon.almond.util.SystemHelper;
 import se.trixon.almond.util.Xlog;
 import se.trixon.filebydate.ui.MainFrame;
 
@@ -152,6 +153,8 @@ public class FileByDate implements OperationListener {
 
             return;
         }
+            
+        SystemHelper.setMacApplicationName("FileByDate");
 
         mAlmondUI.installDarcula();
         mAlmondUI.initLookAndFeel();
