@@ -653,8 +653,6 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         menuBar.add(fileMenu);
 
         profileMenu.setText(Dict.PROFILE.toString());
-
-        addMenuItem.setText(bundle.getString("MainFrame.addMenuItem.text")); // NOI18N
         profileMenu.add(addMenuItem);
 
         menuBar.add(profileMenu);

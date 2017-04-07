@@ -60,11 +60,6 @@
           </Properties>
           <SubComponents>
             <MenuItem class="javax.swing.JMenuItem" name="addMenuItem">
-              <Properties>
-                <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                  <ResourceString bundle="se/trixon/filebydate/ui/Bundle.properties" key="MainFrame.addMenuItem.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
-                </Property>
-              </Properties>
             </MenuItem>
           </SubComponents>
         </Menu>
