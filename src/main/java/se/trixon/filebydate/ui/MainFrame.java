@@ -72,6 +72,8 @@ import se.trixon.almond.util.swing.SwingHelper;
 import se.trixon.almond.util.swing.dialogs.FileChooserPanel;
 import se.trixon.almond.util.swing.dialogs.MenuModePanel;
 import se.trixon.almond.util.swing.dialogs.Message;
+import se.trixon.almond.util.swing.dialogs.about.AboutModel;
+import se.trixon.almond.util.swing.dialogs.about.AboutPanel;
 import se.trixon.filebydate.DateSource;
 import se.trixon.filebydate.FileByDate;
 import se.trixon.filebydate.NameCase;
@@ -1249,16 +1251,11 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
 
             //about
             keyStroke = null;
-            action = new AlmondAction(Dict.ABOUT.toString()) {
-
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    PomInfo pomInfo = new PomInfo(FileByDate.class, "se.trixon", "filebydate");
-                    String versionInfo = String.format(mBundle.getString("version_info"), pomInfo.getVersion());
-                    Message.information(MainFrame.this, Dict.ABOUT.toString(), versionInfo);
-                }
-            };
-
+            PomInfo pomInfo = new PomInfo(FileByDate.class, "se.trixon", "filebydate");
+            AboutModel aboutModel = new AboutModel(BundleHelper.getBundle(FileByDate.class, "about"), SystemHelper.getResourceAsImageIcon(MainFrame.class, "calendar-icon-1024px.png"));
+            aboutModel.setAppVersion(pomInfo.getVersion());
+            AboutPanel aboutPanel = new AboutPanel(aboutModel);
+            action = AboutPanel.getAction(MainFrame.this, aboutPanel);
             initAction(action, ABOUT, keyStroke, null, true);
             aboutMenuItem.setAction(action);
 
