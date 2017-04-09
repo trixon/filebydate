@@ -18,7 +18,6 @@ package se.trixon.filebydate.ui;
 import com.apple.eawt.AppEvent;
 import com.apple.eawt.Application;
 import java.awt.Desktop;
-import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
@@ -44,7 +43,6 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ActionMap;
 import javax.swing.DefaultComboBoxModel;
-import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.InputMap;
 import javax.swing.JComboBox;
@@ -54,7 +52,6 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JSeparator;
 import javax.swing.KeyStroke;
-import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.Document;
@@ -63,7 +60,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.SystemUtils;
 import se.trixon.almond.util.AlmondAction;
 import se.trixon.almond.util.AlmondOptions;
-import se.trixon.almond.util.AlmondOptions.AlmondOptionsEvent;
 import se.trixon.almond.util.AlmondOptionsPanel;
 import se.trixon.almond.util.AlmondUI;
 import se.trixon.almond.util.BundleHelper;
@@ -90,7 +86,7 @@ import se.trixon.filebydate.ProfileManager;
  *
  * @author Patrik Karlsson
  */
-public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatcher {
+public class MainFrame extends JFrame {
 
     private static final boolean IS_MAC = SystemUtils.IS_OS_MAC;
 
@@ -125,47 +121,6 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         }
     }
 
-    @Override
-    public void onAlmondOptions(AlmondOptionsEvent almondOptionsEvent) {
-        switch (almondOptionsEvent) {
-            case ICON_THEME:
-                mAllActions.stream().forEach((almondAction) -> {
-                    almondAction.updateIcon();
-                });
-                break;
-
-            case LOOK_AND_FEEL:
-                for (Window window : Window.getWindows()) {
-                    SwingUtilities.updateComponentTreeUI(window);
-                }
-                SwingUtilities.updateComponentTreeUI(mPopupMenu);
-                sourceChooserPanel.getTextField().getDocument().addDocumentListener(mGeneralDocumentListener);
-                destChooserPanel.getTextField().getDocument().addDocumentListener(mGeneralDocumentListener);
-                getTextComponent(patternComboBox).getDocument().addDocumentListener(mGeneralDocumentListener);
-                getTextComponent(dateFormatComboBox).getDocument().addDocumentListener(mGeneralDocumentListener);
-
-                break;
-
-            case MENU_ICONS:
-                ActionMap actionMap = getRootPane().getActionMap();
-                for (Object key : actionMap.allKeys()) {
-                    Action action = actionMap.get(key);
-                    Icon icon = null;
-                    if (mAlmondOptions.isDisplayMenuIcons()) {
-                        icon = (Icon) action.getValue(AlmondAction.ALMOND_SMALL_ICON_KEY);
-                    }
-                    action.putValue(Action.SMALL_ICON, icon);
-                }
-                break;
-
-            case MENU_MODE:
-                break;
-
-            default:
-                throw new AssertionError();
-        }
-    }
-
     private void init() {
         String fileName = String.format("/%s/calendar-icon-1024px.png", getClass().getPackage().getName().replace(".", "/"));
         ImageIcon imageIcon = new ImageIcon(getClass().getResource(fileName));
@@ -190,7 +145,6 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         setRunningState(false);
 
         mAlmondUI.addWindowWatcher(this);
-        mAlmondUI.addOptionsWatcher(this);
 
         mAlmondUI.initoptions();
         InputMap inputMap = mPopupMenu.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
