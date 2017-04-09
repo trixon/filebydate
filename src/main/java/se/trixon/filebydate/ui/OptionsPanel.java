@@ -35,8 +35,6 @@ public class OptionsPanel extends javax.swing.JPanel {
     }
 
     void save() {
-        lookAndFeelPanel.save();
-        menuModePanel.save();
         mOptions.setLocale(localeComboBox.getSelectedItem());
     }
 
@@ -48,10 +46,8 @@ public class OptionsPanel extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        lookAndFeelPanel = new se.trixon.almond.util.swing.dialogs.LookAndFeelPanel();
         localeLabel = new javax.swing.JLabel();
         localeComboBox = new se.trixon.almond.util.swing.LocaleComboBox();
-        menuModePanel = new se.trixon.almond.util.swing.dialogs.MenuModePanel();
 
         localeLabel.setText(Dict.CALENDAR_LANGUAGE.toString());
 
@@ -59,20 +55,14 @@ public class OptionsPanel extends javax.swing.JPanel {
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(lookAndFeelPanel, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
             .addComponent(localeComboBox, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
                 .addComponent(localeLabel)
                 .addGap(0, 0, Short.MAX_VALUE))
-            .addComponent(menuModePanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(lookAndFeelPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(menuModePanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(localeLabel)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(localeComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -83,7 +73,5 @@ public class OptionsPanel extends javax.swing.JPanel {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private se.trixon.almond.util.swing.LocaleComboBox localeComboBox;
     private javax.swing.JLabel localeLabel;
-    private se.trixon.almond.util.swing.dialogs.LookAndFeelPanel lookAndFeelPanel;
-    private se.trixon.almond.util.swing.dialogs.MenuModePanel menuModePanel;
     // End of variables declaration//GEN-END:variables
 }

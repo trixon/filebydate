@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
@@ -51,6 +52,7 @@ import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.JSeparator;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
@@ -62,6 +64,7 @@ import org.apache.commons.lang3.SystemUtils;
 import se.trixon.almond.util.AlmondAction;
 import se.trixon.almond.util.AlmondOptions;
 import se.trixon.almond.util.AlmondOptions.AlmondOptionsEvent;
+import se.trixon.almond.util.AlmondOptionsPanel;
 import se.trixon.almond.util.AlmondUI;
 import se.trixon.almond.util.BundleHelper;
 import se.trixon.almond.util.Dict;
@@ -557,16 +560,17 @@ public class MainFrame extends JFrame implements AlmondOptions.AlmondOptionsWatc
         OptionsPanel optionsPanel = new OptionsPanel();
         SwingHelper.makeWindowResizable(optionsPanel);
 
+        Object[] options = new Object[]{AlmondOptionsPanel.getGlobalOptionsButton(optionsPanel), new JSeparator(), Dict.CANCEL, Dict.OK};
         int retval = JOptionPane.showOptionDialog(this,
                 optionsPanel,
                 Dict.OPTIONS.toString(),
-                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.DEFAULT_OPTION,
                 JOptionPane.PLAIN_MESSAGE,
                 null,
-                null,
-                null);
+                options,
+                Dict.OK);
 
-        if (retval == JOptionPane.OK_OPTION) {
+        if (retval == Arrays.asList(options).indexOf(Dict.OK)) {
             optionsPanel.save();
         }
     }
