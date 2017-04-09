@@ -279,8 +279,6 @@ public class MainFrame extends JFrame {
 
     private void initMenus() {
         if (mAlmondOptions.getMenuMode() == MenuModePanel.MenuMode.BUTTON) {
-            setJMenuBar(null);
-
             mPopupMenu.add(removeMenuItem);
             mPopupMenu.add(renameMenuItem);
             mPopupMenu.add(cloneMenuItem);
@@ -305,6 +303,7 @@ public class MainFrame extends JFrame {
             }
 
         } else {
+            setJMenuBar(menuBar);
             if (IS_MAC) {
                 fileMenu.remove(quitMenuItem);
                 toolsMenu.remove(optionsMenuItem);
@@ -553,6 +552,21 @@ public class MainFrame extends JFrame {
         java.awt.GridBagConstraints gridBagConstraints;
 
         mPopupMenu = new javax.swing.JPopupMenu();
+        menuBar = new javax.swing.JMenuBar();
+        fileMenu = new javax.swing.JMenu();
+        quitMenuItem = new javax.swing.JMenuItem();
+        profileMenu = new javax.swing.JMenu();
+        addMenuItem = new javax.swing.JMenuItem();
+        removeMenuItem = new javax.swing.JMenuItem();
+        renameMenuItem = new javax.swing.JMenuItem();
+        cloneMenuItem = new javax.swing.JMenuItem();
+        removeAllProfilesMenuItem = new javax.swing.JMenuItem();
+        toolsMenu = new javax.swing.JMenu();
+        optionsMenuItem = new javax.swing.JMenuItem();
+        helpMenu = new javax.swing.JMenu();
+        helpMenuItem = new javax.swing.JMenuItem();
+        aboutDateFormatMenuItem = new javax.swing.JMenuItem();
+        aboutMenuItem = new javax.swing.JMenuItem();
         topPanel = new javax.swing.JPanel();
         profileComboBox = new javax.swing.JComboBox<>();
         toolBar = new javax.swing.JToolBar();
@@ -585,24 +599,37 @@ public class MainFrame extends JFrame {
         caseSuffixComboBox = new javax.swing.JComboBox<>();
         jPanel1 = new javax.swing.JPanel();
         logPanel = new se.trixon.almond.util.swing.LogPanel();
-        menuBar = new javax.swing.JMenuBar();
-        fileMenu = new javax.swing.JMenu();
-        quitMenuItem = new javax.swing.JMenuItem();
-        profileMenu = new javax.swing.JMenu();
-        addMenuItem = new javax.swing.JMenuItem();
-        removeMenuItem = new javax.swing.JMenuItem();
-        renameMenuItem = new javax.swing.JMenuItem();
-        cloneMenuItem = new javax.swing.JMenuItem();
-        removeAllProfilesMenuItem = new javax.swing.JMenuItem();
-        toolsMenu = new javax.swing.JMenu();
-        optionsMenuItem = new javax.swing.JMenuItem();
-        helpMenu = new javax.swing.JMenu();
-        helpMenuItem = new javax.swing.JMenuItem();
-        aboutDateFormatMenuItem = new javax.swing.JMenuItem();
-        aboutMenuItem = new javax.swing.JMenuItem();
+
+        fileMenu.setText(Dict.FILE_MENU.toString());
+        fileMenu.add(quitMenuItem);
+
+        menuBar.add(fileMenu);
+
+        profileMenu.setText(Dict.PROFILE.toString());
+        profileMenu.add(addMenuItem);
+
+        java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("se/trixon/filebydate/ui/Bundle"); // NOI18N
+        removeMenuItem.setText(bundle.getString("MainFrame.removeMenuItem.text")); // NOI18N
+        profileMenu.add(removeMenuItem);
+        profileMenu.add(renameMenuItem);
+        profileMenu.add(cloneMenuItem);
+        profileMenu.add(removeAllProfilesMenuItem);
+
+        menuBar.add(profileMenu);
+
+        toolsMenu.setText(Dict.TOOLS.toString());
+        toolsMenu.add(optionsMenuItem);
+
+        menuBar.add(toolsMenu);
+
+        helpMenu.setText(Dict.HELP.toString());
+        helpMenu.add(helpMenuItem);
+        helpMenu.add(aboutDateFormatMenuItem);
+        helpMenu.add(aboutMenuItem);
+
+        menuBar.add(helpMenu);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("se/trixon/filebydate/ui/Bundle"); // NOI18N
         setTitle(bundle.getString("MainFrame.title")); // NOI18N
         addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowClosing(java.awt.event.WindowEvent evt) {
@@ -875,36 +902,6 @@ public class MainFrame extends JFrame {
         gridBagConstraints.weighty = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(8, 0, 0, 0);
         getContentPane().add(logPanel, gridBagConstraints);
-
-        fileMenu.setText(Dict.FILE_MENU.toString());
-        fileMenu.add(quitMenuItem);
-
-        menuBar.add(fileMenu);
-
-        profileMenu.setText(Dict.PROFILE.toString());
-        profileMenu.add(addMenuItem);
-
-        removeMenuItem.setText(bundle.getString("MainFrame.removeMenuItem.text")); // NOI18N
-        profileMenu.add(removeMenuItem);
-        profileMenu.add(renameMenuItem);
-        profileMenu.add(cloneMenuItem);
-        profileMenu.add(removeAllProfilesMenuItem);
-
-        menuBar.add(profileMenu);
-
-        toolsMenu.setText(Dict.TOOLS.toString());
-        toolsMenu.add(optionsMenuItem);
-
-        menuBar.add(toolsMenu);
-
-        helpMenu.setText(Dict.HELP.toString());
-        helpMenu.add(helpMenuItem);
-        helpMenu.add(aboutDateFormatMenuItem);
-        helpMenu.add(aboutMenuItem);
-
-        menuBar.add(helpMenu);
-
-        setJMenuBar(menuBar);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
