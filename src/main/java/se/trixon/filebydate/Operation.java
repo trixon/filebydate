@@ -37,7 +37,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-import se.trixon.almond.util.BundleHelper;
+import se.trixon.almond.util.SystemHelper;
 import se.trixon.almond.util.Dict;
 import se.trixon.almond.util.Xlog;
 
@@ -57,7 +57,7 @@ public class Operation {
     public Operation(OperationListener operationListener, Profile profile) {
         mListener = operationListener;
         mProfile = profile;
-        mBundle = BundleHelper.getBundle(Operation.class, "Bundle");
+        mBundle = SystemHelper.getBundle(Operation.class, "Bundle");
     }
 
     public void start() {

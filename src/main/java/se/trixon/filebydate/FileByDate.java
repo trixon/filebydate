@@ -31,7 +31,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.SystemUtils;
 import se.trixon.almond.util.AlmondUI;
-import se.trixon.almond.util.BundleHelper;
+import se.trixon.almond.util.SystemHelper;
 import se.trixon.almond.util.Dict;
 import se.trixon.almond.util.PomInfo;
 import se.trixon.almond.util.SystemHelper;
@@ -45,7 +45,7 @@ import se.trixon.filebydate.ui.MainFrame;
 public class FileByDate implements OperationListener {
 
     private final AlmondUI mAlmondUI = AlmondUI.getInstance();
-    private final ResourceBundle mBundle = BundleHelper.getBundle(FileByDate.class, "Bundle");
+    private final ResourceBundle mBundle = SystemHelper.getBundle(FileByDate.class, "Bundle");
     private MainFrame mMainFrame = null;
     private Options mOptions;
     private final ProfileManager mProfileManager = ProfileManager.getInstance();

@@ -16,7 +16,7 @@
 package se.trixon.filebydate;
 
 import java.util.ResourceBundle;
-import se.trixon.almond.util.BundleHelper;
+import se.trixon.almond.util.SystemHelper;
 import se.trixon.filebydate.ui.MainFrame;
 
 /**
@@ -28,7 +28,7 @@ public enum DateSource {
     EXIF_ORIGINAL,
     FILE_CREATED,
     FILE_MODIFIED;
-    private final ResourceBundle mBundleUI = BundleHelper.getBundle(MainFrame.class, "Bundle");
+    private final ResourceBundle mBundleUI = SystemHelper.getBundle(MainFrame.class, "Bundle");
 
     private DateSource() {
     }

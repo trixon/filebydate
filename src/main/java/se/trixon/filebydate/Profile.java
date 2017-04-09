@@ -24,7 +24,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.io.FilenameUtils;
-import se.trixon.almond.util.BundleHelper;
+import se.trixon.almond.util.SystemHelper;
 import se.trixon.almond.util.Dict;
 import se.trixon.filebydate.Operation.Command;
 import se.trixon.filebydate.ui.MainFrame;
@@ -36,8 +36,8 @@ import se.trixon.filebydate.ui.MainFrame;
 public class Profile implements Comparable<Profile>, Cloneable {
 
     private NameCase mBaseNameCase = NameCase.UNCHANGED;
-    private final ResourceBundle mBundle = BundleHelper.getBundle(Profile.class, "Bundle");
-    private final ResourceBundle mBundleUI = BundleHelper.getBundle(MainFrame.class, "Bundle");
+    private final ResourceBundle mBundle = SystemHelper.getBundle(Profile.class, "Bundle");
+    private final ResourceBundle mBundleUI = SystemHelper.getBundle(MainFrame.class, "Bundle");
     private String mCaseBase;
     private String mCaseExt;
     private Command mCommand;
