@@ -53,7 +53,6 @@ import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.SystemUtils;
-import se.trixon.almond.util.AlmondAction;
 import se.trixon.almond.util.AlmondOptions;
 import se.trixon.almond.util.AlmondOptionsPanel;
 import se.trixon.almond.util.AlmondUI;
@@ -88,8 +87,6 @@ public class MainFrame extends JFrame {
     private final ResourceBundle mBundleUI = SystemHelper.getBundle(MainFrame.class, "Bundle");
     private ActionManager mActionManager;
     private final AlmondUI mAlmondUI = AlmondUI.getInstance();
-    private final LinkedList<AlmondAction> mBaseActions = new LinkedList<>();
-    private final LinkedList<AlmondAction> mAllActions = new LinkedList<>();
     private final AlmondOptions mAlmondOptions = AlmondOptions.getInstance();
     private final ProfileManager mProfileManager = ProfileManager.getInstance();
     private final LinkedList<Profile> mProfiles = mProfileManager.getProfiles();
