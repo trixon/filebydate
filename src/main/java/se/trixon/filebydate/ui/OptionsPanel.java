@@ -31,11 +31,11 @@ public class OptionsPanel extends javax.swing.JPanel {
      */
     public OptionsPanel() {
         initComponents();
-        localeComboBox.setSelectedItem(mOptions.getLocale());
+        localeComboBox.setSelectedLocale(mOptions.getLocale());
     }
 
     void save() {
-        mOptions.setLocale(localeComboBox.getSelectedItem());
+        mOptions.setLocale(localeComboBox.getSelectedLocale());
     }
 
     /**
@@ -58,7 +58,7 @@ public class OptionsPanel extends javax.swing.JPanel {
             .addComponent(localeComboBox, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
                 .addComponent(localeLabel)
-                .addGap(0, 0, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
