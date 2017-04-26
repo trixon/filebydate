@@ -32,10 +32,12 @@ public class OptionsPanel extends javax.swing.JPanel {
     public OptionsPanel() {
         initComponents();
         localeComboBox.setSelectedLocale(mOptions.getLocale());
+        wordWrapCheckBox.setSelected(mOptions.isWordWrap());
     }
 
     void save() {
         mOptions.setLocale(localeComboBox.getSelectedLocale());
+        mOptions.setWordWrap(wordWrapCheckBox.isSelected());
     }
 
     /**
@@ -48,8 +50,11 @@ public class OptionsPanel extends javax.swing.JPanel {
 
         localeLabel = new javax.swing.JLabel();
         localeComboBox = new se.trixon.almond.util.swing.LocaleComboBox();
+        wordWrapCheckBox = new javax.swing.JCheckBox();
 
         localeLabel.setText(Dict.CALENDAR_LANGUAGE.toString());
+
+        wordWrapCheckBox.setText(Dict.DYNAMIC_WORD_WRAP.toString());
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -59,6 +64,9 @@ public class OptionsPanel extends javax.swing.JPanel {
             .addGroup(layout.createSequentialGroup()
                 .addComponent(localeLabel)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(wordWrapCheckBox)
+                .addGap(0, 0, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -66,12 +74,15 @@ public class OptionsPanel extends javax.swing.JPanel {
                 .addComponent(localeLabel)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(localeComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(18, 18, 18)
+                .addComponent(wordWrapCheckBox)
+                .addContainerGap(61, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private se.trixon.almond.util.swing.LocaleComboBox localeComboBox;
     private javax.swing.JLabel localeLabel;
+    private javax.swing.JCheckBox wordWrapCheckBox;
     // End of variables declaration//GEN-END:variables
 }

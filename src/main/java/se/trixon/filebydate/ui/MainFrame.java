@@ -133,6 +133,8 @@ public class MainFrame extends JFrame {
         destChooserPanel.setDropMode(FileChooserPanel.DropMode.SINGLE);
         destChooserPanel.setMode(JFileChooser.DIRECTORIES_ONLY);
 
+        logPanel.setWordWrap(mOptions.isWordWrap());
+
         setRunningState(false);
 
         loadProfiles();
@@ -245,6 +247,8 @@ public class MainFrame extends JFrame {
         mOptions.getPreferences().addPreferenceChangeListener((PreferenceChangeEvent evt) -> {
             if (evt.getKey().equalsIgnoreCase(Options.KEY_LOCALE)) {
                 previewDateFormat();
+            } else if (evt.getKey().equalsIgnoreCase(Options.KEY_WORD_WRAP)) {
+                logPanel.setWordWrap(mOptions.isWordWrap());
             }
         });
 

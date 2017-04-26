@@ -25,7 +25,9 @@ import java.util.prefs.Preferences;
 public class Options {
 
     public static final String KEY_LOCALE = "locale";
+    public static final String KEY_WORD_WRAP = "word_wrap";
     private static final Locale DEFAULT_LOCALE = Locale.getDefault();
+    private static final boolean DEFAULT_WORD_WRAP = false;
     private final Preferences mPreferences = Preferences.userNodeForPackage(Options.class);
 
     public static Options getInstance() {
@@ -43,8 +45,16 @@ public class Options {
         return mPreferences;
     }
 
+    public boolean isWordWrap() {
+        return mPreferences.getBoolean(KEY_WORD_WRAP, DEFAULT_WORD_WRAP);
+    }
+
     public void setLocale(Locale locale) {
         mPreferences.put(KEY_LOCALE, locale.toLanguageTag());
+    }
+
+    public void setWordWrap(boolean value) {
+        mPreferences.putBoolean(KEY_WORD_WRAP, value);
     }
 
     private static class Holder {
