@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 Patrik Karlsson.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,10 +34,14 @@ public class FileVisitor extends SimpleFileVisitor<Path> {
     private List<File> mFiles = new ArrayList<>();
     private boolean mInterrupted;
     private final PathMatcher mPathMatcher;
+    private final Operation mOperation;
+    private final OperationListener mOperationListener;
 
-    public FileVisitor(PathMatcher pathMatcher, List<File> paths) {
+    public FileVisitor(PathMatcher pathMatcher, List<File> paths, Operation operation) {
         mFiles = paths;
         mPathMatcher = pathMatcher;
+        mOperation = operation;
+        mOperationListener = operation.getListener();
     }
 
     public boolean isInterrupted() {
@@ -51,6 +55,7 @@ public class FileVisitor extends SimpleFileVisitor<Path> {
             return FileVisitResult.TERMINATE;
         }
 
+        mOperationListener.onOperationLog(dir.toString());
         String[] filePaths = dir.toFile().list();
 
         if (filePaths != null && filePaths.length > 0) {

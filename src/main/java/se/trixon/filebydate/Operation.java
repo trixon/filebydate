@@ -37,8 +37,8 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-import se.trixon.almond.util.SystemHelper;
 import se.trixon.almond.util.Dict;
+import se.trixon.almond.util.SystemHelper;
 import se.trixon.almond.util.Xlog;
 
 /**
@@ -67,6 +67,8 @@ public class Operation {
         String status;
 
         if (!mInterrupted && !mFiles.isEmpty()) {
+            mListener.onOperationLog(String.format(mBundle.getString("found_count"), mFiles.size()));
+            mListener.onOperationLog("");
             status = Dict.PROCESSING.toString();
             mListener.onOperationLog(status);
 
@@ -167,7 +169,12 @@ public class Operation {
         }
     }
 
+    OperationListener getListener() {
+        return mListener;
+    }
+
     private boolean generateFileList() {
+        mListener.onOperationLog("");
         mListener.onOperationLog(Dict.GENERATING_FILELIST.toString());
         PathMatcher pathMatcher = mProfile.getPathMatcher();
 
@@ -178,7 +185,7 @@ public class Operation {
 
         File file = mProfile.getSourceDir();
         if (file.isDirectory()) {
-            FileVisitor fileVisitor = new FileVisitor(pathMatcher, mFiles);
+            FileVisitor fileVisitor = new FileVisitor(pathMatcher, mFiles, this);
             try {
                 if (mProfile.isRecursive()) {
                     Files.walkFileTree(file.toPath(), fileVisitOptions, Integer.MAX_VALUE, fileVisitor);
