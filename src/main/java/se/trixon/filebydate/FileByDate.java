@@ -31,7 +31,6 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.SystemUtils;
 import se.trixon.almond.util.AlmondUI;
-import se.trixon.almond.util.SystemHelper;
 import se.trixon.almond.util.Dict;
 import se.trixon.almond.util.PomInfo;
 import se.trixon.almond.util.SystemHelper;
@@ -44,11 +43,31 @@ import se.trixon.filebydate.ui.MainFrame;
  */
 public class FileByDate implements OperationListener {
 
+    private static final ResourceBundle sBundle = SystemHelper.getBundle(FileByDate.class, "Bundle");
+    private static Options sOptions;
     private final AlmondUI mAlmondUI = AlmondUI.getInstance();
-    private final ResourceBundle mBundle = SystemHelper.getBundle(FileByDate.class, "Bundle");
     private MainFrame mMainFrame = null;
-    private Options mOptions;
     private final ProfileManager mProfileManager = ProfileManager.getInstance();
+
+    public static String getHelp() {
+        PrintStream defaultStdOut = System.out;
+        StringBuilder sb = new StringBuilder()
+                .append(sBundle.getString("usage")).append("\n\n");
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintStream ps = new PrintStream(baos);
+        System.setOut(ps);
+
+        HelpFormatter formatter = new HelpFormatter();
+        formatter.setOptionComparator(null);
+        formatter.printHelp("xxx", sOptions, false);
+        System.out.flush();
+        System.setOut(defaultStdOut);
+        sb.append(baos.toString().replace("usage: xxx" + SystemUtils.LINE_SEPARATOR, "")).append("\n")
+                .append(sBundle.getString("help_footer"));
+
+        return sb.toString();
+    }
 
     /**
      * @param args the command line arguments
@@ -61,12 +80,12 @@ public class FileByDate implements OperationListener {
         initOptions();
 
         if (args.length == 0) {
-            System.out.println(mBundle.getString("hint_tui"));
+            System.out.println(sBundle.getString("hint_tui"));
             displayGui();
         } else {
             try {
                 CommandLineParser commandLineParser = new DefaultParser();
-                CommandLine commandLine = commandLineParser.parse(mOptions, args);
+                CommandLine commandLine = commandLineParser.parse(sOptions, args);
 
                 if (commandLine.hasOption("help")) {
                     displayHelp();
@@ -114,7 +133,7 @@ public class FileByDate implements OperationListener {
                 }
             } catch (ParseException ex) {
                 System.out.println(ex.getMessage());
-                System.out.println(mBundle.getString("parse_help"));
+                System.out.println(sBundle.getString("parse_help"));
             }
         }
     }
@@ -153,7 +172,7 @@ public class FileByDate implements OperationListener {
 
             return;
         }
-            
+
         SystemHelper.setMacApplicationName("FileByDate");
 
         mAlmondUI.installDarcula();
@@ -166,23 +185,7 @@ public class FileByDate implements OperationListener {
     }
 
     private void displayHelp() {
-        PrintStream defaultStdOut = System.out;
-        StringBuilder sb = new StringBuilder()
-                .append(mBundle.getString("usage")).append("\n\n");
-
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        PrintStream ps = new PrintStream(baos);
-        System.setOut(ps);
-
-        HelpFormatter formatter = new HelpFormatter();
-        formatter.setOptionComparator(null);
-        formatter.printHelp("xxx", mOptions, false);
-        System.out.flush();
-        System.setOut(defaultStdOut);
-        sb.append(baos.toString().replace("usage: xxx" + SystemUtils.LINE_SEPARATOR, "")).append("\n")
-                .append(mBundle.getString("help_footer"));
-
-        System.out.println(sb.toString());
+        System.out.println(getHelp());
     }
 
     private void displayProfiles() {
@@ -198,126 +201,125 @@ public class FileByDate implements OperationListener {
 
     private void displayVersion() {
         PomInfo pomInfo = new PomInfo(FileByDate.class, "se.trixon", "filebydate");
-        System.out.println(String.format(mBundle.getString("version_info"), pomInfo.getVersion()));
+        System.out.println(String.format(sBundle.getString("version_info"), pomInfo.getVersion()));
     }
 
     private void initOptions() {
         Option help = Option.builder("h")
                 .longOpt("help")
-                .desc(mBundle.getString("opt_help_desc"))
+                .desc(sBundle.getString("opt_help_desc"))
                 .build();
 
         Option version = Option.builder("v")
                 .longOpt("version")
-                .desc(mBundle.getString("opt_version_desc"))
+                .desc(sBundle.getString("opt_version_desc"))
                 .build();
 
         Option copy = Option.builder("cp")
                 .longOpt("copy")
-                .desc(mBundle.getString("opt_copy_desc"))
+                .desc(sBundle.getString("opt_copy_desc"))
                 .build();
 
         Option move = Option.builder("mv")
                 .longOpt("move")
-                .desc(mBundle.getString("opt_move_desc"))
+                .desc(sBundle.getString("opt_move_desc"))
                 .build();
 
         Option recursive = Option.builder("r")
                 .longOpt("recursive")
-                .desc(mBundle.getString("opt_recursive_desc"))
+                .desc(sBundle.getString("opt_recursive_desc"))
                 .build();
 
         Option links = Option.builder("l")
                 .longOpt("links")
-                .desc(mBundle.getString("opt_links_desc"))
+                .desc(sBundle.getString("opt_links_desc"))
                 .build();
 
         Option dryRun = Option.builder("n")
                 .longOpt("dry-run")
-                .desc(mBundle.getString("opt_dry_run_desc"))
+                .desc(sBundle.getString("opt_dry_run_desc"))
                 .build();
 
         Option overwrite = Option.builder("o")
                 .longOpt("overwrite")
-                .desc(mBundle.getString("opt_overwrite_desc"))
+                .desc(sBundle.getString("opt_overwrite_desc"))
                 .build();
 
         Option datePattern = Option.builder("dp")
                 .longOpt("date-pattern")
-                .desc(mBundle.getString("opt_date_pattern_desc"))
+                .desc(sBundle.getString("opt_date_pattern_desc"))
                 .hasArg()
                 .optionalArg(false)
                 .build();
 
         Option dateSource = Option.builder("ds")
                 .longOpt("date-source")
-                .desc(mBundle.getString("opt_date_source_desc"))
+                .desc(sBundle.getString("opt_date_source_desc"))
                 .hasArg()
                 .optionalArg(false)
                 .build();
 
         Option caseBase = Option.builder("cb")
                 .longOpt("case-base")
-                .desc(mBundle.getString("opt_case_base_desc"))
+                .desc(sBundle.getString("opt_case_base_desc"))
                 .hasArg()
                 .optionalArg(false)
                 .build();
 
         Option caseExt = Option.builder("ce")
                 .longOpt("case-ext")
-                .desc(mBundle.getString("opt_case_ext_desc"))
+                .desc(sBundle.getString("opt_case_ext_desc"))
                 .hasArg()
                 .optionalArg(false)
                 .build();
 
         Option gui = Option.builder("g")
                 .longOpt("gui")
-                .desc(mBundle.getString("opt_gui_desc"))
+                .desc(sBundle.getString("opt_gui_desc"))
                 .build();
 
         Option profile = Option.builder("rp")
                 .longOpt("run-profile")
                 .hasArg()
                 .numberOfArgs(1)
-                .desc(mBundle.getString("opt_profile_desc"))
+                .desc(sBundle.getString("opt_profile_desc"))
                 .build();
 
         Option listProfiles = Option.builder("lp")
                 .longOpt("list-profiles")
-                .desc(mBundle.getString("opt_list_profiles_desc"))
+                .desc(sBundle.getString("opt_list_profiles_desc"))
                 .build();
 
         Option viewProfile = Option.builder("vp")
                 .longOpt("view-profile")
                 .hasArg()
                 .numberOfArgs(1)
-                .desc(mBundle.getString("opt_view_profile_desc"))
+                .desc(sBundle.getString("opt_view_profile_desc"))
                 .build();
 
-        mOptions = new Options();
+        sOptions = new Options();
 
-        mOptions.addOption(copy);
-        mOptions.addOption(move);
+        sOptions.addOption(copy);
+        sOptions.addOption(move);
 
-        mOptions.addOption(dryRun);
-        mOptions.addOption(links);
-        mOptions.addOption(overwrite);
-        mOptions.addOption(recursive);
+        sOptions.addOption(dryRun);
+        sOptions.addOption(links);
+        sOptions.addOption(overwrite);
+        sOptions.addOption(recursive);
 
-        mOptions.addOption(datePattern);
-        mOptions.addOption(dateSource);
+        sOptions.addOption(datePattern);
+        sOptions.addOption(dateSource);
 
-        mOptions.addOption(caseBase);
-        mOptions.addOption(caseExt);
+        sOptions.addOption(caseBase);
+        sOptions.addOption(caseExt);
 
-        mOptions.addOption(listProfiles);
-        mOptions.addOption(viewProfile);
-        mOptions.addOption(profile);
+        sOptions.addOption(listProfiles);
+        sOptions.addOption(viewProfile);
+        sOptions.addOption(profile);
 
-        mOptions.addOption(gui);
-
-        mOptions.addOption(help);
-        mOptions.addOption(version);
+//        sOptions.addOption(gui);
+        sOptions.addOption(help);
+        sOptions.addOption(version);
     }
 
     private void loadProfiles() {

@@ -142,6 +142,9 @@ public class MainFrame extends JFrame {
         initListeners();
 
         previewDateFormat();
+        logPanel.println(mBundleUI.getString("welcome_1"));
+        logPanel.println(FileByDate.getHelp());
+        logPanel.scrollToTop();
     }
 
     private void initActions() {
@@ -693,9 +696,6 @@ public class MainFrame extends JFrame {
 
         profileMenu.setText(Dict.PROFILE.toString());
         profileMenu.add(addMenuItem);
-
-        java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("se/trixon/filebydate/ui/Bundle"); // NOI18N
-        removeMenuItem.setText(bundle.getString("MainFrame.removeMenuItem.text")); // NOI18N
         profileMenu.add(removeMenuItem);
         profileMenu.add(renameMenuItem);
         profileMenu.add(cloneMenuItem);
@@ -716,6 +716,7 @@ public class MainFrame extends JFrame {
         menuBar.add(helpMenu);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("se/trixon/filebydate/ui/Bundle"); // NOI18N
         setTitle(bundle.getString("MainFrame.title")); // NOI18N
         addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowClosing(java.awt.event.WindowEvent evt) {
@@ -952,7 +953,7 @@ public class MainFrame extends JFrame {
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 135, Short.MAX_VALUE)
+            .addGap(0, 114, Short.MAX_VALUE)
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
