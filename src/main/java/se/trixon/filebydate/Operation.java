@@ -128,11 +128,11 @@ public class Operation {
                                 if (command == Command.COPY) {
                                     FileUtils.copyFile(sourceFile, destFile);
                                 } else if (command == Command.MOVE) {
-                                    if (File.listRoots().length == 1) {
-                                        FileUtils.moveFile(sourceFile, destFile);
-                                    } else {
+                                    if (File.listRoots().length > 1 || destFile.exists()) {
                                         FileUtils.copyFile(sourceFile, destFile);
                                         FileUtils.deleteQuietly(sourceFile);
+                                    } else {
+                                        FileUtils.moveFile(sourceFile, destFile);
                                     }
                                 }
                             }
