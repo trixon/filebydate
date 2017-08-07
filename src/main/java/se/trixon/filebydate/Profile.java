@@ -15,6 +15,7 @@
  */
 package se.trixon.filebydate;
 
+import com.google.gson.annotations.SerializedName;
 import java.io.File;
 import java.nio.file.FileSystems;
 import java.nio.file.PathMatcher;
@@ -24,8 +25,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.io.FilenameUtils;
-import se.trixon.almond.util.SystemHelper;
 import se.trixon.almond.util.Dict;
+import se.trixon.almond.util.SystemHelper;
 import se.trixon.filebydate.Operation.Command;
 import se.trixon.filebydate.ui.MainFrame;
 
@@ -35,29 +36,42 @@ import se.trixon.filebydate.ui.MainFrame;
  */
 public class Profile implements Comparable<Profile>, Cloneable {
 
-    private NameCase mBaseNameCase = NameCase.UNCHANGED;
-    private final ResourceBundle mBundle = SystemHelper.getBundle(Profile.class, "Bundle");
-    private final ResourceBundle mBundleUI = SystemHelper.getBundle(MainFrame.class, "Bundle");
-    private String mCaseBase;
-    private String mCaseExt;
+    private transient final ResourceBundle mBundle = SystemHelper.getBundle(Profile.class, "Bundle");
+    private transient final ResourceBundle mBundleUI = SystemHelper.getBundle(MainFrame.class, "Bundle");
+    @SerializedName("case_base")
+    private NameCase mCaseBase = NameCase.UNCHANGED;
+    private transient String mCaseBaseString;
+    @SerializedName("case_ext")
+    private NameCase mCaseExt = NameCase.UNCHANGED;
+    private transient String mCaseExtString;
+    @SerializedName("operation")
     private Command mCommand;
-    private SimpleDateFormat mDateFormat;
+    private transient SimpleDateFormat mDateFormat;
+    @SerializedName("date_pattern")
     private String mDatePattern;
+    @SerializedName("date_source")
     private DateSource mDateSource = DateSource.FILE_CREATED;
-    private String mDateSourceString;
+    private transient String mDateSourceString;
+    @SerializedName("destination")
     private File mDestDir;
+    @SerializedName("dry_run")
     private boolean mDryRun;
-    private NameCase mExtNameCase = NameCase.UNCHANGED;
+    @SerializedName("file_pattern")
     private String mFilePattern;
+    @SerializedName("follow_links")
     private boolean mFollowLinks;
-    private boolean mModeCopy;
-    private boolean mModeMove;
+    private transient boolean mModeCopy;
+    private transient boolean mModeMove;
+    @SerializedName("name")
     private String mName;
-    private PathMatcher mPathMatcher;
+    private transient PathMatcher mPathMatcher;
+    @SerializedName("recursive")
     private boolean mRecursive;
+    @SerializedName("overwrite")
     private boolean mReplaceExisting;
+    @SerializedName("source")
     private File mSourceDir;
-    private StringBuilder mValidationErrorBuilder = new StringBuilder();
+    private transient StringBuilder mValidationErrorBuilder = new StringBuilder();
 
     public Profile() {
     }
@@ -68,8 +82,8 @@ public class Profile implements Comparable<Profile>, Cloneable {
 
         mDatePattern = commandLine.getOptionValue("dp");
         mDateSourceString = commandLine.getOptionValue("ds");
-        mCaseBase = commandLine.getOptionValue("case-base");
-        mCaseExt = commandLine.getOptionValue("case-ext");
+        mCaseBaseString = commandLine.getOptionValue("case-base");
+        mCaseExtString = commandLine.getOptionValue("case-ext");
 
         mDryRun = commandLine.hasOption("dry-run");
         mFollowLinks = commandLine.hasOption("links");
@@ -94,15 +108,11 @@ public class Profile implements Comparable<Profile>, Cloneable {
         return mName.compareTo(o.getName());
     }
 
-    public NameCase getBaseNameCase() {
-        return mBaseNameCase;
-    }
-
-    public String getCaseBase() {
+    public NameCase getCaseBase() {
         return mCaseBase;
     }
 
-    public String getCaseExt() {
+    public NameCase getCaseExt() {
         return mCaseExt;
     }
 
@@ -131,11 +141,7 @@ public class Profile implements Comparable<Profile>, Cloneable {
     }
 
     public String getDestDirAsString() {
-        return mDestDir == null ? "" : mDestDir.getAbsolutePath();
-    }
-
-    public NameCase getExtNameCase() {
-        return mExtNameCase;
+        return mDestDir == null ? "" : mDestDir.getPath();
     }
 
     public String getFilePattern() {
@@ -159,7 +165,7 @@ public class Profile implements Comparable<Profile>, Cloneable {
     }
 
     public String getSourceDirAsString() {
-        return mSourceDir == null ? "" : mSourceDir.getAbsolutePath();
+        return mSourceDir == null ? "" : mSourceDir.getPath();
     }
 
     public String getValidationError() {
@@ -172,14 +178,6 @@ public class Profile implements Comparable<Profile>, Cloneable {
 
     public boolean isFollowLinks() {
         return mFollowLinks;
-    }
-
-    public boolean isModeCopy() {
-        return mModeCopy;
-    }
-
-    public boolean isModeMove() {
-        return mModeMove;
     }
 
     public boolean isRecursive() {
@@ -196,7 +194,7 @@ public class Profile implements Comparable<Profile>, Cloneable {
         if (mModeCopy == mModeMove) {
             addValidationError(mBundle.getString("invalid_command"));
         } else {
-            mCommand = mModeCopy ? Command.COPY : Command.MOVE;
+            updateCommand();
         }
 
         try {
@@ -219,18 +217,18 @@ public class Profile implements Comparable<Profile>, Cloneable {
             }
         }
 
-        if (mCaseBase != null) {
-            mBaseNameCase = NameCase.getCase(mCaseBase);
-            if (mBaseNameCase == null) {
-                addValidationError(String.format(mBundle.getString("invalid_case_base"), mCaseBase));
+        if (mCaseBaseString != null) {
+            mCaseBase = NameCase.getCase(mCaseBaseString);
+            if (mCaseBase == null) {
+                addValidationError(String.format(mBundle.getString("invalid_case_base"), mCaseBaseString));
             }
 
         }
 
-        if (mCaseExt != null) {
-            mExtNameCase = NameCase.getCase(mCaseExt);
-            if (mExtNameCase == null) {
-                addValidationError(String.format(mBundle.getString("invalid_case_ext"), mCaseExt));
+        if (mCaseExtString != null) {
+            mCaseExt = NameCase.getCase(mCaseExtString);
+            if (mCaseExt == null) {
+                addValidationError(String.format(mBundle.getString("invalid_case_ext"), mCaseExtString));
             }
         }
 
@@ -245,15 +243,11 @@ public class Profile implements Comparable<Profile>, Cloneable {
         return mValidationErrorBuilder.length() == 0;
     }
 
-    public void setBaseNameCase(NameCase baseNameCase) {
-        mBaseNameCase = baseNameCase;
-    }
-
-    public void setCaseBase(String caseBase) {
+    public void setCaseBase(NameCase caseBase) {
         mCaseBase = caseBase;
     }
 
-    public void setCaseExt(String caseExt) {
+    public void setCaseExt(NameCase caseExt) {
         mCaseExt = caseExt;
     }
 
@@ -281,24 +275,12 @@ public class Profile implements Comparable<Profile>, Cloneable {
         mDryRun = dryRun;
     }
 
-    public void setExtNameCase(NameCase extNameCase) {
-        mExtNameCase = extNameCase;
-    }
-
     public void setFilePattern(String filePattern) {
         mFilePattern = filePattern;
     }
 
     public void setFollowLinks(boolean links) {
         mFollowLinks = links;
-    }
-
-    public void setModeCopy(boolean modeCopy) {
-        mModeCopy = modeCopy;
-    }
-
-    public void setModeMove(boolean modeMove) {
-        mModeMove = modeMove;
     }
 
     public void setName(String name) {
@@ -313,6 +295,8 @@ public class Profile implements Comparable<Profile>, Cloneable {
             mModeCopy = false;
             mModeMove = true;
         }
+
+        updateCommand();
     }
 
     public void setPathMatcher(PathMatcher pathMatcher) {
@@ -367,8 +351,8 @@ public class Profile implements Comparable<Profile>, Cloneable {
         conditionalAppendDebugOption(b, mFollowLinks, Dict.FOLLOW_LINKS.toString());
         conditionalAppendDebugOption(b, mRecursive, Dict.RECURSIVE.toString());
         conditionalAppendDebugOption(b, mReplaceExisting, Dict.REPLACE.toString());
-        conditionalAppendDebugOption(b, mBaseNameCase != NameCase.UNCHANGED, mBundleUI.getString("MainFrame.caseBaseLabel.text") + " " + mBaseNameCase);
-        conditionalAppendDebugOption(b, mExtNameCase != NameCase.UNCHANGED, mBundleUI.getString("MainFrame.caseSuffixLabel.text") + " " + mExtNameCase);
+        conditionalAppendDebugOption(b, mCaseBase != NameCase.UNCHANGED, mBundleUI.getString("MainFrame.caseBaseLabel.text") + " " + mCaseBase);
+        conditionalAppendDebugOption(b, mCaseExt != NameCase.UNCHANGED, mBundleUI.getString("MainFrame.caseSuffixLabel.text") + " " + mCaseExt);
 
         return b.toString();
     }
@@ -388,5 +372,9 @@ public class Profile implements Comparable<Profile>, Cloneable {
         if (append) {
             b.append(String.format(itemFormat, string));
         }
+    }
+
+    private void updateCommand() {
+        mCommand = mModeCopy ? Command.COPY : Command.MOVE;
     }
 }

@@ -89,7 +89,7 @@ public class MainFrame extends JFrame {
     private final AlmondUI mAlmondUI = AlmondUI.getInstance();
     private final AlmondOptions mAlmondOptions = AlmondOptions.getInstance();
     private final ProfileManager mProfileManager = ProfileManager.getInstance();
-    private final LinkedList<Profile> mProfiles = mProfileManager.getProfiles();
+    private LinkedList<Profile> mProfiles;
     private DefaultComboBoxModel mModel;
     private final Options mOptions = Options.getInstance();
     private Thread mOperationThread;
@@ -124,7 +124,7 @@ public class MainFrame extends JFrame {
         opComboBox.setModel(new DefaultComboBoxModel(mBundleUI.getString("operations").split("\\|")));
         dateSourceComboBox.setModel(new DefaultComboBoxModel(DateSource.values()));
         caseBaseComboBox.setModel(new DefaultComboBoxModel(NameCase.values()));
-        caseSuffixComboBox.setModel(new DefaultComboBoxModel(NameCase.values()));
+        caseExtComboBox.setModel(new DefaultComboBoxModel(NameCase.values()));
         followLinksCheckBox.setEnabled(!SystemUtils.IS_OS_WINDOWS);
 
         sourceChooserPanel.setDropMode(FileChooserPanel.DropMode.SINGLE);
@@ -445,6 +445,7 @@ public class MainFrame extends JFrame {
 
         try {
             mProfileManager.load();
+            mProfiles = mProfileManager.getProfiles();
         } catch (IOException ex) {
             Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -491,8 +492,8 @@ public class MainFrame extends JFrame {
                 p.setFollowLinks(true);
                 p.setRecursive(true);
                 p.setReplaceExisting(false);
-                p.setBaseNameCase(NameCase.UNCHANGED);
-                p.setExtNameCase(NameCase.UNCHANGED);
+                p.setCaseBase(NameCase.UNCHANGED);
+                p.setCaseExt(NameCase.UNCHANGED);
 
                 mProfiles.add(p);
                 populateProfiles(p);
@@ -685,7 +686,7 @@ public class MainFrame extends JFrame {
         caseBaseLabel = new javax.swing.JLabel();
         caseBaseComboBox = new javax.swing.JComboBox<>();
         caseSuffixLabel = new javax.swing.JLabel();
-        caseSuffixComboBox = new javax.swing.JComboBox<>();
+        caseExtComboBox = new javax.swing.JComboBox<>();
         jPanel1 = new javax.swing.JPanel();
         logPanel = new se.trixon.almond.util.swing.LogPanel();
 
@@ -937,9 +938,9 @@ public class MainFrame extends JFrame {
         gridBagConstraints.insets = new java.awt.Insets(0, 8, 0, 0);
         options2Panel.add(caseSuffixLabel, gridBagConstraints);
 
-        caseSuffixComboBox.addActionListener(new java.awt.event.ActionListener() {
+        caseExtComboBox.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                caseSuffixComboBoxActionPerformed(evt);
+                caseExtComboBoxActionPerformed(evt);
             }
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -947,7 +948,7 @@ public class MainFrame extends JFrame {
         gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         gridBagConstraints.insets = new java.awt.Insets(0, 8, 0, 0);
-        options2Panel.add(caseSuffixComboBox, gridBagConstraints);
+        options2Panel.add(caseExtComboBox, gridBagConstraints);
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -1025,12 +1026,12 @@ public class MainFrame extends JFrame {
     }//GEN-LAST:event_opComboBoxActionPerformed
 
     private void caseBaseComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_caseBaseComboBoxActionPerformed
-        getSelectedProfile().setBaseNameCase((NameCase) caseBaseComboBox.getSelectedItem());
+        getSelectedProfile().setCaseBase((NameCase) caseBaseComboBox.getSelectedItem());
     }//GEN-LAST:event_caseBaseComboBoxActionPerformed
 
-    private void caseSuffixComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_caseSuffixComboBoxActionPerformed
-        getSelectedProfile().setExtNameCase((NameCase) caseSuffixComboBox.getSelectedItem());
-    }//GEN-LAST:event_caseSuffixComboBoxActionPerformed
+    private void caseExtComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_caseExtComboBoxActionPerformed
+        getSelectedProfile().setCaseExt((NameCase) caseExtComboBox.getSelectedItem());
+    }//GEN-LAST:event_caseExtComboBoxActionPerformed
 
     private void dateSourceComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dateSourceComboBoxActionPerformed
         getSelectedProfile().setDateSource((DateSource) dateSourceComboBox.getSelectedItem());
@@ -1041,19 +1042,19 @@ public class MainFrame extends JFrame {
         if (p != null) {
             opComboBox.setSelectedIndex(p.getOperation());
             dateSourceComboBox.setSelectedItem(p.getDateSource());
-            caseBaseComboBox.setSelectedItem(p.getBaseNameCase());
-            caseSuffixComboBox.setSelectedItem(p.getExtNameCase());
+            caseBaseComboBox.setSelectedItem(p.getCaseBase());
+            caseExtComboBox.setSelectedItem(p.getCaseExt());
 
             followLinksCheckBox.setSelected(p.isFollowLinks());
             recursiveCheckBox.setSelected(p.isRecursive());
             overwriteCheckBox.setSelected(p.isReplaceExisting());
 
             if (p.getSourceDir() != null) {
-                sourceChooserPanel.setPath(p.getSourceDir().getAbsolutePath());
+                sourceChooserPanel.setPath(p.getSourceDir().getPath());
             }
 
             if (p.getDestDir() != null) {
-                destChooserPanel.setPath(p.getDestDir().getAbsolutePath());
+                destChooserPanel.setPath(p.getDestDir().getPath());
             }
 
             patternComboBox.setSelectedItem(p.getFilePattern());
@@ -1073,7 +1074,7 @@ public class MainFrame extends JFrame {
     private javax.swing.JButton cancelButton;
     private javax.swing.JComboBox<NameCase> caseBaseComboBox;
     private javax.swing.JLabel caseBaseLabel;
-    private javax.swing.JComboBox<NameCase> caseSuffixComboBox;
+    private javax.swing.JComboBox<NameCase> caseExtComboBox;
     private javax.swing.JLabel caseSuffixLabel;
     private javax.swing.JMenuItem cloneMenuItem;
     private javax.swing.JPanel configPanel;

@@ -89,19 +89,19 @@ public class Operation {
                     String destFilename = sourceFile.getName();
                     String base = FilenameUtils.getBaseName(destFilename);
                     String ext = FilenameUtils.getExtension(destFilename);
-                    NameCase baseCase = mProfile.getBaseNameCase();
-                    NameCase extCase = mProfile.getExtNameCase();
+                    NameCase caseBase = mProfile.getCaseBase();
+                    NameCase caseExt = mProfile.getCaseExt();
 
-                    if (baseCase != NameCase.UNCHANGED || extCase != NameCase.UNCHANGED) {
-                        if (baseCase == NameCase.LOWER) {
+                    if (caseBase != NameCase.UNCHANGED || caseExt != NameCase.UNCHANGED) {
+                        if (caseBase == NameCase.LOWER) {
                             base = base.toLowerCase();
-                        } else if (baseCase == NameCase.UPPER) {
+                        } else if (caseBase == NameCase.UPPER) {
                             base = base.toUpperCase();
                         }
 
-                        if (extCase == NameCase.LOWER) {
+                        if (caseExt == NameCase.LOWER) {
                             ext = ext.toLowerCase();
-                        } else if (baseCase == NameCase.UPPER) {
+                        } else if (caseBase == NameCase.UPPER) {
                             ext = ext.toUpperCase();
                         }
 
@@ -167,10 +167,6 @@ public class Operation {
             status = String.format("%s (%d %s, %d %s)", Dict.TASK_COMPLETED.toString(), min, Dict.TIME_MIN.toString(), sec, Dict.TIME_SEC.toString());
             mListener.onOperationFinished(status);
         }
-    }
-
-    OperationListener getListener() {
-        return mListener;
     }
 
     private boolean generateFileList() {
@@ -251,6 +247,10 @@ public class Operation {
         }
 
         return StringUtils.defaultString(message, "");
+    }
+
+    OperationListener getListener() {
+        return mListener;
     }
 
     public enum Command {
