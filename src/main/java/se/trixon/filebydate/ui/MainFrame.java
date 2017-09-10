@@ -738,6 +738,7 @@ public class MainFrame extends JFrame {
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(0, 8, 0, 0);
         topPanel.add(profileComboBox, gridBagConstraints);
 
         toolBar.setFloatable(false);
@@ -767,6 +768,7 @@ public class MainFrame extends JFrame {
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 8);
         topPanel.add(toolBar, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
