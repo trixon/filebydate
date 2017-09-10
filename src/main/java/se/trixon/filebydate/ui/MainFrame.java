@@ -184,7 +184,6 @@ public class MainFrame extends JFrame {
         quitMenuItem.setAction(mActionManager.getAction(ActionManager.QUIT));
         renameMenuItem.setAction(mActionManager.getAction(ActionManager.RENAME));
 
-        addButton.setAction(mActionManager.getAction(ActionManager.ADD));
         startButton.setAction(mActionManager.getAction(ActionManager.START));
         cancelButton.setAction(mActionManager.getAction(ActionManager.CANCEL));
 
@@ -368,6 +367,7 @@ public class MainFrame extends JFrame {
 
     private void initMenus() {
         if (mAlmondOptions.getMenuMode() == MenuModePanel.MenuMode.BUTTON) {
+            mPopupMenu.add(addMenuItem);
             mPopupMenu.add(removeMenuItem);
             mPopupMenu.add(renameMenuItem);
             mPopupMenu.add(cloneMenuItem);
@@ -662,7 +662,6 @@ public class MainFrame extends JFrame {
         toolBar = new javax.swing.JToolBar();
         startButton = new javax.swing.JButton();
         cancelButton = new javax.swing.JButton();
-        addButton = new javax.swing.JButton();
         menuButton = new javax.swing.JButton();
         configPanel = new javax.swing.JPanel();
         sourceChooserPanel = new se.trixon.almond.util.swing.dialogs.FileChooserPanel();
@@ -753,11 +752,6 @@ public class MainFrame extends JFrame {
         cancelButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         cancelButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         toolBar.add(cancelButton);
-
-        addButton.setFocusable(false);
-        addButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        addButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        toolBar.add(addButton);
 
         menuButton.setFocusable(false);
         menuButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -1069,7 +1063,6 @@ public class MainFrame extends JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JMenuItem aboutDateFormatMenuItem;
     private javax.swing.JMenuItem aboutMenuItem;
-    private javax.swing.JButton addButton;
     private javax.swing.JMenuItem addMenuItem;
     private javax.swing.JButton cancelButton;
     private javax.swing.JComboBox<NameCase> caseBaseComboBox;
