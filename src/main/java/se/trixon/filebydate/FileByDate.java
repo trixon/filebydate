@@ -29,12 +29,12 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.lang3.SystemUtils;
 import se.trixon.almond.util.AlmondUI;
 import se.trixon.almond.util.Dict;
 import se.trixon.almond.util.PomInfo;
 import se.trixon.almond.util.SystemHelper;
 import se.trixon.almond.util.Xlog;
+import se.trixon.filebydate.fx.MainApp;
 import se.trixon.filebydate.ui.MainFrame;
 
 /**
@@ -43,10 +43,11 @@ import se.trixon.filebydate.ui.MainFrame;
  */
 public class FileByDate implements OperationListener {
 
+    private static String[] sArgs;
     private static final ResourceBundle sBundle = SystemHelper.getBundle(FileByDate.class, "Bundle");
     private static Options sOptions;
     private final AlmondUI mAlmondUI = AlmondUI.getInstance();
-    private MainFrame mMainFrame = null;
+    private CommandLine mCommandLine;
     private final ProfileManager mProfileManager = ProfileManager.getInstance();
 
     public static String getHelp() {
@@ -63,7 +64,7 @@ public class FileByDate implements OperationListener {
         formatter.printHelp("xxx", sOptions, false);
         System.out.flush();
         System.setOut(defaultStdOut);
-        sb.append(baos.toString().replace("usage: xxx" + SystemUtils.LINE_SEPARATOR, "")).append("\n")
+        sb.append(baos.toString().replace("usage: xxx" + System.lineSeparator(), "")).append("\n")
                 .append(sBundle.getString("help_footer"));
 
         return sb.toString();
@@ -73,67 +74,60 @@ public class FileByDate implements OperationListener {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        new FileByDate(args);
+        sArgs = args;
+        new FileByDate();
     }
 
-    public FileByDate(String[] args) {
+    public FileByDate() {
         initOptions();
 
-        if (args.length == 0) {
+        if (sArgs.length == 0) {
             System.out.println(sBundle.getString("hint_tui"));
             displayGui();
         } else {
-            try {
-                CommandLineParser commandLineParser = new DefaultParser();
-                CommandLine commandLine = commandLineParser.parse(sOptions, args);
+            if (mCommandLine.hasOption("help")) {
+                displayHelp();
+                System.exit(0);
+            } else if (mCommandLine.hasOption("version")) {
+                displayVersion();
+                System.exit(0);
+            } else if (mCommandLine.hasOption("list-profiles")) {
+                displayProfiles();
+            } else if (mCommandLine.hasOption("view-profile")) {
+                loadProfiles();
+                Profile profile = mProfileManager.getProfile(mCommandLine.getOptionValue("view-profile"));
+                if (profile == null) {
+                    System.err.println(Dict.Dialog.ERROR_PROFILE_NOT_FOUND.toString());
+                    System.exit(1);
+                } else {
+                    profile.isValid();
+                    System.out.println(profile.toDebugString());
+                }
+            } else if (mCommandLine.hasOption("gui")) {
+                displayGui();
+            } else {
+                Profile profile = null;
 
-                if (commandLine.hasOption("help")) {
-                    displayHelp();
-                    System.exit(0);
-                } else if (commandLine.hasOption("version")) {
-                    displayVersion();
-                    System.exit(0);
-                } else if (commandLine.hasOption("list-profiles")) {
-                    displayProfiles();
-                } else if (commandLine.hasOption("view-profile")) {
+                if (mCommandLine.hasOption("profile")) {
                     loadProfiles();
-                    Profile profile = mProfileManager.getProfile(commandLine.getOptionValue("view-profile"));
+                    profile = mProfileManager.getProfile(mCommandLine.getOptionValue("profile"));
                     if (profile == null) {
                         System.err.println(Dict.Dialog.ERROR_PROFILE_NOT_FOUND.toString());
                         System.exit(1);
                     } else {
-                        profile.isValid();
-                        System.out.println(profile.toDebugString());
+                        profile.setDryRun(mCommandLine.hasOption("dry-run"));
                     }
-                } else if (commandLine.hasOption("gui")) {
-                    displayGui();
                 } else {
-                    Profile profile = null;
-
-                    if (commandLine.hasOption("profile")) {
-                        loadProfiles();
-                        profile = mProfileManager.getProfile(commandLine.getOptionValue("profile"));
-                        if (profile == null) {
-                            System.err.println(Dict.Dialog.ERROR_PROFILE_NOT_FOUND.toString());
-                            System.exit(1);
-                        } else {
-                            profile.setDryRun(commandLine.hasOption("dry-run"));
-                        }
-                    } else {
-                        profile = new Profile(commandLine);
-                    }
-
-                    if (profile.isValid()) {
-                        Operation operation = new Operation(this, profile);
-                        operation.start();
-                    } else {
-                        System.out.println(profile.getValidationError());
-                        System.out.println(Dict.ABORTING.toString());
-                    }
+                    profile = new Profile(mCommandLine);
                 }
-            } catch (ParseException ex) {
-                System.out.println(ex.getMessage());
-                System.out.println(sBundle.getString("parse_help"));
+
+                if (profile.isValid()) {
+                    Operation operation = new Operation(this, profile);
+                    operation.start();
+                } else {
+                    System.out.println(profile.getValidationError());
+                    System.out.println(Dict.ABORTING.toString());
+                }
             }
         }
     }
@@ -173,14 +167,28 @@ public class FileByDate implements OperationListener {
             return;
         }
 
+        if (mCommandLine.hasOption("gui")) {
+            displayGuiFx();
+        } else {
+            displayGuiSwing();
+        }
+    }
+
+    private void displayGuiFx() {
+        new Thread(() -> {
+            MainApp.main(sArgs);
+        }).start();
+    }
+
+    private void displayGuiSwing() {
         SystemHelper.setMacApplicationName("FileByDate");
 
         mAlmondUI.installDarcula();
         mAlmondUI.initLookAndFeel();
 
         java.awt.EventQueue.invokeLater(() -> {
-            mMainFrame = new MainFrame();
-            mMainFrame.setVisible(true);
+            MainFrame mainFrame = new MainFrame();
+            mainFrame.setVisible(true);
         });
     }
 
@@ -273,8 +281,8 @@ public class FileByDate implements OperationListener {
                 .optionalArg(false)
                 .build();
 
-        Option gui = Option.builder("g")
-                .longOpt("gui")
+        Option fxGui = Option.builder("gui")
+                .longOpt("alternative-gui")
                 .desc(sBundle.getString("opt_gui_desc"))
                 .build();
 
@@ -317,9 +325,18 @@ public class FileByDate implements OperationListener {
         sOptions.addOption(viewProfile);
         sOptions.addOption(profile);
 
-//        sOptions.addOption(gui);
+        sOptions.addOption(fxGui);
         sOptions.addOption(help);
         sOptions.addOption(version);
+
+        try {
+            CommandLineParser commandLineParser = new DefaultParser();
+            mCommandLine = commandLineParser.parse(sOptions, sArgs);
+        } catch (ParseException ex) {
+            System.out.println(ex.getMessage());
+            System.out.println(sBundle.getString("parse_help"));
+            System.exit(0);
+        }
     }
 
     private void loadProfiles() {
