@@ -48,10 +48,15 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import org.controlsfx.control.action.ActionUtils;
 import se.trixon.almond.util.Dict;
+import se.trixon.almond.util.PomInfo;
 import se.trixon.almond.util.SystemHelper;
 import se.trixon.almond.util.fx.AlmondFx;
+import se.trixon.almond.util.fx.dialogs.about.AboutPane;
 import se.trixon.almond.util.icons.material.MaterialIcon;
+import se.trixon.almond.util.swing.dialogs.about.AboutModel;
+import se.trixon.filebydate.FileByDate;
 import se.trixon.filebydate.Options;
 import se.trixon.filebydate.Profile;
 import se.trixon.filebydate.ProfileManager;
@@ -104,6 +109,7 @@ public class MainApp extends Application {
         mStage.show();
         mListView.requestFocus();
 //        mListView.getSelectionModel().select(0);
+//        mAboutMenuItem.fire();
     }
 
     private void createUI() {
@@ -120,7 +126,14 @@ public class MainApp extends Application {
         mSettingsButton.setTooltip(new Tooltip(Dict.OPTIONS.toString()));
 
         mHelpMenuItem = new MenuItem(Dict.HELP.toString());
-        mAboutMenuItem = new MenuItem(Dict.ABOUT.toString());
+
+        //about
+        PomInfo pomInfo = new PomInfo(FileByDate.class, "se.trixon", "filebydate");
+        AboutModel aboutModel = new AboutModel(SystemHelper.getBundle(FileByDate.class, "about"), SystemHelper.getResourceAsImageView(MainFrame.class, "calendar-icon-1024px.png"));
+        aboutModel.setAppVersion(pomInfo.getVersion());
+        mAboutMenuItem = ActionUtils.createMenuItem(AboutPane.getAction(mStage, new AboutPane(aboutModel)));
+
+        //about date format
         String title = String.format(Dict.ABOUT_S.toString(), Dict.DATE_PATTERN.toString().toLowerCase());
         mAboutDateFormatMenuItem = new MenuItem(title);
 
@@ -200,10 +213,6 @@ public class MainApp extends Application {
 
         mHelpMenuItem.setOnAction((ActionEvent event) -> {
             SystemHelper.browse("https://trixon.se/projects/filebydate/documentation/");
-        });
-
-        mAboutMenuItem.setOnAction((ActionEvent event) -> {
-            System.out.println(event);
         });
 
         mAboutDateFormatMenuItem.setOnAction((ActionEvent event) -> {
