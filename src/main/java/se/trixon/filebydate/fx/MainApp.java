@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.PreferenceChangeEvent;
@@ -27,9 +28,14 @@ import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
@@ -42,6 +48,7 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
@@ -53,6 +60,8 @@ import se.trixon.almond.util.Dict;
 import se.trixon.almond.util.PomInfo;
 import se.trixon.almond.util.SystemHelper;
 import se.trixon.almond.util.fx.AlmondFx;
+import se.trixon.almond.util.fx.FxHelper;
+import se.trixon.almond.util.fx.LocaleComboBox;
 import se.trixon.almond.util.fx.dialogs.about.AboutPane;
 import se.trixon.almond.util.icons.material.MaterialIcon;
 import se.trixon.almond.util.swing.dialogs.about.AboutModel;
@@ -208,7 +217,7 @@ public class MainApp extends Application {
         });
 
         mSettingsButton.setOnAction((ActionEvent event) -> {
-            System.out.println(event);
+            displayOptions();
         });
 
         mHelpMenuItem.setOnAction((ActionEvent event) -> {
@@ -218,6 +227,35 @@ public class MainApp extends Application {
         mAboutDateFormatMenuItem.setOnAction((ActionEvent event) -> {
             SystemHelper.browse("https://docs.oracle.com/javase/8/docs/api/java/text/SimpleDateFormat.html");
         });
+    }
+
+    private void displayOptions() {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.initOwner(mStage);
+        alert.setTitle(Dict.OPTIONS.toString());
+        alert.setGraphic(null);
+        alert.setHeaderText(null);
+
+        Label label = new Label(Dict.CALENDAR_LANGUAGE.toString());
+        LocaleComboBox localeComboBox = new LocaleComboBox();
+        CheckBox checkBox = new CheckBox(Dict.DYNAMIC_WORD_WRAP.toString());
+        GridPane gridPane = new GridPane();
+        //gridPane.setGridLinesVisible(true);
+        gridPane.addColumn(0, label, localeComboBox, checkBox);
+        gridPane.setMargin(checkBox, new Insets(16, 0, 0, 0));
+
+        final DialogPane dialogPane = alert.getDialogPane();
+        dialogPane.setContent(gridPane);
+        dialogPane.setPrefSize(300, 200);
+
+        localeComboBox.setLocale(mOptions.getLocale());
+        checkBox.setSelected(mOptions.isWordWrap());
+
+        Optional<ButtonType> result = FxHelper.showAndWait(alert, mStage);
+        if (result.get() == ButtonType.OK) {
+            mOptions.setLocale(localeComboBox.getLocale());
+            mOptions.setWordWrap(checkBox.isSelected());
+        }
     }
 
     class ProfileListCell extends ListCell<Profile> {
