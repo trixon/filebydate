@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.Optional;
+import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.PreferenceChangeEvent;
@@ -65,7 +66,7 @@ import se.trixon.almond.util.PomInfo;
 import se.trixon.almond.util.SystemHelper;
 import se.trixon.almond.util.fx.AlmondFx;
 import se.trixon.almond.util.fx.FxHelper;
-import se.trixon.almond.util.fx.LocaleComboBox;
+import se.trixon.almond.util.fx.control.LocaleComboBox;
 import se.trixon.almond.util.fx.dialogs.about.AboutPane;
 import se.trixon.almond.util.icons.material.MaterialIcon;
 import se.trixon.almond.util.swing.dialogs.about.AboutModel;
@@ -86,6 +87,7 @@ public class MainApp extends Application {
     private static final int ICON_SIZE_TOOLBAR = 48;
     private static final Logger LOGGER = Logger.getLogger(MainApp.class.getName());
     private final AlmondFx mAlmondFX = AlmondFx.getInstance();
+    private final ResourceBundle mBundleUI = SystemHelper.getBundle(MainFrame.class, "Bundle");
     private final ObservableList<Profile> mItems = FXCollections.observableArrayList();
     private ListView<Profile> mListView;
     private final Options mOptions = Options.getInstance();
@@ -270,7 +272,26 @@ public class MainApp extends Application {
     }
 
     private void profileEdit(Profile profile) {
-        System.out.println(System.currentTimeMillis());
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.initOwner(mStage);
+        String title = Dict.EDIT.toString();
+        if (profile == null) {
+            title = Dict.ADD.toString();
+            profile = new Profile();
+        }
+        alert.setTitle(title);
+        alert.setGraphic(null);
+        alert.setHeaderText(null);
+
+        ProfilePane profilePane = new ProfilePane(profile);
+
+        final DialogPane dialogPane = alert.getDialogPane();
+        dialogPane.setContent(profilePane);
+
+        Optional<ButtonType> result = FxHelper.showAndWait(alert, mStage);
+        if (result.get() == ButtonType.OK) {
+            populateProfiles(null);
+        }
     }
 
     private void profileRemove(Profile profile) {
