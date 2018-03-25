@@ -167,6 +167,14 @@ public class MainApp extends Application {
 
     private void initActions() {
         //add
+        Action swingAction = new Action("Swing", (ActionEvent event) -> {
+            java.awt.EventQueue.invokeLater(() -> {
+                MainFrame mainFrame = new MainFrame();
+                mainFrame.setVisible(true);
+            });
+        });
+
+        //add
         Action addAction = new Action(Dict.ADD.toString(), (ActionEvent event) -> {
 
         });
@@ -196,6 +204,7 @@ public class MainApp extends Application {
         });
 
         Collection<? extends Action> actions = Arrays.asList(
+                swingAction,
                 addAction,
                 optionsAction,
                 ActionUtils.ACTION_SPAN,
@@ -301,7 +310,7 @@ public class MainApp extends Application {
             cloneAction.setGraphic(MaterialIcon._Content.CONTENT_COPY.getImageView(ICON_SIZE_PROFILE));
 
             Action removeAction = new Action(Dict.REMOVE.toString(), (ActionEvent event) -> {
-                System.out.println(event);
+                profileRemove();
                 mListView.requestFocus();
             });
             removeAction.setGraphic(MaterialIcon._Content.REMOVE_CIRCLE_OUTLINE.getImageView(ICON_SIZE_PROFILE));
@@ -343,6 +352,22 @@ public class MainApp extends Application {
 
         private Profile getSelectedProfile() {
             return mListView.getSelectionModel().getSelectedItem();
+        }
+
+        private void profileRemove() {
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.initOwner(mStage);
+            alert.setTitle(Dict.Dialog.TITLE_PROFILE_REMOVE.toString());
+            String message = String.format(Dict.Dialog.MESSAGE_PROFILE_REMOVE.toString(), getSelectedProfile().getName());
+            alert.setHeaderText(message);
+            alert.setContentText(Dict.Dialog.MESSAGE_ARE_YOU_SURE.toString());
+
+            Optional<ButtonType> result = FxHelper.showAndWait(alert, mStage);
+            if (result.get() == ButtonType.OK) {
+                mProfiles.remove(getSelectedProfile());
+                populateProfiles(null);
+            }
+
         }
 
         private void selectListItem() {
