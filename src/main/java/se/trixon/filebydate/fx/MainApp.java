@@ -29,6 +29,7 @@ import javafx.animation.FadeTransition;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.ObservableMap;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -43,6 +44,9 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.ToolBar;
 import javafx.scene.image.Image;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BorderPane;
@@ -51,6 +55,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 import javafx.util.Duration;
 import org.controlsfx.control.action.Action;
 import org.controlsfx.control.action.ActionGroup;
@@ -109,6 +114,7 @@ public class MainApp extends Application {
         mStage.setTitle(APP_TITLE);
         mStage.show();
         mListView.requestFocus();
+        initAccelerators();
     }
 
     private void createUI() {
@@ -165,6 +171,21 @@ public class MainApp extends Application {
         }
     }
 
+    private void initAccelerators() {
+        final ObservableMap<KeyCombination, Runnable> accelerators = mStage.getScene().getAccelerators();
+
+        accelerators.put(new KeyCodeCombination(KeyCode.Q, KeyCombination.SHORTCUT_DOWN), (Runnable) () -> {
+            mStage.fireEvent(new WindowEvent(mStage, WindowEvent.WINDOW_CLOSE_REQUEST));
+        });
+
+        accelerators.put(new KeyCodeCombination(KeyCode.N, KeyCombination.SHORTCUT_DOWN), (Runnable) () -> {
+            profileEdit(null);
+        });
+        accelerators.put(new KeyCodeCombination(KeyCode.COMMA, KeyCombination.SHORTCUT_DOWN), (Runnable) () -> {
+            displayOptions();
+        });
+    }
+
     private void initActions() {
         //add
         Action swingAction = new Action("Swing", (ActionEvent event) -> {
@@ -176,7 +197,7 @@ public class MainApp extends Application {
 
         //add
         Action addAction = new Action(Dict.ADD.toString(), (ActionEvent event) -> {
-
+            profileEdit(null);
         });
         addAction.setGraphic(MaterialIcon._Content.ADD.getImageView(ICON_SIZE_TOOLBAR));
 
@@ -185,11 +206,13 @@ public class MainApp extends Application {
             displayOptions();
         });
         optionsAction.setGraphic(MaterialIcon._Action.SETTINGS.getImageView(ICON_SIZE_TOOLBAR));
+        optionsAction.setAccelerator(new KeyCodeCombination(KeyCode.COMMA, KeyCombination.SHORTCUT_DOWN));
 
         //help
         Action helpAction = new Action(Dict.HELP.toString(), (ActionEvent event) -> {
             SystemHelper.browse("https://trixon.se/projects/filebydate/documentation/");
         });
+        helpAction.setAccelerator(KeyCombination.keyCombination("F1"));
 
         //about
         PomInfo pomInfo = new PomInfo(FileByDate.class, "se.trixon", "filebydate");
@@ -204,9 +227,9 @@ public class MainApp extends Application {
         });
 
         Collection<? extends Action> actions = Arrays.asList(
-                swingAction,
                 addAction,
                 optionsAction,
+                swingAction,
                 ActionUtils.ACTION_SPAN,
                 new ActionGroup(Dict.HELP.toString(), MaterialIcon._Action.HELP_OUTLINE.getImageView(ICON_SIZE_TOOLBAR),
                         helpAction,
@@ -244,6 +267,25 @@ public class MainApp extends Application {
     private void postInit() {
         loadProfiles();
         populateProfiles(null);
+    }
+
+    private void profileEdit(Profile profile) {
+        System.out.println(System.currentTimeMillis());
+    }
+
+    private void profileRemove(Profile profile) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.initOwner(mStage);
+        alert.setTitle(Dict.Dialog.TITLE_PROFILE_REMOVE.toString());
+        String message = String.format(Dict.Dialog.MESSAGE_PROFILE_REMOVE.toString(), profile.getName());
+        alert.setHeaderText(message);
+        alert.setContentText(Dict.Dialog.MESSAGE_ARE_YOU_SURE.toString());
+
+        Optional<ButtonType> result = FxHelper.showAndWait(alert, mStage);
+        if (result.get() == ButtonType.OK) {
+            mProfiles.remove(profile);
+            populateProfiles(null);
+        }
     }
 
     class ProfileListCell extends ListCell<Profile> {
@@ -298,7 +340,7 @@ public class MainApp extends Application {
             runAction.setGraphic(MaterialIcon._Av.PLAY_ARROW.getImageView(ICON_SIZE_PROFILE));
 
             Action editAction = new Action(Dict.EDIT.toString(), (ActionEvent event) -> {
-                System.out.println(event);
+                profileEdit(getSelectedProfile());
                 mListView.requestFocus();
             });
             editAction.setGraphic(MaterialIcon._Content.CREATE.getImageView(ICON_SIZE_PROFILE));
@@ -310,7 +352,7 @@ public class MainApp extends Application {
             cloneAction.setGraphic(MaterialIcon._Content.CONTENT_COPY.getImageView(ICON_SIZE_PROFILE));
 
             Action removeAction = new Action(Dict.REMOVE.toString(), (ActionEvent event) -> {
-                profileRemove();
+                profileRemove(getSelectedProfile());
                 mListView.requestFocus();
             });
             removeAction.setGraphic(MaterialIcon._Content.REMOVE_CIRCLE_OUTLINE.getImageView(ICON_SIZE_PROFILE));
@@ -352,22 +394,6 @@ public class MainApp extends Application {
 
         private Profile getSelectedProfile() {
             return mListView.getSelectionModel().getSelectedItem();
-        }
-
-        private void profileRemove() {
-            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-            alert.initOwner(mStage);
-            alert.setTitle(Dict.Dialog.TITLE_PROFILE_REMOVE.toString());
-            String message = String.format(Dict.Dialog.MESSAGE_PROFILE_REMOVE.toString(), getSelectedProfile().getName());
-            alert.setHeaderText(message);
-            alert.setContentText(Dict.Dialog.MESSAGE_ARE_YOU_SURE.toString());
-
-            Optional<ButtonType> result = FxHelper.showAndWait(alert, mStage);
-            if (result.get() == ButtonType.OK) {
-                mProfiles.remove(getSelectedProfile());
-                populateProfiles(null);
-            }
-
         }
 
         private void selectListItem() {
