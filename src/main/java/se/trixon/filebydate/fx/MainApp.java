@@ -16,6 +16,8 @@
 package se.trixon.filebydate.fx;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
@@ -32,29 +34,26 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
-import javafx.scene.control.MenuButton;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.Separator;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.ToolBar;
-import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.Background;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import org.controlsfx.control.action.Action;
+import org.controlsfx.control.action.ActionGroup;
 import org.controlsfx.control.action.ActionUtils;
 import se.trixon.almond.util.Dict;
 import se.trixon.almond.util.PomInfo;
@@ -81,19 +80,13 @@ public class MainApp extends Application {
     private static final int ICON_SIZE_PROFILE = 32;
     private static final int ICON_SIZE_TOOLBAR = 48;
     private static final Logger LOGGER = Logger.getLogger(MainApp.class.getName());
-    private MenuItem mAboutDateFormatMenuItem;
-    private MenuItem mAboutMenuItem;
-    private Button mAddButton;
     private final AlmondFx mAlmondFX = AlmondFx.getInstance();
-    private MenuItem mHelpMenuItem;
     private final ObservableList<Profile> mItems = FXCollections.observableArrayList();
     private ListView<Profile> mListView;
     private final Options mOptions = Options.getInstance();
     private final ProfileManager mProfileManager = ProfileManager.getInstance();
     private LinkedList<Profile> mProfiles;
-    private Button mRemoveAllButton;
     private BorderPane mRoot;
-    private Button mSettingsButton;
     private Stage mStage;
     private TextArea mSummaryTextArea;
     private ToolBar mToolBar;
@@ -113,49 +106,17 @@ public class MainApp extends Application {
         mAlmondFX.addStageWatcher(stage, MainApp.class);
         createUI();
         postInit();
-        postInitActions();
         mStage.setTitle(APP_TITLE);
         mStage.show();
         mListView.requestFocus();
-//        mListView.getSelectionModel().select(0);
-//        mAboutMenuItem.fire();
     }
 
     private void createUI() {
+        initActions();
+
         mListView = new ListView<>();
         mListView.setItems(mItems);
         mListView.setCellFactory((ListView<Profile> param) -> new ProfileListCell());
-
-        mAddButton = new Button(null, MaterialIcon._Content.ADD.getImageView(ICON_SIZE_TOOLBAR));
-        mRemoveAllButton = new Button(null, MaterialIcon._Content.CLEAR.getImageView(ICON_SIZE_TOOLBAR));
-        mSettingsButton = new Button(null, MaterialIcon._Action.SETTINGS.getImageView(ICON_SIZE_TOOLBAR));
-
-        mAddButton.setTooltip(new Tooltip(Dict.ADD.toString()));
-        mRemoveAllButton.setTooltip(new Tooltip(Dict.REMOVE_ALL.toString()));
-        mSettingsButton.setTooltip(new Tooltip(Dict.OPTIONS.toString()));
-
-        mHelpMenuItem = new MenuItem(Dict.HELP.toString());
-
-        //about
-        PomInfo pomInfo = new PomInfo(FileByDate.class, "se.trixon", "filebydate");
-        AboutModel aboutModel = new AboutModel(SystemHelper.getBundle(FileByDate.class, "about"), SystemHelper.getResourceAsImageView(MainFrame.class, "calendar-icon-1024px.png"));
-        aboutModel.setAppVersion(pomInfo.getVersion());
-        mAboutMenuItem = ActionUtils.createMenuItem(AboutPane.getAction(mStage, new AboutPane(aboutModel)));
-
-        //about date format
-        String title = String.format(Dict.ABOUT_S.toString(), Dict.DATE_PATTERN.toString().toLowerCase());
-        mAboutDateFormatMenuItem = new MenuItem(title);
-
-        MenuButton mHelpMenuButton = new MenuButton(null, MaterialIcon._Action.HELP_OUTLINE.getImageView(ICON_SIZE_TOOLBAR));
-        mHelpMenuButton.getItems().addAll(mHelpMenuItem, mAboutDateFormatMenuItem, mAboutMenuItem);
-
-        mToolBar = new ToolBar(
-                mAddButton,
-                mRemoveAllButton,
-                mSettingsButton,
-                new Separator(),
-                mHelpMenuButton
-        );
 
         mSummaryTextArea = new TextArea();
         mSummaryTextArea.setPrefRowCount(10);
@@ -176,9 +137,80 @@ public class MainApp extends Application {
         });
     }
 
-    private void loadProfiles() {
-//        SwingHelper.enableComponents(configPanel, false);
+    private void displayOptions() {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.initOwner(mStage);
+        alert.setTitle(Dict.OPTIONS.toString());
+        alert.setGraphic(null);
+        alert.setHeaderText(null);
 
+        Label label = new Label(Dict.CALENDAR_LANGUAGE.toString());
+        LocaleComboBox localeComboBox = new LocaleComboBox();
+        CheckBox checkBox = new CheckBox(Dict.DYNAMIC_WORD_WRAP.toString());
+        GridPane gridPane = new GridPane();
+        //gridPane.setGridLinesVisible(true);
+        gridPane.addColumn(0, label, localeComboBox, checkBox);
+        GridPane.setMargin(checkBox, new Insets(16, 0, 0, 0));
+
+        final DialogPane dialogPane = alert.getDialogPane();
+        dialogPane.setContent(gridPane);
+
+        localeComboBox.setLocale(mOptions.getLocale());
+        checkBox.setSelected(mOptions.isWordWrap());
+
+        Optional<ButtonType> result = FxHelper.showAndWait(alert, mStage);
+        if (result.get() == ButtonType.OK) {
+            mOptions.setLocale(localeComboBox.getLocale());
+            mOptions.setWordWrap(checkBox.isSelected());
+        }
+    }
+
+    private void initActions() {
+        //add
+        Action addAction = new Action(Dict.ADD.toString(), (ActionEvent event) -> {
+
+        });
+        addAction.setGraphic(MaterialIcon._Content.ADD.getImageView(ICON_SIZE_TOOLBAR));
+
+        //options
+        Action optionsAction = new Action(Dict.OPTIONS.toString(), (ActionEvent event) -> {
+            displayOptions();
+        });
+        optionsAction.setGraphic(MaterialIcon._Action.SETTINGS.getImageView(ICON_SIZE_TOOLBAR));
+
+        //help
+        Action helpAction = new Action(Dict.HELP.toString(), (ActionEvent event) -> {
+            SystemHelper.browse("https://trixon.se/projects/filebydate/documentation/");
+        });
+
+        //about
+        PomInfo pomInfo = new PomInfo(FileByDate.class, "se.trixon", "filebydate");
+        AboutModel aboutModel = new AboutModel(SystemHelper.getBundle(FileByDate.class, "about"), SystemHelper.getResourceAsImageView(MainFrame.class, "calendar-icon-1024px.png"));
+        aboutModel.setAppVersion(pomInfo.getVersion());
+        Action aboutAction = AboutPane.getAction(mStage, aboutModel);
+
+        //about date format
+        String title = String.format(Dict.ABOUT_S.toString(), Dict.DATE_PATTERN.toString().toLowerCase());
+        Action aboutDateFormatAction = new Action(title, (ActionEvent event) -> {
+            SystemHelper.browse("https://docs.oracle.com/javase/8/docs/api/java/text/SimpleDateFormat.html");
+        });
+
+        Collection<? extends Action> actions = Arrays.asList(
+                addAction,
+                optionsAction,
+                ActionUtils.ACTION_SPAN,
+                new ActionGroup(Dict.HELP.toString(), MaterialIcon._Action.HELP_OUTLINE.getImageView(ICON_SIZE_TOOLBAR),
+                        helpAction,
+                        aboutDateFormatAction,
+                        ActionUtils.ACTION_SEPARATOR,
+                        aboutAction
+                )
+        );
+
+        mToolBar = ActionUtils.createToolBar(actions, ActionUtils.ActionTextBehavior.HIDE);
+    }
+
+    private void loadProfiles() {
         try {
             mProfileManager.load();
             mProfiles = mProfileManager.getProfiles();
@@ -195,67 +227,14 @@ public class MainApp extends Application {
             mItems.add(item);
         });
 
-//        if (profile != null) {
-//            mModel.setSelectedItem(profile);
-//        }
-        boolean hasProfiles = !mProfiles.isEmpty();
-//        SwingHelper.enableComponents(configPanel, hasProfiles);
+        if (profile != null) {
+            mListView.getSelectionModel().select(profile);
+        }
     }
 
     private void postInit() {
         loadProfiles();
         populateProfiles(null);
-    }
-
-    private void postInitActions() {
-        mAddButton.setOnAction((ActionEvent event) -> {
-            System.out.println(event);
-        });
-
-        mRemoveAllButton.setOnAction((ActionEvent event) -> {
-            System.out.println(event);
-        });
-
-        mSettingsButton.setOnAction((ActionEvent event) -> {
-            displayOptions();
-        });
-
-        mHelpMenuItem.setOnAction((ActionEvent event) -> {
-            SystemHelper.browse("https://trixon.se/projects/filebydate/documentation/");
-        });
-
-        mAboutDateFormatMenuItem.setOnAction((ActionEvent event) -> {
-            SystemHelper.browse("https://docs.oracle.com/javase/8/docs/api/java/text/SimpleDateFormat.html");
-        });
-    }
-
-    private void displayOptions() {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.initOwner(mStage);
-        alert.setTitle(Dict.OPTIONS.toString());
-        alert.setGraphic(null);
-        alert.setHeaderText(null);
-
-        Label label = new Label(Dict.CALENDAR_LANGUAGE.toString());
-        LocaleComboBox localeComboBox = new LocaleComboBox();
-        CheckBox checkBox = new CheckBox(Dict.DYNAMIC_WORD_WRAP.toString());
-        GridPane gridPane = new GridPane();
-        //gridPane.setGridLinesVisible(true);
-        gridPane.addColumn(0, label, localeComboBox, checkBox);
-        gridPane.setMargin(checkBox, new Insets(16, 0, 0, 0));
-
-        final DialogPane dialogPane = alert.getDialogPane();
-        dialogPane.setContent(gridPane);
-        dialogPane.setPrefSize(300, 200);
-
-        localeComboBox.setLocale(mOptions.getLocale());
-        checkBox.setSelected(mOptions.isWordWrap());
-
-        Optional<ButtonType> result = FxHelper.showAndWait(alert, mStage);
-        if (result.get() == ButtonType.OK) {
-            mOptions.setLocale(localeComboBox.getLocale());
-            mOptions.setWordWrap(checkBox.isSelected());
-        }
     }
 
     class ProfileListCell extends ListCell<Profile> {
@@ -267,10 +246,6 @@ public class MainApp extends Application {
         private final FadeTransition mFadeOutTransition = new FadeTransition();
         private final Label mLastLabel = new Label();
         private final Label mNameLabel = new Label();
-        private Button mRunButton;
-        private Button mEditButton;
-        private Button mRemoveButton;
-        private Button mCloneButton;
 
         public ProfileListCell() {
             mFadeInTransition.setDuration(mDuration);
@@ -299,10 +274,6 @@ public class MainApp extends Application {
             setGraphic(null);
         }
 
-        private Profile getSelectedProfile() {
-            return mListView.getSelectionModel().getSelectedItem();
-        }
-
         private void createUI() {
             String fontFamily = mNameLabel.getFont().getFamily();
             double fontSize = mNameLabel.getFont().getSize();
@@ -311,58 +282,53 @@ public class MainApp extends Application {
             mDescLabel.setFont(Font.font(fontFamily, FontWeight.NORMAL, fontSize * 1.3));
             mLastLabel.setFont(Font.font(fontFamily, FontWeight.NORMAL, fontSize * 1.3));
 
-            mRunButton = new Button(null, MaterialIcon._Av.PLAY_ARROW.getImageView(ICON_SIZE_PROFILE));
-            mEditButton = new Button(null, MaterialIcon._Content.CREATE.getImageView(ICON_SIZE_PROFILE));
-            mCloneButton = new Button(null, MaterialIcon._Content.CONTENT_COPY.getImageView(ICON_SIZE_PROFILE));
-            mRemoveButton = new Button(null, MaterialIcon._Content.REMOVE_CIRCLE_OUTLINE.getImageView(ICON_SIZE_PROFILE));
-
-            mRunButton.setTooltip(new Tooltip(Dict.RUN.toString()));
-            mEditButton.setTooltip(new Tooltip(Dict.EDIT.toString()));
-            mCloneButton.setTooltip(new Tooltip(Dict.CLONE.toString()));
-            mRemoveButton.setTooltip(new Tooltip(Dict.REMOVE.toString()));
-
-            mRunButton.setOnAction((ActionEvent event) -> {
+            Action runAction = new Action(Dict.RUN.toString(), (ActionEvent event) -> {
                 System.out.println(event);
                 mListView.requestFocus();
             });
+            runAction.setGraphic(MaterialIcon._Av.PLAY_ARROW.getImageView(ICON_SIZE_PROFILE));
 
-            mEditButton.setOnAction((ActionEvent event) -> {
+            Action editAction = new Action(Dict.EDIT.toString(), (ActionEvent event) -> {
                 System.out.println(event);
                 mListView.requestFocus();
             });
+            editAction.setGraphic(MaterialIcon._Content.CREATE.getImageView(ICON_SIZE_PROFILE));
 
-            mCloneButton.setOnAction((ActionEvent event) -> {
+            Action cloneAction = new Action(Dict.CLONE.toString(), (ActionEvent event) -> {
                 System.out.println(event);
                 mListView.requestFocus();
             });
+            cloneAction.setGraphic(MaterialIcon._Content.CONTENT_COPY.getImageView(ICON_SIZE_PROFILE));
 
-            mRemoveButton.setOnAction((ActionEvent event) -> {
+            Action removeAction = new Action(Dict.REMOVE.toString(), (ActionEvent event) -> {
                 System.out.println(event);
                 mListView.requestFocus();
             });
+            removeAction.setGraphic(MaterialIcon._Content.REMOVE_CIRCLE_OUTLINE.getImageView(ICON_SIZE_PROFILE));
 
             VBox mainBox = new VBox(mNameLabel, mDescLabel, mLastLabel);
             mainBox.setAlignment(Pos.CENTER_LEFT);
 
-            HBox buttonBox = new HBox(
-                    mRunButton,
-                    mEditButton,
-                    mCloneButton,
-                    mRemoveButton
+            Collection<? extends Action> actions = Arrays.asList(
+                    runAction,
+                    editAction,
+                    cloneAction,
+                    removeAction
             );
-            buttonBox.setAlignment(Pos.CENTER_LEFT);
-            buttonBox.setSpacing(8F);
-            buttonBox.setVisible(false);
+
+            ToolBar toolBar = ActionUtils.createToolBar(actions, ActionUtils.ActionTextBehavior.HIDE);
+            toolBar.setBackground(Background.EMPTY);
+            toolBar.setVisible(false);
+            BorderPane.setAlignment(toolBar, Pos.CENTER);
 
             mBorderPane.setCenter(mainBox);
-            mBorderPane.setRight(buttonBox);
-
-            mFadeInTransition.setNode(buttonBox);
-            mFadeOutTransition.setNode(buttonBox);
+            mBorderPane.setRight(toolBar);
+            mFadeInTransition.setNode(toolBar);
+            mFadeOutTransition.setNode(toolBar);
 
             mBorderPane.setOnMouseEntered((MouseEvent event) -> {
-                if (!buttonBox.isVisible()) {
-                    buttonBox.setVisible(true);
+                if (!toolBar.isVisible()) {
+                    toolBar.setVisible(true);
                 }
 
                 selectListItem();
@@ -373,6 +339,10 @@ public class MainApp extends Application {
             mBorderPane.setOnMouseExited((MouseEvent event) -> {
                 mFadeOutTransition.playFromStart();
             });
+        }
+
+        private Profile getSelectedProfile() {
+            return mListView.getSelectionModel().getSelectedItem();
         }
 
         private void selectListItem() {
