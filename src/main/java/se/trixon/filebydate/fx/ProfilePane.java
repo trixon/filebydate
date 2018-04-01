@@ -26,6 +26,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import se.trixon.almond.util.Dict;
 import se.trixon.almond.util.SystemHelper;
+import se.trixon.almond.util.fx.control.DirectoryChooserPane;
 import se.trixon.almond.util.fx.control.FileChooserPane;
 import se.trixon.filebydate.DateSource;
 import se.trixon.filebydate.NameCase;
@@ -53,7 +54,7 @@ public class ProfilePane extends GridPane {
     private final Profile mProfile;
     private CheckBox mRecursiveCheckBox;
     private CheckBox mReplaceCheckBox;
-    private FileChooserPane mSourceFileChooserPane;
+    private DirectoryChooserPane mSourceFileChooserPane;
 
     public ProfilePane(Profile profile) {
         mProfile = profile;
@@ -105,22 +106,22 @@ public class ProfilePane extends GridPane {
         mNameTextField = new TextField();
         mDescTextField = new TextField();
 
-        mSourceFileChooserPane = new FileChooserPane();
-        mDestFileChooserPane = new FileChooserPane();
+        mSourceFileChooserPane = new DirectoryChooserPane(Dict.OPEN.toString());
+        mDestFileChooserPane = new FileChooserPane(Dict.OPEN.toString());
 
         mFilePatternComboBox.setEditable(true);
         mDatePatternComboBox.setEditable(true);
         int col = 0;
         int row = 0;
 
-        add(nameLabel, 0, 0, REMAINING, 1);
-        add(mNameTextField, 0, ++row, REMAINING, 1);
-        add(descLabel, 0, ++row, REMAINING, 1);
-        add(mDescTextField, 0, ++row, REMAINING, 1);
-        add(sourceLabel, 0, ++row, REMAINING, 1);
-        add(mSourceFileChooserPane, 0, ++row, REMAINING, 1);
-        add(destLabel, 0, ++row, REMAINING, 1);
-        add(mDestFileChooserPane, 0, ++row, REMAINING, 1);
+        add(nameLabel, col, row, REMAINING, 1);
+        add(mNameTextField, col, ++row, REMAINING, 1);
+        add(descLabel, col, ++row, REMAINING, 1);
+        add(mDescTextField, col, ++row, REMAINING, 1);
+        add(sourceLabel, col, ++row, REMAINING, 1);
+        add(mSourceFileChooserPane, col, ++row, REMAINING, 1);
+        add(destLabel, col, ++row, REMAINING, 1);
+        add(mDestFileChooserPane, col, ++row, REMAINING, 1);
 
         addRow(++row, filePatternLabel, dateSourceLabel, datePatternLabel);
         addRow(++row, mFilePatternComboBox, mDateSourceComboBox, mDatePatternComboBox);
@@ -136,7 +137,7 @@ public class ProfilePane extends GridPane {
         subPane.setGridLinesVisible(true);
         subPane.addRow(0, operationLabel, new Label(), new Label(), new Label(), caseBaseLabel, caseExtLabel);
         subPane.addRow(1, mOperationComboBox, mLinksCheckBox, mRecursiveCheckBox, mReplaceCheckBox, mCaseBaseComboBox, mCaseExtComboBox);
-        add(subPane, 0, ++row, REMAINING, 1);
+        add(subPane, col, ++row, REMAINING, 1);
 
         mFilePatternComboBox.setItems(FXCollections.observableArrayList(
                 "*",
