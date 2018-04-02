@@ -63,6 +63,8 @@ public class Profile implements Comparable<Profile>, Cloneable {
     private String mFilePattern;
     @SerializedName("follow_links")
     private boolean mFollowLinks;
+    @SerializedName("last_run")
+    private long mLastRun;
     private transient boolean mModeCopy;
     private transient boolean mModeMove;
     @SerializedName("name")
@@ -153,6 +155,10 @@ public class Profile implements Comparable<Profile>, Cloneable {
 
     public String getFilePattern() {
         return mFilePattern;
+    }
+
+    public long getLastRun() {
+        return mLastRun;
     }
 
     public String getName() {
@@ -292,6 +298,10 @@ public class Profile implements Comparable<Profile>, Cloneable {
 
     public void setFollowLinks(boolean links) {
         mFollowLinks = links;
+    }
+
+    public void setLastRun(long lastRun) {
+        mLastRun = lastRun;
     }
 
     public void setName(String name) {

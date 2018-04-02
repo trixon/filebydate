@@ -308,6 +308,8 @@ public class MainApp extends Application {
             if (addNew || clone) {
                 mProfiles.add(profile);
             }
+            //TODO Remove this one in the near future
+            profile.setLastRun(System.currentTimeMillis());
             profilesSave();
             populateProfiles(profile);
         }
@@ -372,7 +374,7 @@ public class MainApp extends Application {
             setText(null);
 
             mNameLabel.setText(profile.getName());
-            mLastLabel.setText("🕑 " + new Date().toString());
+            mLastLabel.setText("🕑 " + new Date(profile.getLastRun()).toString());
             mDescLabel.setText("🖉 " + profile.getDescription());
 
             setGraphic(mBorderPane);
@@ -393,6 +395,7 @@ public class MainApp extends Application {
 
             Action runAction = new Action(Dict.RUN.toString(), (ActionEvent event) -> {
                 System.out.println(event);
+                System.out.println("Remember to update last run");
                 mListView.requestFocus();
             });
             runAction.setGraphic(MaterialIcon._Av.PLAY_ARROW.getImageView(ICON_SIZE_PROFILE));
