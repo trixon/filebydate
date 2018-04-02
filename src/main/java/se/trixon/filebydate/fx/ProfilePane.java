@@ -17,6 +17,7 @@ package se.trixon.filebydate.fx;
 
 import java.util.Arrays;
 import java.util.ResourceBundle;
+import java.util.function.Predicate;
 import javafx.application.Platform;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -39,6 +40,7 @@ import se.trixon.almond.util.fx.control.FileChooserPane;
 import se.trixon.filebydate.DateSource;
 import se.trixon.filebydate.NameCase;
 import se.trixon.filebydate.Profile;
+import se.trixon.filebydate.ProfileManager;
 import se.trixon.filebydate.ui.MainFrame;
 
 /**
@@ -63,6 +65,7 @@ public class ProfilePane extends GridPane {
     private CheckBox mRecursiveCheckBox;
     private CheckBox mReplaceCheckBox;
     private DirectoryChooserPane mSourceFileChooserPane;
+    private final ProfileManager mProfileManager = ProfileManager.getInstance();
 
     public ProfilePane(Profile profile) {
         mProfile = profile;
@@ -89,7 +92,7 @@ public class ProfilePane extends GridPane {
     }
 
     public void save() {
-        mProfile.setName(mNameTextField.getText());
+        mProfile.setName(mNameTextField.getText().trim());
         mProfile.setDescription(mDescTextField.getText());
         mProfile.setSourceDir(mSourceFileChooserPane.getPath());
         mProfile.setDestDir(mDestFileChooserPane.getPath());
@@ -215,8 +218,13 @@ public class ProfilePane extends GridPane {
         final String text_is_required = "Text is required";
         boolean indicateRequired = false;
 
+        Predicate namePredicate = (Predicate) (Object o) -> {
+            return mProfileManager.isValid(mProfile.getName(), (String) o);
+        };
+
         ValidationSupport validationSupport = new ValidationSupport();
         validationSupport.registerValidator(mNameTextField, indicateRequired, Validator.createEmptyValidator(text_is_required));
+        validationSupport.registerValidator(mNameTextField, indicateRequired, Validator.createPredicateValidator(namePredicate, text_is_required));
         validationSupport.registerValidator(mDescTextField, indicateRequired, Validator.createEmptyValidator(text_is_required));
         validationSupport.registerValidator(mSourceFileChooserPane.getTextField(), indicateRequired, Validator.createEmptyValidator(text_is_required));
         validationSupport.registerValidator(mDestFileChooserPane.getTextField(), indicateRequired, Validator.createEmptyValidator(text_is_required));
