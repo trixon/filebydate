@@ -15,7 +15,9 @@
  */
 package se.trixon.filebydate.fx;
 
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.ResourceBundle;
 import java.util.function.Predicate;
 import javafx.application.Platform;
@@ -27,9 +29,11 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
+import org.apache.commons.lang3.StringUtils;
 import org.controlsfx.validation.ValidationResult;
 import org.controlsfx.validation.ValidationSupport;
 import org.controlsfx.validation.Validator;
@@ -39,6 +43,7 @@ import se.trixon.almond.util.fx.control.DirectoryChooserPane;
 import se.trixon.almond.util.fx.control.FileChooserPane;
 import se.trixon.filebydate.DateSource;
 import se.trixon.filebydate.NameCase;
+import se.trixon.filebydate.Options;
 import se.trixon.filebydate.Profile;
 import se.trixon.filebydate.ProfileManager;
 import se.trixon.filebydate.ui.MainFrame;
@@ -53,6 +58,7 @@ public class ProfilePane extends GridPane {
     private ComboBox<NameCase> mCaseBaseComboBox;
     private ComboBox<NameCase> mCaseExtComboBox;
     private ComboBox<String> mDatePatternComboBox;
+    private Label mDatePatternLabel;
     private ComboBox<DateSource> mDateSourceComboBox;
     private TextField mDescTextField;
     private FileChooserPane mDestFileChooserPane;
@@ -61,11 +67,12 @@ public class ProfilePane extends GridPane {
     private TextField mNameTextField;
     private Button mOkButton;
     private ComboBox<String> mOperationComboBox;
+    private final Options mOptions = Options.getInstance();
     private final Profile mProfile;
+    private final ProfileManager mProfileManager = ProfileManager.getInstance();
     private CheckBox mRecursiveCheckBox;
     private CheckBox mReplaceCheckBox;
     private DirectoryChooserPane mSourceFileChooserPane;
-    private final ProfileManager mProfileManager = ProfileManager.getInstance();
 
     public ProfilePane(Profile profile) {
         mProfile = profile;
@@ -116,7 +123,7 @@ public class ProfilePane extends GridPane {
         Label destLabel = new Label(Dict.DESTINATION.toString());
         Label filePatternLabel = new Label(Dict.FILE_PATTERN.toString());
         Label dateSourceLabel = new Label(Dict.DATE_SOURCE.toString());
-        Label datePatternLabel = new Label(Dict.DATE_PATTERN.toString());
+        mDatePatternLabel = new Label(Dict.DATE_PATTERN.toString());
         Label operationLabel = new Label(Dict.OPERATION.toString());
         Label caseBaseLabel = new Label(Dict.BASENAME.toString());
         Label caseExtLabel = new Label(Dict.EXTENSION.toString());
@@ -140,6 +147,7 @@ public class ProfilePane extends GridPane {
 
         mFilePatternComboBox.setEditable(true);
         mDatePatternComboBox.setEditable(true);
+        //mDatePatternLabel.setPrefWidth(300);
 
         int col = 0;
         int row = 0;
@@ -154,7 +162,7 @@ public class ProfilePane extends GridPane {
         add(mDestFileChooserPane, col, ++row, REMAINING, 1);
 
         GridPane patternPane = new GridPane();
-        patternPane.addRow(0, filePatternLabel, dateSourceLabel, datePatternLabel);
+        patternPane.addRow(0, filePatternLabel, dateSourceLabel, mDatePatternLabel);
         patternPane.addRow(1, mFilePatternComboBox, mDateSourceComboBox, mDatePatternComboBox);
         patternPane.setHgap(8);
         addRow(++row, patternPane);
@@ -222,6 +230,10 @@ public class ProfilePane extends GridPane {
             return mProfileManager.isValid(mProfile.getName(), (String) o);
         };
 
+        Predicate datePredicate = (Predicate) (Object o) -> {
+            return !StringUtils.isBlank((String) o) && previewDateFormat();
+        };
+
         ValidationSupport validationSupport = new ValidationSupport();
         validationSupport.registerValidator(mNameTextField, indicateRequired, Validator.createEmptyValidator(text_is_required));
         validationSupport.registerValidator(mNameTextField, indicateRequired, Validator.createPredicateValidator(namePredicate, text_is_required));
@@ -230,6 +242,7 @@ public class ProfilePane extends GridPane {
         validationSupport.registerValidator(mDestFileChooserPane.getTextField(), indicateRequired, Validator.createEmptyValidator(text_is_required));
         validationSupport.registerValidator(mFilePatternComboBox, indicateRequired, Validator.createEmptyValidator(text_is_required));
         validationSupport.registerValidator(mDatePatternComboBox, indicateRequired, Validator.createEmptyValidator(text_is_required));
+        validationSupport.registerValidator(mDatePatternComboBox, indicateRequired, Validator.createPredicateValidator(datePredicate, text_is_required));
 
         validationSupport.validationResultProperty().addListener((ObservableValue<? extends ValidationResult> observable, ValidationResult oldValue, ValidationResult newValue) -> {
             mOkButton.setDisable(validationSupport.isInvalid());
@@ -244,6 +257,25 @@ public class ProfilePane extends GridPane {
         });
 
         validationSupport.initInitialDecoration();
+    }
+
+    private boolean previewDateFormat() {
+        boolean validFormat = true;
+        String datePreview;
+
+        try {
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat(mDatePatternComboBox.getValue(), mOptions.getLocale());
+            datePreview = simpleDateFormat.format(new Date(System.currentTimeMillis()));
+        } catch (IllegalArgumentException ex) {
+            datePreview = Dict.Dialog.ERROR.toString();
+            validFormat = false;
+        }
+
+        String dateLabel = String.format("%s (%s)", Dict.DATE_PATTERN.toString(), datePreview);
+        mDatePatternLabel.setText(dateLabel);
+        mDatePatternLabel.setTooltip(new Tooltip(datePreview));
+
+        return validFormat;
     }
 
     void setOkButton(Button button) {
