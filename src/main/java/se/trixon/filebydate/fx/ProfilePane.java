@@ -18,10 +18,12 @@ package se.trixon.filebydate.fx;
 import java.util.Arrays;
 import java.util.ResourceBundle;
 import javafx.collections.FXCollections;
+import javafx.geometry.Insets;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import se.trixon.almond.util.Dict;
@@ -79,7 +81,7 @@ public class ProfilePane extends GridPane {
     }
 
     private void createUI() {
-        setGridLinesVisible(true);
+        //setGridLinesVisible(true);
 
         Label nameLabel = new Label(Dict.NAME.toString());
         Label descLabel = new Label(Dict.DESCRIPTION.toString());
@@ -123,21 +125,46 @@ public class ProfilePane extends GridPane {
         add(destLabel, col, ++row, REMAINING, 1);
         add(mDestFileChooserPane, col, ++row, REMAINING, 1);
 
-        addRow(++row, filePatternLabel, dateSourceLabel, datePatternLabel);
-        addRow(++row, mFilePatternComboBox, mDateSourceComboBox, mDatePatternComboBox);
+        GridPane patternPane = new GridPane();
+        patternPane.addRow(0, filePatternLabel, dateSourceLabel, datePatternLabel);
+        patternPane.addRow(1, mFilePatternComboBox, mDateSourceComboBox, mDatePatternComboBox);
+        patternPane.setHgap(8);
+        addRow(++row, patternPane);
+
         GridPane.setHgrow(mFilePatternComboBox, Priority.ALWAYS);
         GridPane.setHgrow(mDateSourceComboBox, Priority.ALWAYS);
         GridPane.setHgrow(mDatePatternComboBox, Priority.ALWAYS);
 
+        GridPane.setFillWidth(mFilePatternComboBox, true);
+        GridPane.setFillWidth(mDateSourceComboBox, true);
+        GridPane.setFillWidth(mDatePatternComboBox, true);
+
+        double width = 100.0 / 3.0;
+        ColumnConstraints col1 = new ColumnConstraints();
+        col1.setPercentWidth(width);
+        ColumnConstraints col2 = new ColumnConstraints();
+        col2.setPercentWidth(width);
+        ColumnConstraints col3 = new ColumnConstraints();
+        col3.setPercentWidth(width);
+        patternPane.getColumnConstraints().addAll(col1, col2, col3);
+
         mFilePatternComboBox.setMaxWidth(Double.MAX_VALUE);
         mDateSourceComboBox.setMaxWidth(Double.MAX_VALUE);
         mDatePatternComboBox.setMaxWidth(Double.MAX_VALUE);
-
         GridPane subPane = new GridPane();
-        subPane.setGridLinesVisible(true);
+        //subPane.setGridLinesVisible(true);
         subPane.addRow(0, operationLabel, new Label(), new Label(), new Label(), caseBaseLabel, caseExtLabel);
         subPane.addRow(1, mOperationComboBox, mLinksCheckBox, mRecursiveCheckBox, mReplaceCheckBox, mCaseBaseComboBox, mCaseExtComboBox);
+        subPane.setHgap(8);
         add(subPane, col, ++row, REMAINING, 1);
+
+        final Insets rowInsets = new Insets(0, 0, 8, 0);
+
+        GridPane.setMargin(mNameTextField, rowInsets);
+        GridPane.setMargin(mDescTextField, rowInsets);
+        GridPane.setMargin(mSourceFileChooserPane, rowInsets);
+        GridPane.setMargin(mDestFileChooserPane, rowInsets);
+        GridPane.setMargin(patternPane, rowInsets);
 
         mFilePatternComboBox.setItems(FXCollections.observableArrayList(
                 "*",
