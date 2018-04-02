@@ -36,6 +36,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.DialogPane;
@@ -58,6 +59,7 @@ import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import javafx.util.Duration;
+import org.apache.commons.io.FileUtils;
 import org.controlsfx.control.action.Action;
 import org.controlsfx.control.action.ActionGroup;
 import org.controlsfx.control.action.ActionUtils;
@@ -71,6 +73,7 @@ import se.trixon.almond.util.fx.dialogs.about.AboutPane;
 import se.trixon.almond.util.icons.material.MaterialIcon;
 import se.trixon.almond.util.swing.dialogs.about.AboutModel;
 import se.trixon.filebydate.FileByDate;
+import se.trixon.filebydate.NameCase;
 import se.trixon.filebydate.Options;
 import se.trixon.filebydate.Profile;
 import se.trixon.filebydate.ProfileManager;
@@ -136,6 +139,7 @@ public class MainApp extends Application {
         mRoot.setBottom(mSummaryTextArea);
 
         Scene scene = new Scene(mRoot);
+        //scene.getStylesheets().add("css/modena_dark.css");
         mStage.setScene(scene);
 
         mOptions.getPreferences().addPreferenceChangeListener((PreferenceChangeEvent evt) -> {
@@ -244,15 +248,6 @@ public class MainApp extends Application {
         mToolBar = ActionUtils.createToolBar(actions, ActionUtils.ActionTextBehavior.HIDE);
     }
 
-    private void loadProfiles() {
-        try {
-            mProfileManager.load();
-            mProfiles = mProfileManager.getProfiles();
-        } catch (IOException ex) {
-            Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
     private void populateProfiles(Profile profile) {
         mItems.clear();
         Collections.sort(mProfiles);
@@ -263,11 +258,12 @@ public class MainApp extends Application {
 
         if (profile != null) {
             mListView.getSelectionModel().select(profile);
+            mListView.scrollTo(profile);
         }
     }
 
     private void postInit() {
-        loadProfiles();
+        profilesLoad();
         populateProfiles(null);
     }
 
@@ -275,10 +271,27 @@ public class MainApp extends Application {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.initOwner(mStage);
         String title = Dict.EDIT.toString();
+        boolean addNew = false;
+        boolean clone = profile != null && profile.getName() == null;
+
         if (profile == null) {
             title = Dict.ADD.toString();
+            addNew = true;
             profile = new Profile();
+            profile.setSourceDir(FileUtils.getUserDirectory());
+            profile.setDestDir(FileUtils.getUserDirectory());
+            profile.setFilePattern("{*.jpg,*.JPG}");
+            profile.setDatePattern("yyyy/MM/yyyy-MM-dd");
+            profile.setOperation(0);
+            profile.setFollowLinks(true);
+            profile.setRecursive(true);
+            profile.setReplaceExisting(false);
+            profile.setCaseBase(NameCase.UNCHANGED);
+            profile.setCaseExt(NameCase.UNCHANGED);
+        } else if (clone) {
+            title = Dict.CLONE.toString();
         }
+
         alert.setTitle(title);
         alert.setGraphic(null);
         alert.setHeaderText(null);
@@ -287,10 +300,16 @@ public class MainApp extends Application {
 
         final DialogPane dialogPane = alert.getDialogPane();
         dialogPane.setContent(profilePane);
+        profilePane.setOkButton((Button) dialogPane.lookupButton(ButtonType.OK));
 
         Optional<ButtonType> result = FxHelper.showAndWait(alert, mStage);
         if (result.get() == ButtonType.OK) {
-            populateProfiles(null);
+            profilePane.save();
+            if (addNew || clone) {
+                mProfiles.add(profile);
+            }
+            profilesSave();
+            populateProfiles(profile);
         }
     }
 
@@ -305,7 +324,25 @@ public class MainApp extends Application {
         Optional<ButtonType> result = FxHelper.showAndWait(alert, mStage);
         if (result.get() == ButtonType.OK) {
             mProfiles.remove(profile);
+            profilesSave();
             populateProfiles(null);
+        }
+    }
+
+    private void profilesLoad() {
+        try {
+            mProfileManager.load();
+            mProfiles = mProfileManager.getProfiles();
+        } catch (IOException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private void profilesSave() {
+        try {
+            mProfileManager.save();
+        } catch (IOException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
         }
     }
 
@@ -335,8 +372,8 @@ public class MainApp extends Application {
             setText(null);
 
             mNameLabel.setText(profile.getName());
-            mLastLabel.setText(new Date().toString());
-            mDescLabel.setText("...");
+            mLastLabel.setText("🕑 " + new Date().toString());
+            mDescLabel.setText("🖉 " + profile.getDescription());
 
             setGraphic(mBorderPane);
         }
@@ -367,7 +404,7 @@ public class MainApp extends Application {
             editAction.setGraphic(MaterialIcon._Content.CREATE.getImageView(ICON_SIZE_PROFILE));
 
             Action cloneAction = new Action(Dict.CLONE.toString(), (ActionEvent event) -> {
-                System.out.println(event);
+                profileClone();
                 mListView.requestFocus();
             });
             cloneAction.setGraphic(MaterialIcon._Content.CONTENT_COPY.getImageView(ICON_SIZE_PROFILE));
@@ -415,6 +452,12 @@ public class MainApp extends Application {
 
         private Profile getSelectedProfile() {
             return mListView.getSelectionModel().getSelectedItem();
+        }
+
+        private void profileClone() {
+            Profile p = getSelectedProfile().clone();
+            p.setName(null);
+            profileEdit(p);
         }
 
         private void selectListItem() {

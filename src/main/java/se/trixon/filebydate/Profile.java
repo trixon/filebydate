@@ -25,6 +25,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import se.trixon.almond.util.Dict;
 import se.trixon.almond.util.SystemHelper;
 import se.trixon.filebydate.Operation.Command;
@@ -52,6 +53,8 @@ public class Profile implements Comparable<Profile>, Cloneable {
     @SerializedName("date_source")
     private DateSource mDateSource = DateSource.FILE_CREATED;
     private transient String mDateSourceString;
+    @SerializedName("description")
+    private String mDescription;
     @SerializedName("destination")
     private File mDestDir;
     @SerializedName("dry_run")
@@ -134,6 +137,10 @@ public class Profile implements Comparable<Profile>, Cloneable {
 
     public String getDateSourceString() {
         return mDateSourceString;
+    }
+
+    public String getDescription() {
+        return StringUtils.defaultString(mDescription);
     }
 
     public File getDestDir() {
@@ -265,6 +272,10 @@ public class Profile implements Comparable<Profile>, Cloneable {
 
     public void setDateSourceString(String dateSourceString) {
         mDateSourceString = dateSourceString;
+    }
+
+    public void setDescription(String description) {
+        mDescription = description;
     }
 
     public void setDestDir(File dest) {

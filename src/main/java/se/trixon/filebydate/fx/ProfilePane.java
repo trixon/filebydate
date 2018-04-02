@@ -17,8 +17,11 @@ package se.trixon.filebydate.fx;
 
 import java.util.Arrays;
 import java.util.ResourceBundle;
+import javafx.application.Platform;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
+import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -26,6 +29,9 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
+import org.controlsfx.validation.ValidationResult;
+import org.controlsfx.validation.ValidationSupport;
+import org.controlsfx.validation.Validator;
 import se.trixon.almond.util.Dict;
 import se.trixon.almond.util.SystemHelper;
 import se.trixon.almond.util.fx.control.DirectoryChooserPane;
@@ -42,7 +48,6 @@ import se.trixon.filebydate.ui.MainFrame;
 public class ProfilePane extends GridPane {
 
     private final ResourceBundle mBundleUI = SystemHelper.getBundle(MainFrame.class, "Bundle");
-
     private ComboBox<NameCase> mCaseBaseComboBox;
     private ComboBox<NameCase> mCaseExtComboBox;
     private ComboBox<String> mDatePatternComboBox;
@@ -52,6 +57,7 @@ public class ProfilePane extends GridPane {
     private ComboBox<String> mFilePatternComboBox;
     private CheckBox mLinksCheckBox;
     private TextField mNameTextField;
+    private Button mOkButton;
     private ComboBox<String> mOperationComboBox;
     private final Profile mProfile;
     private CheckBox mRecursiveCheckBox;
@@ -61,23 +67,41 @@ public class ProfilePane extends GridPane {
     public ProfilePane(Profile profile) {
         mProfile = profile;
         createUI();
-        if (profile == null) {
 
-        } else {
-            mNameTextField.setText(mProfile.getName());
-            mDescTextField.setText("FIXME FIXME FIXME FIXME ");
-            mSourceFileChooserPane.setPath(mProfile.getSourceDir());
-            mDestFileChooserPane.setPath(mProfile.getDestDir());
-            mFilePatternComboBox.setValue(mProfile.getFilePattern());
-            mDateSourceComboBox.setValue(mProfile.getDateSource());
-            mDatePatternComboBox.setValue(mProfile.getDatePattern());
-            mOperationComboBox.getSelectionModel().select(mProfile.getOperation());
-            mLinksCheckBox.setSelected(mProfile.isFollowLinks());
-            mRecursiveCheckBox.setSelected(mProfile.isRecursive());
-            mReplaceCheckBox.setSelected(mProfile.isReplaceExisting());
-            mCaseBaseComboBox.setValue(mProfile.getCaseBase());
-            mCaseExtComboBox.setValue(mProfile.getCaseExt());
-        }
+        mNameTextField.setText(mProfile.getName());
+        mDescTextField.setText(mProfile.getDescription());
+        mSourceFileChooserPane.setPath(mProfile.getSourceDir());
+        mDestFileChooserPane.setPath(mProfile.getDestDir());
+        mFilePatternComboBox.setValue(mProfile.getFilePattern());
+        mDateSourceComboBox.setValue(mProfile.getDateSource());
+        mDatePatternComboBox.setValue(mProfile.getDatePattern());
+        mOperationComboBox.getSelectionModel().select(mProfile.getOperation());
+        mLinksCheckBox.setSelected(mProfile.isFollowLinks());
+        mRecursiveCheckBox.setSelected(mProfile.isRecursive());
+        mReplaceCheckBox.setSelected(mProfile.isReplaceExisting());
+        mCaseBaseComboBox.setValue(mProfile.getCaseBase());
+        mCaseExtComboBox.setValue(mProfile.getCaseExt());
+
+        Platform.runLater(() -> {
+            initValidation();
+            mNameTextField.requestFocus();
+        });
+    }
+
+    public void save() {
+        mProfile.setName(mNameTextField.getText());
+        mProfile.setDescription(mDescTextField.getText());
+        mProfile.setSourceDir(mSourceFileChooserPane.getPath());
+        mProfile.setDestDir(mDestFileChooserPane.getPath());
+        mProfile.setFilePattern(mFilePatternComboBox.getValue());
+        mProfile.setDateSource(mDateSourceComboBox.getValue());
+        mProfile.setDatePattern(mDatePatternComboBox.getValue());
+        mProfile.setOperation(mOperationComboBox.getSelectionModel().getSelectedIndex());
+        mProfile.setFollowLinks(mLinksCheckBox.isSelected());
+        mProfile.setRecursive(mRecursiveCheckBox.isSelected());
+        mProfile.setReplaceExisting(mReplaceCheckBox.isSelected());
+        mProfile.setCaseBase(mCaseBaseComboBox.getValue());
+        mProfile.setCaseExt(mCaseExtComboBox.getValue());
     }
 
     private void createUI() {
@@ -113,6 +137,7 @@ public class ProfilePane extends GridPane {
 
         mFilePatternComboBox.setEditable(true);
         mDatePatternComboBox.setEditable(true);
+
         int col = 0;
         int row = 0;
 
@@ -171,6 +196,7 @@ public class ProfilePane extends GridPane {
                 "{*.jpg,*.JPG}",
                 "{*.mp4,*.MP4}"
         ));
+
         mDatePatternComboBox.setItems(FXCollections.observableArrayList(
                 "yyyy/MM/yyyy-MM-dd",
                 "yyyy/MM/yyyy-MM-dd/HH",
@@ -178,9 +204,41 @@ public class ProfilePane extends GridPane {
                 "yyyy/ww",
                 "yyyy/ww/u"
         ));
+
         mCaseBaseComboBox.setItems(FXCollections.observableArrayList(Arrays.asList(NameCase.values())));
         mCaseExtComboBox.setItems(FXCollections.observableArrayList(Arrays.asList(NameCase.values())));
         mDateSourceComboBox.setItems(FXCollections.observableArrayList(Arrays.asList(DateSource.values())));
         mOperationComboBox.setItems(FXCollections.observableArrayList(Arrays.asList(mBundleUI.getString("operations").split("\\|"))));
+    }
+
+    private void initValidation() {
+        final String text_is_required = "Text is required";
+        boolean indicateRequired = false;
+
+        ValidationSupport validationSupport = new ValidationSupport();
+        validationSupport.registerValidator(mNameTextField, indicateRequired, Validator.createEmptyValidator(text_is_required));
+        validationSupport.registerValidator(mDescTextField, indicateRequired, Validator.createEmptyValidator(text_is_required));
+        validationSupport.registerValidator(mSourceFileChooserPane.getTextField(), indicateRequired, Validator.createEmptyValidator(text_is_required));
+        validationSupport.registerValidator(mDestFileChooserPane.getTextField(), indicateRequired, Validator.createEmptyValidator(text_is_required));
+        validationSupport.registerValidator(mFilePatternComboBox, indicateRequired, Validator.createEmptyValidator(text_is_required));
+        validationSupport.registerValidator(mDatePatternComboBox, indicateRequired, Validator.createEmptyValidator(text_is_required));
+
+        validationSupport.validationResultProperty().addListener((ObservableValue<? extends ValidationResult> observable, ValidationResult oldValue, ValidationResult newValue) -> {
+            mOkButton.setDisable(validationSupport.isInvalid());
+        });
+
+        mFilePatternComboBox.getEditor().textProperty().addListener((observable, oldValue, newValue) -> {
+            mFilePatternComboBox.setValue(newValue);
+        });
+
+        mDatePatternComboBox.getEditor().textProperty().addListener((observable, oldValue, newValue) -> {
+            mDatePatternComboBox.setValue(newValue);
+        });
+
+        validationSupport.initInitialDecoration();
+    }
+
+    void setOkButton(Button button) {
+        mOkButton = button;
     }
 }
