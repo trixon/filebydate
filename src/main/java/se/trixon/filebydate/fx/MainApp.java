@@ -43,7 +43,6 @@ import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
-import javafx.scene.control.TextArea;
 import javafx.scene.control.ToolBar;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
@@ -94,11 +93,11 @@ public class MainApp extends Application {
     private final ObservableList<Profile> mItems = FXCollections.observableArrayList();
     private ListView<Profile> mListView;
     private final Options mOptions = Options.getInstance();
+    private PreviewPanel mPreviewPanel;
     private final ProfileManager mProfileManager = ProfileManager.getInstance();
     private LinkedList<Profile> mProfiles;
     private BorderPane mRoot;
     private Stage mStage;
-    private TextArea mSummaryTextArea;
     private ToolBar mToolBar;
 
     /**
@@ -128,15 +127,12 @@ public class MainApp extends Application {
         mListView = new ListView<>();
         mListView.setItems(mItems);
         mListView.setCellFactory((ListView<Profile> param) -> new ProfileListCell());
-
-        mSummaryTextArea = new TextArea();
-        mSummaryTextArea.setPrefRowCount(10);
-        mSummaryTextArea.setEditable(false);
+        mPreviewPanel = new PreviewPanel();
 
         mRoot = new BorderPane();
         mRoot.setTop(mToolBar);
         mRoot.setCenter(mListView);
-        mRoot.setBottom(mSummaryTextArea);
+        mRoot.setBottom(mPreviewPanel);
 
         Scene scene = new Scene(mRoot);
         //scene.getStylesheets().add("css/modena_dark.css");
@@ -386,8 +382,8 @@ public class MainApp extends Application {
         }
 
         private void createUI() {
-            String fontFamily = mNameLabel.getFont().getFamily();
-            double fontSize = mNameLabel.getFont().getSize();
+            String fontFamily = Font.getDefault().getFamily();
+            double fontSize = Font.getDefault().getSize();
 
             mNameLabel.setFont(Font.font(fontFamily, FontWeight.BOLD, fontSize * 2));
             mDescLabel.setFont(Font.font(fontFamily, FontWeight.NORMAL, fontSize * 1.3));
@@ -434,6 +430,7 @@ public class MainApp extends Application {
             BorderPane.setAlignment(toolBar, Pos.CENTER);
 
             mBorderPane.setCenter(mainBox);
+            BorderPane.setMargin(mainBox, new Insets(8));
             mBorderPane.setRight(toolBar);
             mFadeInTransition.setNode(toolBar);
             mFadeOutTransition.setNode(toolBar);
@@ -444,7 +441,7 @@ public class MainApp extends Application {
                 }
 
                 selectListItem();
-                mSummaryTextArea.setText(getSelectedProfile().toDebugString());
+                mPreviewPanel.load(getSelectedProfile());
                 mFadeInTransition.playFromStart();
             });
 
