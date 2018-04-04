@@ -34,6 +34,8 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -46,6 +48,8 @@ import se.trixon.almond.util.Xlog;
  * @author Patrik Karlström
  */
 public class Operation {
+
+    private static final Logger LOGGER = Logger.getLogger(Operation.class.getName());
 
     private final ResourceBundle mBundle;
     private final List<Exception> mExceptions = new ArrayList<>();
@@ -166,6 +170,15 @@ public class Operation {
             long sec = TimeUnit.MILLISECONDS.toSeconds(millis) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis));
             status = String.format("%s (%d %s, %d %s)", Dict.TASK_COMPLETED.toString(), min, Dict.TIME_MIN.toString(), sec, Dict.TIME_SEC.toString());
             mListener.onOperationFinished(status);
+
+            if (!mProfile.isDryRun()) {
+                mProfile.setLastRun(System.currentTimeMillis());
+                try {
+                    ProfileManager.getInstance().save();
+                } catch (IOException ex) {
+                    LOGGER.log(Level.SEVERE, null, ex);
+                }
+            }
         }
     }
 

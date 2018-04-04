@@ -43,6 +43,7 @@ import se.trixon.almond.util.fx.control.DirectoryChooserPane;
 import se.trixon.almond.util.fx.control.FileChooserPane;
 import se.trixon.filebydate.DateSource;
 import se.trixon.filebydate.NameCase;
+import se.trixon.filebydate.Operation.Command;
 import se.trixon.filebydate.Options;
 import se.trixon.filebydate.Profile;
 import se.trixon.filebydate.ProfileManager;
@@ -66,7 +67,7 @@ public class ProfilePane extends GridPane {
     private CheckBox mLinksCheckBox;
     private TextField mNameTextField;
     private Button mOkButton;
-    private ComboBox<String> mOperationComboBox;
+    private ComboBox<Command> mOperationComboBox;
     private final Options mOptions = Options.getInstance();
     private final Profile mProfile;
     private final ProfileManager mProfileManager = ProfileManager.getInstance();
@@ -74,23 +75,23 @@ public class ProfilePane extends GridPane {
     private CheckBox mReplaceCheckBox;
     private DirectoryChooserPane mSourceFileChooserPane;
 
-    public ProfilePane(Profile profile) {
-        mProfile = profile;
+    public ProfilePane(Profile p) {
+        mProfile = p;
         createUI();
 
-        mNameTextField.setText(mProfile.getName());
-        mDescTextField.setText(mProfile.getDescription());
-        mSourceFileChooserPane.setPath(mProfile.getSourceDir());
-        mDestFileChooserPane.setPath(mProfile.getDestDir());
-        mFilePatternComboBox.setValue(mProfile.getFilePattern());
-        mDateSourceComboBox.setValue(mProfile.getDateSource());
-        mDatePatternComboBox.setValue(mProfile.getDatePattern());
-        mOperationComboBox.getSelectionModel().select(mProfile.getOperation());
-        mLinksCheckBox.setSelected(mProfile.isFollowLinks());
-        mRecursiveCheckBox.setSelected(mProfile.isRecursive());
-        mReplaceCheckBox.setSelected(mProfile.isReplaceExisting());
-        mCaseBaseComboBox.setValue(mProfile.getCaseBase());
-        mCaseExtComboBox.setValue(mProfile.getCaseExt());
+        mNameTextField.setText(p.getName());
+        mDescTextField.setText(p.getDescription());
+        mSourceFileChooserPane.setPath(p.getSourceDir());
+        mDestFileChooserPane.setPath(p.getDestDir());
+        mFilePatternComboBox.setValue(p.getFilePattern());
+        mDateSourceComboBox.setValue(p.getDateSource());
+        mDatePatternComboBox.setValue(p.getDatePattern());
+        mOperationComboBox.getSelectionModel().select(p.getCommand());
+        mLinksCheckBox.setSelected(p.isFollowLinks());
+        mRecursiveCheckBox.setSelected(p.isRecursive());
+        mReplaceCheckBox.setSelected(p.isReplaceExisting());
+        mCaseBaseComboBox.setValue(p.getCaseBase());
+        mCaseExtComboBox.setValue(p.getCaseExt());
 
         Platform.runLater(() -> {
             initValidation();
@@ -219,7 +220,7 @@ public class ProfilePane extends GridPane {
         mCaseBaseComboBox.setItems(FXCollections.observableArrayList(Arrays.asList(NameCase.values())));
         mCaseExtComboBox.setItems(FXCollections.observableArrayList(Arrays.asList(NameCase.values())));
         mDateSourceComboBox.setItems(FXCollections.observableArrayList(Arrays.asList(DateSource.values())));
-        mOperationComboBox.setItems(FXCollections.observableArrayList(Arrays.asList(mBundleUI.getString("operations").split("\\|"))));
+        mOperationComboBox.setItems(FXCollections.observableArrayList(Arrays.asList(Command.COPY, Command.MOVE)));
     }
 
     private void initValidation() {

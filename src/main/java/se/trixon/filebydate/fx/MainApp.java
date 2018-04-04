@@ -36,7 +36,9 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.DialogPane;
@@ -68,11 +70,14 @@ import se.trixon.almond.util.SystemHelper;
 import se.trixon.almond.util.fx.AlmondFx;
 import se.trixon.almond.util.fx.FxHelper;
 import se.trixon.almond.util.fx.control.LocaleComboBox;
+import se.trixon.almond.util.fx.control.LogPanel;
 import se.trixon.almond.util.fx.dialogs.about.AboutPane;
 import se.trixon.almond.util.icons.material.MaterialIcon;
 import se.trixon.almond.util.swing.dialogs.about.AboutModel;
 import se.trixon.filebydate.FileByDate;
 import se.trixon.filebydate.NameCase;
+import se.trixon.filebydate.Operation;
+import se.trixon.filebydate.OperationListener;
 import se.trixon.filebydate.Options;
 import se.trixon.filebydate.Profile;
 import se.trixon.filebydate.ProfileManager;
@@ -92,6 +97,9 @@ public class MainApp extends Application {
     private final ResourceBundle mBundleUI = SystemHelper.getBundle(MainFrame.class, "Bundle");
     private final ObservableList<Profile> mItems = FXCollections.observableArrayList();
     private ListView<Profile> mListView;
+    private final LogPanel mLogPanel = new LogPanel();
+    private OperationListener mOperationListener;
+    private Thread mOperationThread;
     private final Options mOptions = Options.getInstance();
     private PreviewPanel mPreviewPanel;
     private final ProfileManager mProfileManager = ProfileManager.getInstance();
@@ -115,6 +123,7 @@ public class MainApp extends Application {
         mAlmondFX.addStageWatcher(stage, MainApp.class);
         createUI();
         postInit();
+        initListeners();
         mStage.setTitle(APP_TITLE);
         mStage.show();
         mListView.requestFocus();
@@ -189,7 +198,7 @@ public class MainApp extends Application {
     }
 
     private void initActions() {
-        //add
+        //Legacy UI
         Action swingAction = new Action("Swing", (ActionEvent event) -> {
             java.awt.EventQueue.invokeLater(() -> {
                 MainFrame mainFrame = new MainFrame();
@@ -202,6 +211,36 @@ public class MainApp extends Application {
             profileEdit(null);
         });
         addAction.setGraphic(MaterialIcon._Content.ADD.getImageView(ICON_SIZE_TOOLBAR));
+
+        //cancel
+        Action cancelAction = new Action(Dict.CANCEL.toString(), (ActionEvent event) -> {
+            System.out.println("do cancel");
+            System.out.println(mOperationThread);
+            System.out.println("BEFORE");
+            System.out.println(mOperationThread.isAlive());
+            System.out.println(mOperationThread.isDaemon());
+            System.out.println(mOperationThread.isInterrupted());
+
+            mOperationThread.interrupt();
+
+            System.out.println("AFTER");
+            System.out.println(mOperationThread.isAlive());
+            System.out.println(mOperationThread.isDaemon());
+            System.out.println(mOperationThread.isInterrupted());
+        });
+        cancelAction.setGraphic(MaterialIcon._Navigation.CANCEL.getImageView(ICON_SIZE_TOOLBAR));
+
+        //close
+        Action closeAction = new Action(Dict.PREVIOUS.toString(), (ActionEvent event) -> {
+            mRoot.setCenter(mListView);
+        });
+        closeAction.setGraphic(MaterialIcon._Navigation.CHEVRON_LEFT.getImageView(ICON_SIZE_TOOLBAR));
+
+        //log
+        Action logAction = new Action(Dict.OUTPUT.toString(), (ActionEvent event) -> {
+            mRoot.setCenter(mLogPanel);
+        });
+        logAction.setGraphic(MaterialIcon._Navigation.CHEVRON_RIGHT.getImageView(ICON_SIZE_TOOLBAR));
 
         //options
         Action optionsAction = new Action(Dict.OPTIONS.toString(), (ActionEvent event) -> {
@@ -229,7 +268,12 @@ public class MainApp extends Application {
         });
 
         Collection<? extends Action> actions = Arrays.asList(
+                closeAction,
+                cancelAction,
+                logAction,
+                ActionUtils.ACTION_SEPARATOR,
                 addAction,
+                ActionUtils.ACTION_SEPARATOR,
                 optionsAction,
                 swingAction,
                 ActionUtils.ACTION_SPAN,
@@ -242,6 +286,42 @@ public class MainApp extends Application {
         );
 
         mToolBar = ActionUtils.createToolBar(actions, ActionUtils.ActionTextBehavior.HIDE);
+    }
+
+    private void initListeners() {
+        mOperationListener = new OperationListener() {
+            @Override
+            public void onOperationFailed(String message) {
+            }
+
+            @Override
+            public void onOperationFinished(String message) {
+                mLogPanel.println(Dict.DONE.toString());
+                populateProfiles(null);
+                setRunningState(false);
+            }
+
+            @Override
+            public void onOperationInterrupted() {
+                System.out.println("ouch, was interrupted");
+                setRunningState(false);
+            }
+
+            @Override
+            public void onOperationLog(String message) {
+                mLogPanel.println(message);
+            }
+
+            @Override
+            public void onOperationProcessingStarted() {
+            }
+
+            @Override
+            public void onOperationStarted() {
+                setRunningState(true);
+            }
+        };
+
     }
 
     private void populateProfiles(Profile profile) {
@@ -264,7 +344,7 @@ public class MainApp extends Application {
     }
 
     private void profileEdit(Profile profile) {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        Alert alert = new Alert(AlertType.CONFIRMATION);
         alert.initOwner(mStage);
         String title = Dict.EDIT.toString();
         boolean addNew = false;
@@ -304,15 +384,11 @@ public class MainApp extends Application {
             if (addNew || clone) {
                 mProfiles.add(profile);
             }
-            //TODO Remove this one in the near future
-            profile.setLastRun(System.currentTimeMillis());
-            profilesSave();
-            populateProfiles(profile);
         }
     }
 
     private void profileRemove(Profile profile) {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        Alert alert = new Alert(AlertType.CONFIRMATION);
         alert.initOwner(mStage);
         alert.setTitle(Dict.Dialog.TITLE_PROFILE_REMOVE.toString());
         String message = String.format(Dict.Dialog.MESSAGE_PROFILE_REMOVE.toString(), profile.getName());
@@ -324,6 +400,52 @@ public class MainApp extends Application {
             mProfiles.remove(profile);
             profilesSave();
             populateProfiles(null);
+        }
+    }
+
+    private void profileRun(Profile profile) {
+        String title = String.format(Dict.Dialog.TITLE_PROFILE_RUN.toString(), profile.getName());
+        Alert alert = new Alert(AlertType.CONFIRMATION);
+        alert.initOwner(mStage);
+
+        alert.setTitle(title);
+        alert.setGraphic(null);
+        alert.setHeaderText(null);
+
+        PreviewPanel previewPanel = new PreviewPanel();
+        previewPanel.load(profile);
+        final DialogPane dialogPane = alert.getDialogPane();
+        dialogPane.setContent(previewPanel);
+
+        ButtonType runButtonType = new ButtonType(Dict.RUN.toString());
+        ButtonType dryRunButtonType = new ButtonType(Dict.DRY_RUN.toString(), ButtonData.OK_DONE);
+        ButtonType cancelButtonType = new ButtonType(Dict.CANCEL.toString(), ButtonData.CANCEL_CLOSE);
+
+        alert.getButtonTypes().setAll(runButtonType, dryRunButtonType, cancelButtonType);
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.get() != cancelButtonType) {
+            boolean dryRun = result.get() == dryRunButtonType;
+            System.out.println(dryRun ? "DryRun" : "RUN");
+
+//            profilesSave();
+            profile.setDryRun(dryRun);
+//
+            mLogPanel.clear();
+            mRoot.setCenter(mLogPanel);
+//
+            if (profile.isValid()) {
+                mOperationThread = new Thread(() -> {
+//                    mLogPanel.println(profile.toDebugString());
+                    Operation operation = new Operation(mOperationListener, profile);
+                    operation.start();
+                });
+                mOperationThread.setName("Operation");
+                mOperationThread.start();
+            } else {
+                mLogPanel.println(profile.toDebugString());
+                mLogPanel.println(profile.getValidationError());
+                mLogPanel.println(Dict.ABORTING.toString());
+            }
         }
     }
 
@@ -342,6 +464,22 @@ public class MainApp extends Application {
         } catch (IOException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
+    }
+
+    private void setRunningState(boolean state) {
+//        mActionManager.getAction(ActionManager.START).setEnabled(!state);
+//        mActionManager.getAction(ActionManager.CANCEL).setEnabled(state);
+//        mActionManager.getAction(ActionManager.ADD).setEnabled(!state);
+//        mActionManager.getAction(ActionManager.REMOVE).setEnabled(!state);
+//        mActionManager.getAction(ActionManager.CLONE).setEnabled(!state);
+//        mActionManager.getAction(ActionManager.OPTIONS).setEnabled(!state);
+//        mActionManager.getAction(ActionManager.REMOVE_ALL).setEnabled(!state);
+//        mActionManager.getAction(ActionManager.RENAME).setEnabled(!state);
+//
+//        startButton.setVisible(!state);
+//        cancelButton.setVisible(state);
+//        SwingHelper.enableComponents(configPanel, !state);
+//        profileComboBox.setEnabled(!state);
     }
 
     class ProfileListCell extends ListCell<Profile> {
@@ -390,8 +528,7 @@ public class MainApp extends Application {
             mLastLabel.setFont(Font.font(fontFamily, FontWeight.NORMAL, fontSize * 1.3));
 
             Action runAction = new Action(Dict.RUN.toString(), (ActionEvent event) -> {
-                System.out.println(event);
-                System.out.println("Remember to update last run");
+                profileRun(getSelectedProfile());
                 mListView.requestFocus();
             });
             runAction.setGraphic(MaterialIcon._Av.PLAY_ARROW.getImageView(ICON_SIZE_PROFILE));

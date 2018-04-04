@@ -59,6 +59,10 @@ public class ProfilesHolder {
     }
 
     public LinkedList<Profile> getProfiles() {
+        mProfiles.forEach((p) -> {
+            p.setOperation(p.getCommand().ordinal());
+        });
+
         return mProfiles;
     }
 
