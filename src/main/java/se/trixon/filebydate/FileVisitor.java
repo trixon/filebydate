@@ -24,6 +24,7 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  *
@@ -33,9 +34,9 @@ public class FileVisitor extends SimpleFileVisitor<Path> {
 
     private List<File> mFiles = new ArrayList<>();
     private boolean mInterrupted;
-    private final PathMatcher mPathMatcher;
     private final Operation mOperation;
     private final OperationListener mOperationListener;
+    private final PathMatcher mPathMatcher;
 
     public FileVisitor(PathMatcher pathMatcher, List<File> paths, Operation operation) {
         mFiles = paths;
@@ -50,7 +51,9 @@ public class FileVisitor extends SimpleFileVisitor<Path> {
 
     @Override
     public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-        if (Thread.interrupted()) {
+        try {
+            TimeUnit.NANOSECONDS.sleep(1);
+        } catch (InterruptedException ex) {
             mInterrupted = true;
             return FileVisitResult.TERMINATE;
         }
@@ -60,6 +63,12 @@ public class FileVisitor extends SimpleFileVisitor<Path> {
 
         if (filePaths != null && filePaths.length > 0) {
             for (String fileName : filePaths) {
+                try {
+                    TimeUnit.NANOSECONDS.sleep(1);
+                } catch (InterruptedException ex) {
+                    mInterrupted = true;
+                    return FileVisitResult.TERMINATE;
+                }
                 File file = new File(dir.toFile(), fileName);
                 if (file.isFile() && mPathMatcher.matches(file.toPath().getFileName())) {
                     mFiles.add(file);

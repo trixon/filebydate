@@ -214,19 +214,7 @@ public class MainApp extends Application {
 
         //cancel
         Action cancelAction = new Action(Dict.CANCEL.toString(), (ActionEvent event) -> {
-            System.out.println("do cancel");
-            System.out.println(mOperationThread);
-            System.out.println("BEFORE");
-            System.out.println(mOperationThread.isAlive());
-            System.out.println(mOperationThread.isDaemon());
-            System.out.println(mOperationThread.isInterrupted());
-
             mOperationThread.interrupt();
-
-            System.out.println("AFTER");
-            System.out.println(mOperationThread.isAlive());
-            System.out.println(mOperationThread.isDaemon());
-            System.out.println(mOperationThread.isInterrupted());
         });
         cancelAction.setGraphic(MaterialIcon._Navigation.CANCEL.getImageView(ICON_SIZE_TOOLBAR));
 
@@ -303,7 +291,6 @@ public class MainApp extends Application {
 
             @Override
             public void onOperationInterrupted() {
-                System.out.println("ouch, was interrupted");
                 setRunningState(false);
             }
 
@@ -384,6 +371,9 @@ public class MainApp extends Application {
             if (addNew || clone) {
                 mProfiles.add(profile);
             }
+
+            profilesSave();
+            populateProfiles(profile);
         }
     }
 
@@ -425,17 +415,12 @@ public class MainApp extends Application {
         Optional<ButtonType> result = alert.showAndWait();
         if (result.get() != cancelButtonType) {
             boolean dryRun = result.get() == dryRunButtonType;
-            System.out.println(dryRun ? "DryRun" : "RUN");
-
-//            profilesSave();
             profile.setDryRun(dryRun);
-//
             mLogPanel.clear();
             mRoot.setCenter(mLogPanel);
-//
+
             if (profile.isValid()) {
                 mOperationThread = new Thread(() -> {
-//                    mLogPanel.println(profile.toDebugString());
                     Operation operation = new Operation(mOperationListener, profile);
                     operation.start();
                 });

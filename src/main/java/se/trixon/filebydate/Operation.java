@@ -78,6 +78,13 @@ public class Operation {
 
             for (File sourceFile : mFiles) {
                 try {
+                    try {
+                        TimeUnit.MILLISECONDS.sleep(50);
+                    } catch (InterruptedException ex) {
+                        mInterrupted = true;
+                        break;
+                    }
+
                     SimpleDateFormat simpleDateFormat = mProfile.getDateFormat();
 
                     String fileDate = simpleDateFormat.format(getDate(sourceFile));
@@ -148,11 +155,6 @@ public class Operation {
                     mListener.onOperationLog(getMessage(log));
                 } catch (IOException | ImageProcessingException | NullPointerException ex) {
                     mListener.onOperationLog(getMessage(ex.getLocalizedMessage()));
-                }
-
-                if (Thread.interrupted()) {
-                    mInterrupted = true;
-                    break;
                 }
             }
         }
