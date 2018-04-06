@@ -16,18 +16,19 @@
 package se.trixon.filebydate.fx;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.Optional;
-import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.PreferenceChangeEvent;
 import javafx.animation.FadeTransition;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
@@ -93,19 +94,29 @@ public class MainApp extends Application {
     private static final int ICON_SIZE_PROFILE = 32;
     private static final int ICON_SIZE_TOOLBAR = 48;
     private static final Logger LOGGER = Logger.getLogger(MainApp.class.getName());
+    private Action mAboutAction;
+    private Action mAboutDateFormatAction;
+    private Action mAddAction;
     private final AlmondFx mAlmondFX = AlmondFx.getInstance();
-    private final ResourceBundle mBundleUI = SystemHelper.getBundle(MainFrame.class, "Bundle");
+    private Action mCancelAction;
+    private Action mHelpAction;
+    private Action mHomeAction;
     private final ObservableList<Profile> mItems = FXCollections.observableArrayList();
+    private Profile mLastRunProfile;
     private ListView<Profile> mListView;
+    private Action mLogAction;
     private final LogPanel mLogPanel = new LogPanel();
     private OperationListener mOperationListener;
     private Thread mOperationThread;
     private final Options mOptions = Options.getInstance();
+    private Action mOptionsAction;
     private PreviewPanel mPreviewPanel;
     private final ProfileManager mProfileManager = ProfileManager.getInstance();
     private LinkedList<Profile> mProfiles;
     private BorderPane mRoot;
+    private Action mRunAction;
     private Stage mStage;
+    private Action mSwingAction;
     private ToolBar mToolBar;
 
     /**
@@ -139,7 +150,6 @@ public class MainApp extends Application {
         mPreviewPanel = new PreviewPanel();
 
         mRoot = new BorderPane();
-        mRoot.setTop(mToolBar);
         mRoot.setCenter(mListView);
         mRoot.setBottom(mPreviewPanel);
 
@@ -152,6 +162,8 @@ public class MainApp extends Application {
                 default:
             }
         });
+
+        setRunningState(RunState.STARTABLE);
     }
 
     private void displayOptions() {
@@ -199,7 +211,7 @@ public class MainApp extends Application {
 
     private void initActions() {
         //Legacy UI
-        Action swingAction = new Action("Swing", (ActionEvent event) -> {
+        mSwingAction = new Action("Swing", (ActionEvent event) -> {
             java.awt.EventQueue.invokeLater(() -> {
                 MainFrame mainFrame = new MainFrame();
                 mainFrame.setVisible(true);
@@ -207,73 +219,62 @@ public class MainApp extends Application {
         });
 
         //add
-        Action addAction = new Action(Dict.ADD.toString(), (ActionEvent event) -> {
+        mAddAction = new Action(Dict.ADD.toString(), (ActionEvent event) -> {
             profileEdit(null);
         });
-        addAction.setGraphic(MaterialIcon._Content.ADD.getImageView(ICON_SIZE_TOOLBAR));
+        mAddAction.setGraphic(MaterialIcon._Content.ADD.getImageView(ICON_SIZE_TOOLBAR));
 
         //cancel
-        Action cancelAction = new Action(Dict.CANCEL.toString(), (ActionEvent event) -> {
+        mCancelAction = new Action(Dict.CANCEL.toString(), (ActionEvent event) -> {
             mOperationThread.interrupt();
         });
-        cancelAction.setGraphic(MaterialIcon._Navigation.CANCEL.getImageView(ICON_SIZE_TOOLBAR));
+        mCancelAction.setGraphic(MaterialIcon._Navigation.CANCEL.getImageView(ICON_SIZE_TOOLBAR));
 
-        //close
-        Action closeAction = new Action(Dict.PREVIOUS.toString(), (ActionEvent event) -> {
+        //home
+        mHomeAction = new Action(Dict.HOME.toString(), (ActionEvent event) -> {
+            mLogAction.setDisabled(false);
+            setRunningState(RunState.STARTABLE);
             mRoot.setCenter(mListView);
         });
-        closeAction.setGraphic(MaterialIcon._Navigation.CHEVRON_LEFT.getImageView(ICON_SIZE_TOOLBAR));
+        mHomeAction.setGraphic(MaterialIcon._Action.HOME.getImageView(ICON_SIZE_TOOLBAR));
 
         //log
-        Action logAction = new Action(Dict.OUTPUT.toString(), (ActionEvent event) -> {
+        mLogAction = new Action(Dict.OUTPUT.toString(), (ActionEvent event) -> {
+            setRunningState(RunState.CLOSEABLE);
             mRoot.setCenter(mLogPanel);
         });
-        logAction.setGraphic(MaterialIcon._Navigation.CHEVRON_RIGHT.getImageView(ICON_SIZE_TOOLBAR));
+        mLogAction.setGraphic(MaterialIcon._Action.SUBJECT.getImageView(ICON_SIZE_TOOLBAR));
+        mLogAction.setDisabled(true);
 
         //options
-        Action optionsAction = new Action(Dict.OPTIONS.toString(), (ActionEvent event) -> {
+        mOptionsAction = new Action(Dict.OPTIONS.toString(), (ActionEvent event) -> {
             displayOptions();
         });
-        optionsAction.setGraphic(MaterialIcon._Action.SETTINGS.getImageView(ICON_SIZE_TOOLBAR));
-        optionsAction.setAccelerator(new KeyCodeCombination(KeyCode.COMMA, KeyCombination.SHORTCUT_DOWN));
+        mOptionsAction.setGraphic(MaterialIcon._Action.SETTINGS.getImageView(ICON_SIZE_TOOLBAR));
+        mOptionsAction.setAccelerator(new KeyCodeCombination(KeyCode.COMMA, KeyCombination.SHORTCUT_DOWN));
 
         //help
-        Action helpAction = new Action(Dict.HELP.toString(), (ActionEvent event) -> {
+        mHelpAction = new Action(Dict.HELP.toString(), (ActionEvent event) -> {
             SystemHelper.browse("https://trixon.se/projects/filebydate/documentation/");
         });
-        helpAction.setAccelerator(KeyCombination.keyCombination("F1"));
+        mHelpAction.setAccelerator(KeyCombination.keyCombination("F1"));
 
         //about
         PomInfo pomInfo = new PomInfo(FileByDate.class, "se.trixon", "filebydate");
         AboutModel aboutModel = new AboutModel(SystemHelper.getBundle(FileByDate.class, "about"), SystemHelper.getResourceAsImageView(MainFrame.class, "calendar-icon-1024px.png"));
         aboutModel.setAppVersion(pomInfo.getVersion());
-        Action aboutAction = AboutPane.getAction(mStage, aboutModel);
+        mAboutAction = AboutPane.getAction(mStage, aboutModel);
 
         //about date format
         String title = String.format(Dict.ABOUT_S.toString(), Dict.DATE_PATTERN.toString().toLowerCase());
-        Action aboutDateFormatAction = new Action(title, (ActionEvent event) -> {
+        mAboutDateFormatAction = new Action(title, (ActionEvent event) -> {
             SystemHelper.browse("https://docs.oracle.com/javase/8/docs/api/java/text/SimpleDateFormat.html");
         });
 
-        Collection<? extends Action> actions = Arrays.asList(
-                closeAction,
-                cancelAction,
-                logAction,
-                ActionUtils.ACTION_SEPARATOR,
-                addAction,
-                ActionUtils.ACTION_SEPARATOR,
-                optionsAction,
-                swingAction,
-                ActionUtils.ACTION_SPAN,
-                new ActionGroup(Dict.HELP.toString(), MaterialIcon._Action.HELP_OUTLINE.getImageView(ICON_SIZE_TOOLBAR),
-                        helpAction,
-                        aboutDateFormatAction,
-                        ActionUtils.ACTION_SEPARATOR,
-                        aboutAction
-                )
-        );
-
-        mToolBar = ActionUtils.createToolBar(actions, ActionUtils.ActionTextBehavior.HIDE);
+        mRunAction = new Action(Dict.RUN.toString(), (ActionEvent event) -> {
+            profileRun(mLastRunProfile);
+        });
+        mRunAction.setGraphic(MaterialIcon._Av.PLAY_ARROW.getImageView(ICON_SIZE_TOOLBAR));
     }
 
     private void initListeners() {
@@ -286,12 +287,12 @@ public class MainApp extends Application {
             public void onOperationFinished(String message) {
                 mLogPanel.println(Dict.DONE.toString());
                 populateProfiles(null);
-                setRunningState(false);
+                setRunningState(RunState.CLOSEABLE);
             }
 
             @Override
             public void onOperationInterrupted() {
-                setRunningState(false);
+                setRunningState(RunState.CLOSEABLE);
             }
 
             @Override
@@ -305,7 +306,7 @@ public class MainApp extends Application {
 
             @Override
             public void onOperationStarted() {
-                setRunningState(true);
+                setRunningState(RunState.CANCELABLE);
             }
         };
 
@@ -420,6 +421,7 @@ public class MainApp extends Application {
             mRoot.setCenter(mLogPanel);
 
             if (profile.isValid()) {
+                mLastRunProfile = profile;
                 mOperationThread = new Thread(() -> {
                     Operation operation = new Operation(mOperationListener, profile);
                     operation.start();
@@ -451,20 +453,60 @@ public class MainApp extends Application {
         }
     }
 
-    private void setRunningState(boolean state) {
-//        mActionManager.getAction(ActionManager.START).setEnabled(!state);
-//        mActionManager.getAction(ActionManager.CANCEL).setEnabled(state);
-//        mActionManager.getAction(ActionManager.ADD).setEnabled(!state);
-//        mActionManager.getAction(ActionManager.REMOVE).setEnabled(!state);
-//        mActionManager.getAction(ActionManager.CLONE).setEnabled(!state);
-//        mActionManager.getAction(ActionManager.OPTIONS).setEnabled(!state);
-//        mActionManager.getAction(ActionManager.REMOVE_ALL).setEnabled(!state);
-//        mActionManager.getAction(ActionManager.RENAME).setEnabled(!state);
-//
-//        startButton.setVisible(!state);
-//        cancelButton.setVisible(state);
-//        SwingHelper.enableComponents(configPanel, !state);
-//        profileComboBox.setEnabled(!state);
+    private void setRunningState(RunState runState) {
+        ArrayList<Action> actions = new ArrayList<>();
+
+        switch (runState) {
+            case STARTABLE:
+                actions.add(mLogAction);
+                mHomeAction.setDisabled(true);
+                mAddAction.setDisabled(false);
+                mOptionsAction.setDisabled(false);
+                break;
+
+            case CANCELABLE:
+                actions.addAll(Arrays.asList(mHomeAction, mCancelAction));
+                mHomeAction.setDisabled(true);
+                mAddAction.setDisabled(true);
+                mOptionsAction.setDisabled(true);
+                break;
+
+            case CLOSEABLE:
+                actions.addAll(Arrays.asList(mHomeAction, mRunAction));
+                mHomeAction.setDisabled(false);
+                mAddAction.setDisabled(true);
+                mOptionsAction.setDisabled(false);
+                break;
+
+            default:
+                throw new AssertionError();
+        }
+
+        actions.addAll(Arrays.asList(
+                ActionUtils.ACTION_SPAN,
+                mSwingAction,
+                mAddAction,
+                mOptionsAction,
+                new ActionGroup(Dict.HELP.toString(), MaterialIcon._Action.HELP_OUTLINE.getImageView(ICON_SIZE_TOOLBAR),
+                        mHelpAction,
+                        mAboutDateFormatAction,
+                        ActionUtils.ACTION_SEPARATOR,
+                        mAboutAction
+                )
+        ));
+
+        Platform.runLater(() -> {
+            if (mToolBar == null) {
+                mToolBar = ActionUtils.createToolBar(actions, ActionUtils.ActionTextBehavior.HIDE);
+                mRoot.setTop(mToolBar);
+            } else {
+                mToolBar = ActionUtils.updateToolBar(mToolBar, actions, ActionUtils.ActionTextBehavior.HIDE);
+            }
+        });
+    }
+
+    public enum RunState {
+        STARTABLE, CANCELABLE, CLOSEABLE;
     }
 
     class ProfileListCell extends ListCell<Profile> {
