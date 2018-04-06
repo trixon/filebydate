@@ -116,7 +116,6 @@ public class MainApp extends Application {
     private BorderPane mRoot;
     private Action mRunAction;
     private Stage mStage;
-    private Action mSwingAction;
     private ToolBar mToolBar;
 
     /**
@@ -210,14 +209,6 @@ public class MainApp extends Application {
     }
 
     private void initActions() {
-        //Legacy UI
-        mSwingAction = new Action("Swing", (ActionEvent event) -> {
-            java.awt.EventQueue.invokeLater(() -> {
-                MainFrame mainFrame = new MainFrame();
-                mainFrame.setVisible(true);
-            });
-        });
-
         //add
         mAddAction = new Action(Dict.ADD.toString(), (ActionEvent event) -> {
             profileEdit(null);
@@ -458,23 +449,31 @@ public class MainApp extends Application {
 
         switch (runState) {
             case STARTABLE:
-                actions.add(mLogAction);
-                mHomeAction.setDisabled(true);
-                mAddAction.setDisabled(false);
+                actions.addAll(Arrays.asList(
+                        mLogAction,
+                        ActionUtils.ACTION_SPAN,
+                        mAddAction
+                ));
                 mOptionsAction.setDisabled(false);
                 break;
 
             case CANCELABLE:
-                actions.addAll(Arrays.asList(mHomeAction, mCancelAction));
+                actions.addAll(Arrays.asList(
+                        mHomeAction,
+                        ActionUtils.ACTION_SPAN,
+                        mCancelAction
+                ));
                 mHomeAction.setDisabled(true);
-                mAddAction.setDisabled(true);
                 mOptionsAction.setDisabled(true);
                 break;
 
             case CLOSEABLE:
-                actions.addAll(Arrays.asList(mHomeAction, mRunAction));
+                actions.addAll(Arrays.asList(
+                        mHomeAction,
+                        ActionUtils.ACTION_SPAN,
+                        mRunAction
+                ));
                 mHomeAction.setDisabled(false);
-                mAddAction.setDisabled(true);
                 mOptionsAction.setDisabled(false);
                 break;
 
@@ -483,9 +482,6 @@ public class MainApp extends Application {
         }
 
         actions.addAll(Arrays.asList(
-                ActionUtils.ACTION_SPAN,
-                mSwingAction,
-                mAddAction,
                 mOptionsAction,
                 new ActionGroup(Dict.HELP.toString(), MaterialIcon._Action.HELP_OUTLINE.getImageView(ICON_SIZE_TOOLBAR),
                         mHelpAction,
