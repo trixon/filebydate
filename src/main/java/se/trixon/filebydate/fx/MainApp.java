@@ -155,9 +155,13 @@ public class MainApp extends Application {
         Scene scene = new Scene(mRoot);
         //scene.getStylesheets().add("css/modena_dark.css");
         mStage.setScene(scene);
+        mLogPanel.setWrapText(mOptions.isWordWrap());
 
         mOptions.getPreferences().addPreferenceChangeListener((PreferenceChangeEvent evt) -> {
             switch (evt.getKey()) {
+                case Options.KEY_WORD_WRAP:
+                    mLogPanel.setWrapText(mOptions.isWordWrap());
+                    break;
                 default:
             }
         });
