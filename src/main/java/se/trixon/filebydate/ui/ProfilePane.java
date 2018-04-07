@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.trixon.filebydate.fx;
+package se.trixon.filebydate.ui;
 
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -47,7 +47,6 @@ import se.trixon.filebydate.Operation.Command;
 import se.trixon.filebydate.Options;
 import se.trixon.filebydate.Profile;
 import se.trixon.filebydate.ProfileManager;
-import se.trixon.filebydate.ui.MainFrame;
 
 /**
  *
@@ -55,7 +54,7 @@ import se.trixon.filebydate.ui.MainFrame;
  */
 public class ProfilePane extends GridPane {
 
-    private final ResourceBundle mBundleUI = SystemHelper.getBundle(MainFrame.class, "Bundle");
+    private final ResourceBundle mBundleUI = SystemHelper.getBundle(MainApp.class, "Bundle");
     private ComboBox<NameCase> mCaseBaseComboBox;
     private ComboBox<NameCase> mCaseExtComboBox;
     private ComboBox<String> mDatePatternComboBox;

@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2018 Patrik Karlström.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +17,7 @@ package se.trixon.filebydate;
 
 import java.util.ResourceBundle;
 import se.trixon.almond.util.SystemHelper;
-import se.trixon.filebydate.ui.MainFrame;
+import se.trixon.filebydate.ui.MainApp;
 
 /**
  *
@@ -25,7 +25,7 @@ import se.trixon.filebydate.ui.MainFrame;
  */
 public enum NameCase {
     UNCHANGED, LOWER, UPPER;
-    private final ResourceBundle mBundleUI = SystemHelper.getBundle(MainFrame.class, "Bundle");
+    private final ResourceBundle mBundleUI = SystemHelper.getBundle(MainApp.class, "Bundle");
 
     public static NameCase getCase(String key) {
         if (key != null) {

@@ -29,7 +29,7 @@ import org.apache.commons.lang3.StringUtils;
 import se.trixon.almond.util.Dict;
 import se.trixon.almond.util.SystemHelper;
 import se.trixon.filebydate.Operation.Command;
-import se.trixon.filebydate.ui.MainFrame;
+import se.trixon.filebydate.ui.MainApp;
 
 /**
  *
@@ -38,7 +38,7 @@ import se.trixon.filebydate.ui.MainFrame;
 public class Profile implements Comparable<Profile>, Cloneable {
 
     private transient final ResourceBundle mBundle = SystemHelper.getBundle(Profile.class, "Bundle");
-    private transient final ResourceBundle mBundleUI = SystemHelper.getBundle(MainFrame.class, "Bundle");
+    private transient final ResourceBundle mBundleUI = SystemHelper.getBundle(MainApp.class, "Bundle");
     @SerializedName("case_base")
     private NameCase mCaseBase = NameCase.UNCHANGED;
     private transient String mCaseBaseString;
@@ -372,8 +372,8 @@ public class Profile implements Comparable<Profile>, Cloneable {
         conditionalAppendDebugOption(b, mFollowLinks, Dict.FOLLOW_LINKS.toString());
         conditionalAppendDebugOption(b, mRecursive, Dict.RECURSIVE.toString());
         conditionalAppendDebugOption(b, mReplaceExisting, Dict.REPLACE.toString());
-        conditionalAppendDebugOption(b, mCaseBase != NameCase.UNCHANGED, mBundleUI.getString("MainFrame.caseBaseLabel.text") + " " + mCaseBase);
-        conditionalAppendDebugOption(b, mCaseExt != NameCase.UNCHANGED, mBundleUI.getString("MainFrame.caseSuffixLabel.text") + " " + mCaseExt);
+        conditionalAppendDebugOption(b, mCaseBase != NameCase.UNCHANGED, Dict.BASENAME.toString() + " " + mCaseBase);
+        conditionalAppendDebugOption(b, mCaseExt != NameCase.UNCHANGED, Dict.EXTENSION.toString() + " " + mCaseExt);
 
         return b.toString();
     }

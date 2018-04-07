@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.trixon.filebydate.fx;
+package se.trixon.filebydate.ui;
 
 import java.io.File;
 import java.util.Locale;
@@ -39,7 +39,7 @@ public class PreviewPanel extends BorderPane {
     private final ResourceBundle mBundle = SystemHelper.getBundle(PreviewPanel.class, "Bundle");
     private Text mCase = new Text();
     private Text mDest = new Text("\n");
-    private Text mFilesFrom = new Text(mBundle.getString("pv_files_from"));
+    private Text mFilesFrom = new Text(mBundle.getString("files_from"));
     private Text mOperation = new Text();
     private Text mOptions = new Text();
     private Text mSource = new Text("\n");

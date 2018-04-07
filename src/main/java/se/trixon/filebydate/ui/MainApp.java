@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.trixon.filebydate.fx;
+package se.trixon.filebydate.ui;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -82,7 +82,6 @@ import se.trixon.filebydate.OperationListener;
 import se.trixon.filebydate.Options;
 import se.trixon.filebydate.Profile;
 import se.trixon.filebydate.ProfileManager;
-import se.trixon.filebydate.ui.MainFrame;
 
 /**
  *
@@ -128,7 +127,7 @@ public class MainApp extends Application {
     @Override
     public void start(Stage stage) throws Exception {
         mStage = stage;
-        stage.getIcons().add(new Image(MainFrame.class.getResourceAsStream("calendar-icon-1024px.png")));
+        stage.getIcons().add(new Image(MainApp.class.getResourceAsStream("calendar-icon-1024px.png")));
 
         mAlmondFX.addStageWatcher(stage, MainApp.class);
         createUI();
@@ -256,7 +255,7 @@ public class MainApp extends Application {
 
         //about
         PomInfo pomInfo = new PomInfo(FileByDate.class, "se.trixon", "filebydate");
-        AboutModel aboutModel = new AboutModel(SystemHelper.getBundle(FileByDate.class, "about"), SystemHelper.getResourceAsImageView(MainFrame.class, "calendar-icon-1024px.png"));
+        AboutModel aboutModel = new AboutModel(SystemHelper.getBundle(FileByDate.class, "about"), SystemHelper.getResourceAsImageView(MainApp.class, "calendar-icon-1024px.png"));
         aboutModel.setAppVersion(pomInfo.getVersion());
         mAboutAction = AboutPane.getAction(mStage, aboutModel);
 

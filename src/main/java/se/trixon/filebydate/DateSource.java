@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2018 Patrik Karlström.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +17,7 @@ package se.trixon.filebydate;
 
 import java.util.ResourceBundle;
 import se.trixon.almond.util.SystemHelper;
-import se.trixon.filebydate.ui.MainFrame;
+import se.trixon.filebydate.ui.MainApp;
 
 /**
  *
@@ -28,7 +28,7 @@ public enum DateSource {
     EXIF_ORIGINAL,
     FILE_CREATED,
     FILE_MODIFIED;
-    private final ResourceBundle mBundleUI = SystemHelper.getBundle(MainFrame.class, "Bundle");
+    private final ResourceBundle mBundleUI = SystemHelper.getBundle(MainApp.class, "Bundle");
 
     private DateSource() {
     }

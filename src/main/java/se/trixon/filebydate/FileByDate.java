@@ -29,13 +29,11 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import se.trixon.almond.util.AlmondUI;
 import se.trixon.almond.util.Dict;
 import se.trixon.almond.util.PomInfo;
 import se.trixon.almond.util.SystemHelper;
 import se.trixon.almond.util.Xlog;
-import se.trixon.filebydate.fx.MainApp;
-import se.trixon.filebydate.ui.MainFrame;
+import se.trixon.filebydate.ui.MainApp;
 
 /**
  *
@@ -46,7 +44,6 @@ public class FileByDate implements OperationListener {
     private static String[] sArgs;
     private static final ResourceBundle sBundle = SystemHelper.getBundle(FileByDate.class, "Bundle");
     private static Options sOptions;
-    private final AlmondUI mAlmondUI = AlmondUI.getInstance();
     private CommandLine mCommandLine;
     private final ProfileManager mProfileManager = ProfileManager.getInstance();
 
@@ -167,29 +164,9 @@ public class FileByDate implements OperationListener {
             return;
         }
 
-        if (mCommandLine.hasOption("gui")) {
-            displayGuiFx();
-        } else {
-            displayGuiSwing();
-        }
-    }
-
-    private void displayGuiFx() {
         new Thread(() -> {
             MainApp.main(sArgs);
         }).start();
-    }
-
-    private void displayGuiSwing() {
-        SystemHelper.setMacApplicationName("FileByDate");
-
-        mAlmondUI.installDarcula();
-        mAlmondUI.initLookAndFeel();
-
-        java.awt.EventQueue.invokeLater(() -> {
-            MainFrame mainFrame = new MainFrame();
-            mainFrame.setVisible(true);
-        });
     }
 
     private void displayHelp() {
@@ -281,11 +258,6 @@ public class FileByDate implements OperationListener {
                 .optionalArg(false)
                 .build();
 
-        Option fxGui = Option.builder("gui")
-                .longOpt("alternative-gui")
-                .desc(sBundle.getString("opt_gui_desc"))
-                .build();
-
         Option profile = Option.builder("rp")
                 .longOpt("run-profile")
                 .hasArg()
@@ -325,7 +297,6 @@ public class FileByDate implements OperationListener {
         sOptions.addOption(viewProfile);
         sOptions.addOption(profile);
 
-        sOptions.addOption(fxGui);
         sOptions.addOption(help);
         sOptions.addOption(version);
 
