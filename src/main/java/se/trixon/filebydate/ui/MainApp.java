@@ -16,6 +16,7 @@
 package se.trixon.filebydate.ui;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -23,6 +24,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.Optional;
+import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.PreferenceChangeEvent;
@@ -57,6 +59,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
+import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
@@ -65,6 +68,7 @@ import org.apache.commons.io.FileUtils;
 import org.controlsfx.control.action.Action;
 import org.controlsfx.control.action.ActionGroup;
 import org.controlsfx.control.action.ActionUtils;
+import se.trixon.almond.util.AboutModel;
 import se.trixon.almond.util.Dict;
 import se.trixon.almond.util.PomInfo;
 import se.trixon.almond.util.SystemHelper;
@@ -74,7 +78,6 @@ import se.trixon.almond.util.fx.control.LocaleComboBox;
 import se.trixon.almond.util.fx.control.LogPanel;
 import se.trixon.almond.util.fx.dialogs.about.AboutPane;
 import se.trixon.almond.util.icons.material.MaterialIcon;
-import se.trixon.almond.util.AboutModel;
 import se.trixon.filebydate.FileByDate;
 import se.trixon.filebydate.NameCase;
 import se.trixon.filebydate.Operation;
@@ -97,7 +100,9 @@ public class MainApp extends Application {
     private Action mAboutDateFormatAction;
     private Action mAddAction;
     private final AlmondFx mAlmondFX = AlmondFx.getInstance();
+    private final ResourceBundle mBundle = SystemHelper.getBundle(MainApp.class, "Bundle");
     private Action mCancelAction;
+    private Font mDefaultFont;
     private Action mHelpAction;
     private Action mHomeAction;
     private final ObservableList<Profile> mItems = FXCollections.observableArrayList();
@@ -116,6 +121,7 @@ public class MainApp extends Application {
     private Action mRunAction;
     private Stage mStage;
     private ToolBar mToolBar;
+    private ProfileIndicator mIndicator = new ProfileIndicator();
 
     /**
      * @param args the command line arguments
@@ -140,11 +146,17 @@ public class MainApp extends Application {
     }
 
     private void createUI() {
+        mDefaultFont = Font.getDefault();
         initActions();
 
         mListView = new ListView<>();
         mListView.setItems(mItems);
         mListView.setCellFactory((ListView<Profile> param) -> new ProfileListCell());
+        Label welcomeLabel = new Label(mBundle.getString("welcome"));
+        welcomeLabel.setFont(Font.font(mDefaultFont.getName(), FontPosture.ITALIC, 18));
+
+        mListView.setPlaceholder(welcomeLabel);
+
         mPreviewPanel = new PreviewPanel();
 
         mRoot = new BorderPane();
@@ -225,12 +237,12 @@ public class MainApp extends Application {
         mCancelAction.setGraphic(MaterialIcon._Navigation.CANCEL.getImageView(ICON_SIZE_TOOLBAR));
 
         //home
-        mHomeAction = new Action(Dict.HOME.toString(), (ActionEvent event) -> {
+        mHomeAction = new Action(Dict.LIST.toString(), (ActionEvent event) -> {
             mLogAction.setDisabled(false);
             setRunningState(RunState.STARTABLE);
             mRoot.setCenter(mListView);
         });
-        mHomeAction.setGraphic(MaterialIcon._Action.HOME.getImageView(ICON_SIZE_TOOLBAR));
+        mHomeAction.setGraphic(MaterialIcon._Action.LIST.getImageView(ICON_SIZE_TOOLBAR));
 
         //log
         mLogAction = new Action(Dict.OUTPUT.toString(), (ActionEvent event) -> {
@@ -318,6 +330,8 @@ public class MainApp extends Application {
             mListView.getSelectionModel().select(profile);
             mListView.scrollTo(profile);
         }
+
+        mPreviewPanel.setVisible(!mListView.getSelectionModel().isEmpty());
     }
 
     private void postInit() {
@@ -348,6 +362,7 @@ public class MainApp extends Application {
             profile.setCaseExt(NameCase.UNCHANGED);
         } else if (clone) {
             title = Dict.CLONE.toString();
+            profile.setLastRun(0);
         }
 
         alert.setTitle(title);
@@ -385,6 +400,7 @@ public class MainApp extends Application {
             mProfiles.remove(profile);
             profilesSave();
             populateProfiles(null);
+            mLogAction.setDisabled(mItems.isEmpty() || mLastRunProfile == null);
         }
     }
 
@@ -413,6 +429,7 @@ public class MainApp extends Application {
             profile.setDryRun(dryRun);
             mLogPanel.clear();
             mRoot.setCenter(mLogPanel);
+            mIndicator.setProfile(profile);
 
             if (profile.isValid()) {
                 mLastRunProfile = profile;
@@ -500,6 +517,8 @@ public class MainApp extends Application {
                 mRoot.setTop(mToolBar);
             } else {
                 mToolBar = ActionUtils.updateToolBar(mToolBar, actions, ActionUtils.ActionTextBehavior.HIDE);
+                mToolBar.getItems().add(1, mIndicator);
+                mIndicator.setVisible(runState != RunState.STARTABLE);
             }
         });
     }
@@ -517,6 +536,7 @@ public class MainApp extends Application {
         private final FadeTransition mFadeOutTransition = new FadeTransition();
         private final Label mLastLabel = new Label();
         private final Label mNameLabel = new Label();
+        private final SimpleDateFormat mSimpleDateFormat = new SimpleDateFormat();
 
         public ProfileListCell() {
             mFadeInTransition.setDuration(mDuration);
@@ -534,8 +554,12 @@ public class MainApp extends Application {
             setText(null);
 
             mNameLabel.setText(profile.getName());
-            mLastLabel.setText("🕑 " + new Date(profile.getLastRun()).toString());
             mDescLabel.setText("🖉 " + profile.getDescription());
+            String lastRun = "-";
+            if (profile.getLastRun() != 0) {
+                lastRun = mSimpleDateFormat.format(new Date(profile.getLastRun()));
+            }
+            mLastLabel.setText("🕑 " + lastRun);
 
             setGraphic(mBorderPane);
         }
@@ -546,8 +570,8 @@ public class MainApp extends Application {
         }
 
         private void createUI() {
-            String fontFamily = Font.getDefault().getFamily();
-            double fontSize = Font.getDefault().getSize();
+            String fontFamily = mDefaultFont.getFamily();
+            double fontSize = mDefaultFont.getSize();
 
             mNameLabel.setFont(Font.font(fontFamily, FontWeight.BOLD, fontSize * 2));
             mDescLabel.setFont(Font.font(fontFamily, FontWeight.NORMAL, fontSize * 1.3));
