@@ -74,7 +74,7 @@ import se.trixon.almond.util.fx.control.LocaleComboBox;
 import se.trixon.almond.util.fx.control.LogPanel;
 import se.trixon.almond.util.fx.dialogs.about.AboutPane;
 import se.trixon.almond.util.icons.material.MaterialIcon;
-import se.trixon.almond.util.swing.dialogs.about.AboutModel;
+import se.trixon.almond.util.AboutModel;
 import se.trixon.filebydate.FileByDate;
 import se.trixon.filebydate.NameCase;
 import se.trixon.filebydate.Operation;
