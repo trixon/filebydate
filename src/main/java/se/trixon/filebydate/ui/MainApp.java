@@ -28,6 +28,7 @@ import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.PreferenceChangeEvent;
+import java.util.stream.Stream;
 import javafx.animation.FadeTransition;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -37,11 +38,13 @@ import javafx.collections.ObservableMap;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar.ButtonData;
+import javafx.scene.control.ButtonBase;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.DialogPane;
@@ -58,6 +61,7 @@ import javafx.scene.layout.Background;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
@@ -68,6 +72,9 @@ import org.apache.commons.io.FileUtils;
 import org.controlsfx.control.action.Action;
 import org.controlsfx.control.action.ActionGroup;
 import org.controlsfx.control.action.ActionUtils;
+import org.controlsfx.glyphfont.FontAwesome;
+import org.controlsfx.glyphfont.GlyphFont;
+import org.controlsfx.glyphfont.GlyphFontRegistry;
 import se.trixon.almond.util.AboutModel;
 import se.trixon.almond.util.Dict;
 import se.trixon.almond.util.PomInfo;
@@ -77,7 +84,6 @@ import se.trixon.almond.util.fx.FxHelper;
 import se.trixon.almond.util.fx.control.LocaleComboBox;
 import se.trixon.almond.util.fx.control.LogPanel;
 import se.trixon.almond.util.fx.dialogs.about.AboutPane;
-import se.trixon.almond.util.icons.material.MaterialIcon;
 import se.trixon.filebydate.FileByDate;
 import se.trixon.filebydate.NameCase;
 import se.trixon.filebydate.Operation;
@@ -103,8 +109,11 @@ public class MainApp extends Application {
     private final ResourceBundle mBundle = SystemHelper.getBundle(MainApp.class, "Bundle");
     private Action mCancelAction;
     private Font mDefaultFont;
+    private final GlyphFont mFontAwesome = GlyphFontRegistry.font("FontAwesome");
     private Action mHelpAction;
     private Action mHomeAction;
+    private final Color mIconColor = Color.BLACK;
+    private final ProfileIndicator mIndicator = new ProfileIndicator();
     private final ObservableList<Profile> mItems = FXCollections.observableArrayList();
     private Profile mLastRunProfile;
     private ListView<Profile> mListView;
@@ -121,7 +130,6 @@ public class MainApp extends Application {
     private Action mRunAction;
     private Stage mStage;
     private ToolBar mToolBar;
-    private ProfileIndicator mIndicator = new ProfileIndicator();
 
     /**
      * @param args the command line arguments
@@ -145,7 +153,18 @@ public class MainApp extends Application {
         initAccelerators();
     }
 
+    private void adjustButtonWidth(Stream<Node> stream, double prefWidth) {
+        stream.filter((item) -> (item instanceof ButtonBase))
+                .map((item) -> (ButtonBase) item).forEachOrdered((buttonBase) -> {
+            buttonBase.setPrefWidth(prefWidth);
+        });
+    }
+
     private void createUI() {
+        mRoot = new BorderPane();
+        Scene scene = new Scene(mRoot);
+        //scene.getStylesheets().add("css/modena_dark.css");
+
         mDefaultFont = Font.getDefault();
         initActions();
 
@@ -159,12 +178,9 @@ public class MainApp extends Application {
 
         mPreviewPanel = new PreviewPanel();
 
-        mRoot = new BorderPane();
         mRoot.setCenter(mListView);
         mRoot.setBottom(mPreviewPanel);
 
-        Scene scene = new Scene(mRoot);
-        //scene.getStylesheets().add("css/modena_dark.css");
         mStage.setScene(scene);
         mLogPanel.setWrapText(mOptions.isWordWrap());
 
@@ -228,13 +244,13 @@ public class MainApp extends Application {
         mAddAction = new Action(Dict.ADD.toString(), (ActionEvent event) -> {
             profileEdit(null);
         });
-        mAddAction.setGraphic(MaterialIcon._Content.ADD.getImageView(ICON_SIZE_TOOLBAR));
+        mAddAction.setGraphic(mFontAwesome.create(FontAwesome.Glyph.PLUS).size(ICON_SIZE_TOOLBAR).color(mIconColor));
 
         //cancel
         mCancelAction = new Action(Dict.CANCEL.toString(), (ActionEvent event) -> {
             mOperationThread.interrupt();
         });
-        mCancelAction.setGraphic(MaterialIcon._Navigation.CANCEL.getImageView(ICON_SIZE_TOOLBAR));
+        mCancelAction.setGraphic(mFontAwesome.create(FontAwesome.Glyph.BAN).size(ICON_SIZE_TOOLBAR).color(mIconColor));
 
         //home
         mHomeAction = new Action(Dict.LIST.toString(), (ActionEvent event) -> {
@@ -242,21 +258,21 @@ public class MainApp extends Application {
             setRunningState(RunState.STARTABLE);
             mRoot.setCenter(mListView);
         });
-        mHomeAction.setGraphic(MaterialIcon._Action.LIST.getImageView(ICON_SIZE_TOOLBAR));
+        mHomeAction.setGraphic(mFontAwesome.create(FontAwesome.Glyph.LIST).size(ICON_SIZE_TOOLBAR).color(mIconColor));
 
         //log
         mLogAction = new Action(Dict.OUTPUT.toString(), (ActionEvent event) -> {
             setRunningState(RunState.CLOSEABLE);
             mRoot.setCenter(mLogPanel);
         });
-        mLogAction.setGraphic(MaterialIcon._Action.SUBJECT.getImageView(ICON_SIZE_TOOLBAR));
+        mLogAction.setGraphic(mFontAwesome.create(FontAwesome.Glyph.ALIGN_LEFT).size(ICON_SIZE_TOOLBAR).color(mIconColor));
         mLogAction.setDisabled(true);
 
         //options
         mOptionsAction = new Action(Dict.OPTIONS.toString(), (ActionEvent event) -> {
             displayOptions();
         });
-        mOptionsAction.setGraphic(MaterialIcon._Action.SETTINGS.getImageView(ICON_SIZE_TOOLBAR));
+        mOptionsAction.setGraphic(mFontAwesome.create(FontAwesome.Glyph.COG).size(ICON_SIZE_TOOLBAR).color(mIconColor));
         mOptionsAction.setAccelerator(new KeyCodeCombination(KeyCode.COMMA, KeyCombination.SHORTCUT_DOWN));
 
         //help
@@ -280,7 +296,7 @@ public class MainApp extends Application {
         mRunAction = new Action(Dict.RUN.toString(), (ActionEvent event) -> {
             profileRun(mLastRunProfile);
         });
-        mRunAction.setGraphic(MaterialIcon._Av.PLAY_ARROW.getImageView(ICON_SIZE_TOOLBAR));
+        mRunAction.setGraphic(mFontAwesome.create(FontAwesome.Glyph.PLAY).size(ICON_SIZE_TOOLBAR).color(mIconColor));
     }
 
     private void initListeners() {
@@ -503,7 +519,7 @@ public class MainApp extends Application {
 
         actions.addAll(Arrays.asList(
                 mOptionsAction,
-                new ActionGroup(Dict.HELP.toString(), MaterialIcon._Action.HELP_OUTLINE.getImageView(ICON_SIZE_TOOLBAR),
+                new ActionGroup(Dict.HELP.toString(), mFontAwesome.create(FontAwesome.Glyph.QUESTION).size(ICON_SIZE_TOOLBAR).color(mIconColor),
                         mHelpAction,
                         mAboutDateFormatAction,
                         ActionUtils.ACTION_SEPARATOR,
@@ -520,6 +536,12 @@ public class MainApp extends Application {
                 mToolBar.getItems().add(1, mIndicator);
                 mIndicator.setVisible(runState != RunState.STARTABLE);
             }
+
+            adjustButtonWidth(mToolBar.getItems().stream(), ICON_SIZE_TOOLBAR * 1.5);
+            mToolBar.getItems().stream().filter((item) -> (item instanceof ButtonBase))
+                    .map((item) -> (ButtonBase) item).forEachOrdered((buttonBase) -> {
+                FxHelper.undecorateButton(buttonBase);
+            });
         });
     }
 
@@ -581,25 +603,25 @@ public class MainApp extends Application {
                 profileRun(getSelectedProfile());
                 mListView.requestFocus();
             });
-            runAction.setGraphic(MaterialIcon._Av.PLAY_ARROW.getImageView(ICON_SIZE_PROFILE));
+            runAction.setGraphic(mFontAwesome.create(FontAwesome.Glyph.PLAY).size(ICON_SIZE_PROFILE).color(mIconColor));
 
             Action editAction = new Action(Dict.EDIT.toString(), (ActionEvent event) -> {
                 profileEdit(getSelectedProfile());
                 mListView.requestFocus();
             });
-            editAction.setGraphic(MaterialIcon._Content.CREATE.getImageView(ICON_SIZE_PROFILE));
+            editAction.setGraphic(mFontAwesome.create(FontAwesome.Glyph.EDIT).size(ICON_SIZE_PROFILE).color(mIconColor));
 
             Action cloneAction = new Action(Dict.CLONE.toString(), (ActionEvent event) -> {
                 profileClone();
                 mListView.requestFocus();
             });
-            cloneAction.setGraphic(MaterialIcon._Content.CONTENT_COPY.getImageView(ICON_SIZE_PROFILE));
+            cloneAction.setGraphic(mFontAwesome.create(FontAwesome.Glyph.COPY).size(ICON_SIZE_PROFILE).color(mIconColor));
 
             Action removeAction = new Action(Dict.REMOVE.toString(), (ActionEvent event) -> {
                 profileRemove(getSelectedProfile());
                 mListView.requestFocus();
             });
-            removeAction.setGraphic(MaterialIcon._Content.REMOVE_CIRCLE_OUTLINE.getImageView(ICON_SIZE_PROFILE));
+            removeAction.setGraphic(mFontAwesome.create(FontAwesome.Glyph.TRASH).size(ICON_SIZE_PROFILE).color(mIconColor));
 
             VBox mainBox = new VBox(mNameLabel, mDescLabel, mLastLabel);
             mainBox.setAlignment(Pos.CENTER_LEFT);
@@ -614,6 +636,13 @@ public class MainApp extends Application {
             ToolBar toolBar = ActionUtils.createToolBar(actions, ActionUtils.ActionTextBehavior.HIDE);
             toolBar.setBackground(Background.EMPTY);
             toolBar.setVisible(false);
+            adjustButtonWidth(toolBar.getItems().stream(), ICON_SIZE_PROFILE * 1.8);
+
+            toolBar.getItems().stream().filter((item) -> (item instanceof ButtonBase))
+                    .map((item) -> (ButtonBase) item).forEachOrdered((buttonBase) -> {
+                FxHelper.undecorateButton(buttonBase);
+            });
+
             BorderPane.setAlignment(toolBar, Pos.CENTER);
 
             mBorderPane.setCenter(mainBox);

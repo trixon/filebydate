@@ -110,16 +110,6 @@
                                     <includes>
                                         <include>se/trixon/almond/util/*</include>
                                         <include>se/trixon/almond/util/fx/**</include>
-                                        <include>se/trixon/almond/util/icons/*</include>
-                                        <include>se/trixon/almond/util/icons/material/*</include>
-                                        <include>se/trixon/almond/util/icons/material/_action/*.png</include>
-                                        <include>se/trixon/almond/util/icons/material/_alert/*.png</include>
-                                        <include>se/trixon/almond/util/icons/material/_av/*.png</include>
-                                        <include>se/trixon/almond/util/icons/material/_communication/*.png</include>
-                                        <include>se/trixon/almond/util/icons/material/_content/*.png</include>
-                                        <include>se/trixon/almond/util/icons/material/_editor/*.png</include>
-                                        <include>se/trixon/almond/util/icons/material/_file/folder_open*</include>
-                                        <include>se/trixon/almond/util/icons/material/_navigation/*.png</include>
                                     </includes>
                                 </filter>
                             </filters>
