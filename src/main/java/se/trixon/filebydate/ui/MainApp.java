@@ -151,6 +151,7 @@ public class MainApp extends Application {
         mStage.show();
         mListView.requestFocus();
         initAccelerators();
+        //profileEdit(mProfiles.getFirst());
     }
 
     private void adjustButtonWidth(Stream<Node> stream, double prefWidth) {

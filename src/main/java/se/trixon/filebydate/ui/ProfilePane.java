@@ -28,6 +28,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.ColumnConstraints;
@@ -39,8 +40,8 @@ import org.controlsfx.validation.ValidationSupport;
 import org.controlsfx.validation.Validator;
 import se.trixon.almond.util.Dict;
 import se.trixon.almond.util.SystemHelper;
-import se.trixon.almond.util.fx.control.DirectoryChooserPane;
 import se.trixon.almond.util.fx.control.FileChooserPane;
+import se.trixon.almond.util.fx.control.FileChooserPane.ObjectMode;
 import se.trixon.filebydate.DateSource;
 import se.trixon.filebydate.NameCase;
 import se.trixon.filebydate.Operation.Command;
@@ -61,7 +62,7 @@ public class ProfilePane extends GridPane {
     private Label mDatePatternLabel;
     private ComboBox<DateSource> mDateSourceComboBox;
     private TextField mDescTextField;
-    private FileChooserPane mDestFileChooserPane;
+    private FileChooserPane mDestChooserPane;
     private ComboBox<String> mFilePatternComboBox;
     private CheckBox mLinksCheckBox;
     private TextField mNameTextField;
@@ -72,7 +73,7 @@ public class ProfilePane extends GridPane {
     private final ProfileManager mProfileManager = ProfileManager.getInstance();
     private CheckBox mRecursiveCheckBox;
     private CheckBox mReplaceCheckBox;
-    private DirectoryChooserPane mSourceFileChooserPane;
+    private FileChooserPane mSourceChooserPane;
 
     public ProfilePane(Profile p) {
         mProfile = p;
@@ -80,8 +81,8 @@ public class ProfilePane extends GridPane {
 
         mNameTextField.setText(p.getName());
         mDescTextField.setText(p.getDescription());
-        mSourceFileChooserPane.setPath(p.getSourceDir());
-        mDestFileChooserPane.setPath(p.getDestDir());
+        mSourceChooserPane.setPath(p.getSourceDir());
+        mDestChooserPane.setPath(p.getDestDir());
         mFilePatternComboBox.setValue(p.getFilePattern());
         mDateSourceComboBox.setValue(p.getDateSource());
         mDatePatternComboBox.setValue(p.getDatePattern());
@@ -92,6 +93,8 @@ public class ProfilePane extends GridPane {
         mCaseBaseComboBox.setValue(p.getCaseBase());
         mCaseExtComboBox.setValue(p.getCaseExt());
 
+        initListeners();
+
         Platform.runLater(() -> {
             initValidation();
             mNameTextField.requestFocus();
@@ -101,8 +104,8 @@ public class ProfilePane extends GridPane {
     public void save() {
         mProfile.setName(mNameTextField.getText().trim());
         mProfile.setDescription(mDescTextField.getText());
-        mProfile.setSourceDir(mSourceFileChooserPane.getPath());
-        mProfile.setDestDir(mDestFileChooserPane.getPath());
+        mProfile.setSourceDir(mSourceChooserPane.getPath());
+        mProfile.setDestDir(mDestChooserPane.getPath());
         mProfile.setFilePattern(mFilePatternComboBox.getValue());
         mProfile.setDateSource(mDateSourceComboBox.getValue());
         mProfile.setDatePattern(mDatePatternComboBox.getValue());
@@ -119,8 +122,6 @@ public class ProfilePane extends GridPane {
 
         Label nameLabel = new Label(Dict.NAME.toString());
         Label descLabel = new Label(Dict.DESCRIPTION.toString());
-        Label sourceLabel = new Label(Dict.SOURCE.toString());
-        Label destLabel = new Label(Dict.DESTINATION.toString());
         Label filePatternLabel = new Label(Dict.FILE_PATTERN.toString());
         Label dateSourceLabel = new Label(Dict.DATE_SOURCE.toString());
         mDatePatternLabel = new Label(Dict.DATE_PATTERN.toString());
@@ -142,8 +143,8 @@ public class ProfilePane extends GridPane {
         mNameTextField = new TextField();
         mDescTextField = new TextField();
 
-        mSourceFileChooserPane = new DirectoryChooserPane(Dict.OPEN.toString());
-        mDestFileChooserPane = new FileChooserPane(Dict.OPEN.toString());
+        mSourceChooserPane = new FileChooserPane(Dict.OPEN.toString(), Dict.SOURCE.toString(), ObjectMode.DIRECTORY, SelectionMode.SINGLE);
+        mDestChooserPane = new FileChooserPane(Dict.OPEN.toString(), Dict.DESTINATION.toString(), ObjectMode.DIRECTORY, SelectionMode.SINGLE);
 
         mFilePatternComboBox.setEditable(true);
         mDatePatternComboBox.setEditable(true);
@@ -156,10 +157,8 @@ public class ProfilePane extends GridPane {
         add(mNameTextField, col, ++row, REMAINING, 1);
         add(descLabel, col, ++row, REMAINING, 1);
         add(mDescTextField, col, ++row, REMAINING, 1);
-        add(sourceLabel, col, ++row, REMAINING, 1);
-        add(mSourceFileChooserPane, col, ++row, REMAINING, 1);
-        add(destLabel, col, ++row, REMAINING, 1);
-        add(mDestFileChooserPane, col, ++row, REMAINING, 1);
+        add(mSourceChooserPane, col, ++row, REMAINING, 1);
+        add(mDestChooserPane, col, ++row, REMAINING, 1);
 
         GridPane patternPane = new GridPane();
         patternPane.addRow(0, filePatternLabel, dateSourceLabel, mDatePatternLabel);
@@ -198,8 +197,8 @@ public class ProfilePane extends GridPane {
 
         GridPane.setMargin(mNameTextField, rowInsets);
         GridPane.setMargin(mDescTextField, rowInsets);
-        GridPane.setMargin(mSourceFileChooserPane, rowInsets);
-        GridPane.setMargin(mDestFileChooserPane, rowInsets);
+        GridPane.setMargin(mSourceChooserPane, rowInsets);
+        GridPane.setMargin(mDestChooserPane, rowInsets);
         GridPane.setMargin(patternPane, rowInsets);
 
         mFilePatternComboBox.setItems(FXCollections.observableArrayList(
@@ -222,6 +221,9 @@ public class ProfilePane extends GridPane {
         mOperationComboBox.setItems(FXCollections.observableArrayList(Arrays.asList(Command.COPY, Command.MOVE)));
     }
 
+    private void initListeners() {
+    }
+
     private void initValidation() {
         final String text_is_required = "Text is required";
         boolean indicateRequired = false;
@@ -238,8 +240,8 @@ public class ProfilePane extends GridPane {
         validationSupport.registerValidator(mNameTextField, indicateRequired, Validator.createEmptyValidator(text_is_required));
         validationSupport.registerValidator(mNameTextField, indicateRequired, Validator.createPredicateValidator(namePredicate, text_is_required));
         validationSupport.registerValidator(mDescTextField, indicateRequired, Validator.createEmptyValidator(text_is_required));
-        validationSupport.registerValidator(mSourceFileChooserPane.getTextField(), indicateRequired, Validator.createEmptyValidator(text_is_required));
-        validationSupport.registerValidator(mDestFileChooserPane.getTextField(), indicateRequired, Validator.createEmptyValidator(text_is_required));
+        validationSupport.registerValidator(mSourceChooserPane.getTextField(), indicateRequired, Validator.createEmptyValidator(text_is_required));
+        validationSupport.registerValidator(mDestChooserPane.getTextField(), indicateRequired, Validator.createEmptyValidator(text_is_required));
         validationSupport.registerValidator(mFilePatternComboBox, indicateRequired, Validator.createEmptyValidator(text_is_required));
         validationSupport.registerValidator(mDatePatternComboBox, indicateRequired, Validator.createEmptyValidator(text_is_required));
         validationSupport.registerValidator(mDatePatternComboBox, indicateRequired, Validator.createPredicateValidator(datePredicate, text_is_required));
