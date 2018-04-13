@@ -65,6 +65,7 @@ public class PreviewPanel extends BorderPane {
         textFlow.getChildren().stream().filter((node) -> (node instanceof Text)).forEachOrdered((node) -> {
             ((Text) node).setFont(Font.font(fontSize));
         });
+        textFlow.setVisible(false);
 
         Font defaultFont = Font.getDefault();
         mOperation.setFont(Font.font(defaultFont.getName(), FontWeight.EXTRA_BOLD, fontSize));
@@ -75,9 +76,8 @@ public class PreviewPanel extends BorderPane {
     }
 
     public void load(Profile p) {
-        if (!isVisible()) {
-            setVisible(true);
-        }
+        setVisible(true);
+        getCenter().setVisible(true);
 
         mOperation.setText(p.getCommand().toString());
         mSource.setText(String.format("%s%s%s",
