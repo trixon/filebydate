@@ -407,13 +407,16 @@ public class MainApp extends Application {
     private void profileRemove(Profile profile) {
         Alert alert = new Alert(AlertType.CONFIRMATION);
         alert.initOwner(mStage);
-        alert.setTitle(Dict.Dialog.TITLE_PROFILE_REMOVE.toString());
+        alert.setTitle(Dict.Dialog.TITLE_PROFILE_REMOVE.toString() + "?");
         String message = String.format(Dict.Dialog.MESSAGE_PROFILE_REMOVE.toString(), profile.getName());
         alert.setHeaderText(message);
-        alert.setContentText(Dict.Dialog.MESSAGE_ARE_YOU_SURE.toString());
+
+        ButtonType removeButtonType = new ButtonType(Dict.REMOVE.toString(), ButtonData.OK_DONE);
+        ButtonType cancelButtonType = new ButtonType(Dict.CANCEL.toString(), ButtonData.CANCEL_CLOSE);
+        alert.getButtonTypes().setAll(removeButtonType, cancelButtonType);
 
         Optional<ButtonType> result = FxHelper.showAndWait(alert, mStage);
-        if (result.get() == ButtonType.OK) {
+        if (result.get() == removeButtonType) {
             mProfiles.remove(profile);
             profilesSave();
             populateProfiles(null);
