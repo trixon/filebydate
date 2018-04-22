@@ -278,7 +278,7 @@ public class MainApp extends Application {
 
         //help
         mHelpAction = new Action(Dict.HELP.toString(), (ActionEvent event) -> {
-            SystemHelper.browse("https://trixon.se/projects/filebydate/documentation/");
+            SystemHelper.desktopBrowse("https://trixon.se/projects/filebydate/documentation/");
         });
         mHelpAction.setAccelerator(KeyCombination.keyCombination("F1"));
 
@@ -291,7 +291,7 @@ public class MainApp extends Application {
         //about date format
         String title = String.format(Dict.ABOUT_S.toString(), Dict.DATE_PATTERN.toString().toLowerCase());
         mAboutDateFormatAction = new Action(title, (ActionEvent event) -> {
-            SystemHelper.browse("https://docs.oracle.com/javase/8/docs/api/java/text/SimpleDateFormat.html");
+            SystemHelper.desktopBrowse("https://docs.oracle.com/javase/8/docs/api/java/text/SimpleDateFormat.html");
         });
 
         mRunAction = new Action(Dict.RUN.toString(), (ActionEvent event) -> {
@@ -386,15 +386,15 @@ public class MainApp extends Application {
         alert.setGraphic(null);
         alert.setHeaderText(null);
 
-        ProfilePane profilePane = new ProfilePane(profile);
+        ProfilePanel profilePanel = new ProfilePanel(profile);
 
         final DialogPane dialogPane = alert.getDialogPane();
-        dialogPane.setContent(profilePane);
-        profilePane.setOkButton((Button) dialogPane.lookupButton(ButtonType.OK));
+        dialogPane.setContent(profilePanel);
+        profilePanel.setOkButton((Button) dialogPane.lookupButton(ButtonType.OK));
 
         Optional<ButtonType> result = FxHelper.showAndWait(alert, mStage);
         if (result.get() == ButtonType.OK) {
-            profilePane.save();
+            profilePanel.save();
             if (addNew || clone) {
                 mProfiles.add(profile);
             }

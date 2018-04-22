@@ -53,7 +53,7 @@ import se.trixon.filebydate.ProfileManager;
  *
  * @author Patrik Karlström
  */
-public class ProfilePane extends GridPane {
+public class ProfilePanel extends GridPane {
 
     private final ResourceBundle mBundleUI = SystemHelper.getBundle(MainApp.class, "Bundle");
     private ComboBox<NameCase> mCaseBaseComboBox;
@@ -75,7 +75,7 @@ public class ProfilePane extends GridPane {
     private CheckBox mReplaceCheckBox;
     private FileChooserPane mSourceChooserPane;
 
-    public ProfilePane(Profile p) {
+    public ProfilePanel(Profile p) {
         mProfile = p;
         createUI();
 
