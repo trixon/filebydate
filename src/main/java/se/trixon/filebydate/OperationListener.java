@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2018 Patrik Karlström.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,15 +21,19 @@ package se.trixon.filebydate;
  */
 public interface OperationListener {
 
+    void onOperationError(String message);
+
     void onOperationFailed(String message);
 
-    void onOperationFinished(String message);
+    void onOperationFinished(String message, int fileCount);
 
     void onOperationInterrupted();
 
     void onOperationLog(String message);
 
     void onOperationProcessingStarted();
+
+    void onOperationProgress(int value, int max);
 
     void onOperationStarted();
 }

@@ -65,8 +65,14 @@ public class Operation {
     }
 
     public void start() {
-        mListener.onOperationStarted();
         long startTime = System.currentTimeMillis();
+
+        Date date = new Date(startTime);
+        SimpleDateFormat dateFormat = new SimpleDateFormat();
+        mListener.onOperationStarted();
+        mListener.onOperationProcessingStarted();
+        mListener.onOperationLog(dateFormat.format(date));
+
         mInterrupted = !generateFileList();
         String status;
 
@@ -76,10 +82,11 @@ public class Operation {
             status = Dict.PROCESSING.toString();
             mListener.onOperationLog(status);
 
+            int progress = 0;
             for (File sourceFile : mFiles) {
                 try {
                     try {
-                        TimeUnit.MILLISECONDS.sleep(50);
+                        TimeUnit.MILLISECONDS.sleep(1);
                     } catch (InterruptedException ex) {
                         mInterrupted = true;
                         break;
@@ -153,6 +160,7 @@ public class Operation {
                     }
 
                     mListener.onOperationLog(getMessage(log));
+                    mListener.onOperationProgress(++progress, mFiles.size());
                 } catch (IOException | ImageProcessingException | NullPointerException ex) {
                     mListener.onOperationLog(getMessage(ex.getLocalizedMessage()));
                 }
@@ -171,7 +179,7 @@ public class Operation {
             long min = TimeUnit.MILLISECONDS.toMinutes(millis);
             long sec = TimeUnit.MILLISECONDS.toSeconds(millis) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis));
             status = String.format("%s (%d %s, %d %s)", Dict.TASK_COMPLETED.toString(), min, Dict.TIME_MIN.toString(), sec, Dict.TIME_SEC.toString());
-            mListener.onOperationFinished(status);
+            mListener.onOperationFinished(status, mFiles.size());
 
             if (!mProfile.isDryRun()) {
                 mProfile.setLastRun(System.currentTimeMillis());

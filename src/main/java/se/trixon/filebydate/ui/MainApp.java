@@ -28,7 +28,6 @@ import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.prefs.PreferenceChangeEvent;
 import java.util.stream.Stream;
 import javafx.animation.FadeTransition;
 import javafx.application.Application;
@@ -86,7 +85,6 @@ import se.trixon.almond.util.SystemHelper;
 import se.trixon.almond.util.fx.AlmondFx;
 import se.trixon.almond.util.fx.FxHelper;
 import se.trixon.almond.util.fx.control.LocaleComboBox;
-import se.trixon.almond.util.fx.control.LogPanel;
 import se.trixon.almond.util.fx.dialogs.about.AboutPane;
 import se.trixon.filebydate.FileByDate;
 import se.trixon.filebydate.NameCase;
@@ -103,9 +101,9 @@ import se.trixon.filebydate.ProfileManager;
 public class MainApp extends Application {
 
     public static final String APP_TITLE = "FileByDate";
-    private static final boolean IS_MAC = SystemUtils.IS_OS_MAC;
     private static final int ICON_SIZE_PROFILE = 32;
     private static final int ICON_SIZE_TOOLBAR = 48;
+    private static final boolean IS_MAC = SystemUtils.IS_OS_MAC;
     private static final Logger LOGGER = Logger.getLogger(MainApp.class.getName());
     private Action mAboutAction;
     private Action mAboutDateFormatAction;
@@ -123,7 +121,6 @@ public class MainApp extends Application {
     private Profile mLastRunProfile;
     private ListView<Profile> mListView;
     private Action mLogAction;
-    private final LogPanel mLogPanel = new LogPanel();
     private OperationListener mOperationListener;
     private Thread mOperationThread;
     private final Options mOptions = Options.getInstance();
@@ -131,6 +128,7 @@ public class MainApp extends Application {
     private PreviewPanel mPreviewPanel;
     private final ProfileManager mProfileManager = ProfileManager.getInstance();
     private LinkedList<Profile> mProfiles;
+    private final ProgressPanel mProgressPanel = new ProgressPanel();
     private BorderPane mRoot;
     private Action mRunAction;
     private Stage mStage;
@@ -190,17 +188,6 @@ public class MainApp extends Application {
         mRoot.setBottom(mPreviewPanel);
 
         mStage.setScene(scene);
-        mLogPanel.setWrapText(mOptions.isWordWrap());
-
-        mOptions.getPreferences().addPreferenceChangeListener((PreferenceChangeEvent evt) -> {
-            switch (evt.getKey()) {
-                case Options.KEY_WORD_WRAP:
-                    mLogPanel.setWrapText(mOptions.isWordWrap());
-                    break;
-                default:
-            }
-        });
-
         setRunningState(RunState.STARTABLE);
     }
 
@@ -274,7 +261,7 @@ public class MainApp extends Application {
         //log
         mLogAction = new Action(Dict.OUTPUT.toString(), (ActionEvent event) -> {
             setRunningState(RunState.CLOSEABLE);
-            mRoot.setCenter(mLogPanel);
+            mRoot.setCenter(mProgressPanel);
         });
         mLogAction.setGraphic(mFontAwesome.create(FontAwesome.Glyph.ALIGN_LEFT).size(ICON_SIZE_TOOLBAR).color(mIconColor));
         mLogAction.setDisabled(true);
@@ -314,37 +301,80 @@ public class MainApp extends Application {
 
     private void initListeners() {
         mOperationListener = new OperationListener() {
+            private boolean mSuccess;
+
             @Override
-            public void onOperationFailed(String message) {
+            public void onOperationError(String message) {
+                mProgressPanel.err(message);
             }
 
             @Override
-            public void onOperationFinished(String message) {
-                mLogPanel.println(Dict.DONE.toString());
-                populateProfiles(null);
+            public void onOperationFailed(String message) {
+                onOperationFinished(message, 0);
+                mSuccess = false;
+            }
+
+            @Override
+            public void onOperationFinished(String message, int fileCount) {
                 setRunningState(RunState.CLOSEABLE);
+                mProgressPanel.out(Dict.DONE.toString());
+                populateProfiles(mLastRunProfile);
+
+                if (0 == fileCount) {
+                    mProgressPanel.setProgress(1);
+                }
             }
 
             @Override
             public void onOperationInterrupted() {
                 setRunningState(RunState.CLOSEABLE);
+                mProgressPanel.setProgress(0);
+                mSuccess = false;
             }
 
             @Override
             public void onOperationLog(String message) {
-                mLogPanel.println(message);
+                mProgressPanel.out(message);
             }
 
             @Override
             public void onOperationProcessingStarted() {
+                mProgressPanel.setProgress(-1);
+            }
+
+            @Override
+            public void onOperationProgress(int value, int max) {
+                mProgressPanel.setProgress(value / (double) max);
             }
 
             @Override
             public void onOperationStarted() {
                 setRunningState(RunState.CANCELABLE);
+                mProgressPanel.setProgress(0);
+                mSuccess = true;
             }
         };
 
+    }
+
+    private void initMac() {
+        MenuToolkit menuToolkit = MenuToolkit.toolkit();
+        Menu applicationMenu = menuToolkit.createDefaultApplicationMenu(APP_TITLE);
+        menuToolkit.setApplicationMenu(applicationMenu);
+
+        applicationMenu.getItems().remove(0);
+        MenuItem aboutMenuItem = new MenuItem(String.format(Dict.ABOUT_S.toString(), APP_TITLE));
+        aboutMenuItem.setOnAction(mAboutAction);
+
+        MenuItem settingsMenuItem = new MenuItem(Dict.PREFERENCES.toString());
+        settingsMenuItem.setOnAction(mOptionsAction);
+        settingsMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.COMMA, KeyCombination.SHORTCUT_DOWN));
+
+        applicationMenu.getItems().add(0, aboutMenuItem);
+        applicationMenu.getItems().add(2, settingsMenuItem);
+
+        int cnt = applicationMenu.getItems().size();
+        applicationMenu.getItems().get(cnt - 1).setText(String.format("%s %s", Dict.QUIT.toString(), APP_TITLE));
     }
 
     private void populateProfiles(Profile profile) {
@@ -459,8 +489,8 @@ public class MainApp extends Application {
         if (result.get() != cancelButtonType) {
             boolean dryRun = result.get() == dryRunButtonType;
             profile.setDryRun(dryRun);
-            mLogPanel.clear();
-            mRoot.setCenter(mLogPanel);
+            mProgressPanel.clear();
+            mRoot.setCenter(mProgressPanel);
             mIndicator.setProfile(profile);
 
             if (profile.isValid()) {
@@ -472,9 +502,9 @@ public class MainApp extends Application {
                 mOperationThread.setName("Operation");
                 mOperationThread.start();
             } else {
-                mLogPanel.println(profile.toDebugString());
-                mLogPanel.println(profile.getValidationError());
-                mLogPanel.println(Dict.ABORTING.toString());
+                mProgressPanel.out(profile.toDebugString());
+                mProgressPanel.out(profile.getValidationError());
+                mProgressPanel.out(Dict.ABORTING.toString());
             }
         }
     }
@@ -559,26 +589,6 @@ public class MainApp extends Application {
                 FxHelper.undecorateButton(buttonBase);
             });
         });
-    }
-
-    private void initMac() {
-        MenuToolkit menuToolkit = MenuToolkit.toolkit();
-        Menu applicationMenu = menuToolkit.createDefaultApplicationMenu(APP_TITLE);
-        menuToolkit.setApplicationMenu(applicationMenu);
-
-        applicationMenu.getItems().remove(0);
-        MenuItem aboutMenuItem = new MenuItem(String.format(Dict.ABOUT_S.toString(), APP_TITLE));
-        aboutMenuItem.setOnAction(mAboutAction);
-
-        MenuItem settingsMenuItem = new MenuItem(Dict.PREFERENCES.toString());
-        settingsMenuItem.setOnAction(mOptionsAction);
-        settingsMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.COMMA, KeyCombination.SHORTCUT_DOWN));
-
-        applicationMenu.getItems().add(0, aboutMenuItem);
-        applicationMenu.getItems().add(2, settingsMenuItem);
-
-        int cnt = applicationMenu.getItems().size();
-        applicationMenu.getItems().get(cnt - 1).setText(String.format("%s %s", Dict.QUIT.toString(), APP_TITLE));
     }
 
     public enum RunState {

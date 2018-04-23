@@ -130,11 +130,15 @@ public class FileByDate implements OperationListener {
     }
 
     @Override
+    public void onOperationError(String message) {
+    }
+
+    @Override
     public void onOperationFailed(String message) {
     }
 
     @Override
-    public void onOperationFinished(String message) {
+    public void onOperationFinished(String message, int fileCount) {
         System.out.println(Dict.DONE.toString());
     }
 
@@ -150,6 +154,10 @@ public class FileByDate implements OperationListener {
 
     @Override
     public void onOperationProcessingStarted() {
+    }
+
+    @Override
+    public void onOperationProgress(int value, int max) {
     }
 
     @Override
