@@ -28,7 +28,6 @@ import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Stream;
 import javafx.animation.FadeTransition;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -38,7 +37,6 @@ import javafx.collections.ObservableMap;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -157,13 +155,6 @@ public class MainApp extends Application {
         mStage.show();
         mListView.requestFocus();
         initAccelerators();
-    }
-
-    private void adjustButtonWidth(Stream<Node> stream, double prefWidth) {
-        stream.filter((item) -> (item instanceof ButtonBase))
-                .map((item) -> (ButtonBase) item).forEachOrdered((buttonBase) -> {
-            buttonBase.setPrefWidth(prefWidth);
-        });
     }
 
     private void createUI() {
@@ -583,7 +574,7 @@ public class MainApp extends Application {
                 mIndicator.setVisible(runState != RunState.STARTABLE);
             }
 
-            adjustButtonWidth(mToolBar.getItems().stream(), ICON_SIZE_TOOLBAR * 1.5);
+            FxHelper.adjustButtonWidth(mToolBar.getItems().stream(), ICON_SIZE_TOOLBAR * 1.5);
             mToolBar.getItems().stream().filter((item) -> (item instanceof ButtonBase))
                     .map((item) -> (ButtonBase) item).forEachOrdered((buttonBase) -> {
                 FxHelper.undecorateButton(buttonBase);
@@ -682,7 +673,7 @@ public class MainApp extends Application {
             ToolBar toolBar = ActionUtils.createToolBar(actions, ActionUtils.ActionTextBehavior.HIDE);
             toolBar.setBackground(Background.EMPTY);
             toolBar.setVisible(false);
-            adjustButtonWidth(toolBar.getItems().stream(), ICON_SIZE_PROFILE * 1.8);
+            FxHelper.adjustButtonWidth(toolBar.getItems().stream(), ICON_SIZE_PROFILE * 1.8);
 
             toolBar.getItems().stream().filter((item) -> (item instanceof ButtonBase))
                     .map((item) -> (ButtonBase) item).forEachOrdered((buttonBase) -> {
