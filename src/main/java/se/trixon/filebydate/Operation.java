@@ -83,6 +83,7 @@ public class Operation {
             mListener.onOperationLog(status);
 
             int progress = 0;
+            SimpleDateFormat simpleDateFormat = mProfile.getDateFormat();
             for (File sourceFile : mFiles) {
                 try {
                     try {
@@ -91,8 +92,6 @@ public class Operation {
                         mInterrupted = true;
                         break;
                     }
-
-                    SimpleDateFormat simpleDateFormat = mProfile.getDateFormat();
 
                     String fileDate = simpleDateFormat.format(getDate(sourceFile));
                     File destDir = new File(mProfile.getDestDir(), fileDate);
@@ -160,10 +159,10 @@ public class Operation {
                     }
 
                     mListener.onOperationLog(getMessage(log));
-                    mListener.onOperationProgress(++progress, mFiles.size());
                 } catch (IOException | ImageProcessingException | NullPointerException ex) {
                     mListener.onOperationLog(getMessage(ex.getLocalizedMessage()));
                 }
+                mListener.onOperationProgress(++progress, mFiles.size());
             }
         }
 
