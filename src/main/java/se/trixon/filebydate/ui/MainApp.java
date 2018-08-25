@@ -103,6 +103,7 @@ public class MainApp extends Application {
     private static final int ICON_SIZE_TOOLBAR = 40;
     private static final boolean IS_MAC = SystemUtils.IS_OS_MAC;
     private static final Logger LOGGER = Logger.getLogger(MainApp.class.getName());
+
     private Action mAboutAction;
     private Action mAboutDateFormatAction;
     private Action mAddAction;
