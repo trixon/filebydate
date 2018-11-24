@@ -614,12 +614,12 @@ public class MainApp extends Application {
             setText(null);
 
             mNameLabel.setText(profile.getName());
-            mDescLabel.setText("🖉 " + profile.getDescription());
+            mDescLabel.setText(profile.getDescription());
             String lastRun = "-";
             if (profile.getLastRun() != 0) {
                 lastRun = mSimpleDateFormat.format(new Date(profile.getLastRun()));
             }
-            mLastLabel.setText("🕑 " + lastRun);
+            mLastLabel.setText(lastRun);
 
             setGraphic(mBorderPane);
         }
