@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Patrik Karlström.
+ * Copyright 2019 Patrik Karlström.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -185,7 +185,8 @@ public class MainApp extends Application {
 
     private void displayOptions() {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.initOwner(mStage);
+//        alert.initOwner(mStage);
+        alert.initOwner(null);
         alert.setTitle(Dict.OPTIONS.toString());
         alert.setGraphic(null);
         alert.setHeaderText(null);
@@ -392,7 +393,8 @@ public class MainApp extends Application {
 
     private void profileEdit(Profile profile) {
         Alert alert = new Alert(AlertType.CONFIRMATION);
-        alert.initOwner(mStage);
+//        alert.initOwner(mStage);
+        alert.initOwner(null);
         String title = Dict.EDIT.toString();
         boolean addNew = false;
         boolean clone = profile != null && profile.getName() == null;
@@ -440,7 +442,8 @@ public class MainApp extends Application {
 
     private void profileRemove(Profile profile) {
         Alert alert = new Alert(AlertType.CONFIRMATION);
-        alert.initOwner(mStage);
+//        alert.initOwner(mStage);
+        alert.initOwner(null);
         alert.setTitle(Dict.Dialog.TITLE_PROFILE_REMOVE.toString() + "?");
         String message = String.format(Dict.Dialog.MESSAGE_PROFILE_REMOVE.toString(), profile.getName());
         alert.setHeaderText(message);
@@ -461,7 +464,8 @@ public class MainApp extends Application {
     private void profileRun(Profile profile) {
         String title = String.format(Dict.Dialog.TITLE_PROFILE_RUN.toString(), profile.getName());
         Alert alert = new Alert(AlertType.CONFIRMATION);
-        alert.initOwner(mStage);
+//        alert.initOwner(mStage);
+        alert.initOwner(null);
 
         alert.setTitle(title);
         alert.setGraphic(null);
