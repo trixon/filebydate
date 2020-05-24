@@ -76,10 +76,11 @@ import org.controlsfx.control.action.ActionUtils;
 import org.controlsfx.glyphfont.FontAwesome;
 import org.controlsfx.glyphfont.GlyphFont;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
-import se.trixon.almond.util.AboutModel;
 import se.trixon.almond.util.Dict;
 import se.trixon.almond.util.PomInfo;
 import se.trixon.almond.util.SystemHelper;
+import se.trixon.almond.util.SystemHelperFx;
+import se.trixon.almond.util.fx.AboutModel;
 import se.trixon.almond.util.fx.AlmondFx;
 import se.trixon.almond.util.fx.FxHelper;
 import se.trixon.almond.util.fx.control.LocaleComboBox;
@@ -276,7 +277,7 @@ public class MainApp extends Application {
 
         //about
         PomInfo pomInfo = new PomInfo(FileByDate.class, "se.trixon", "filebydate");
-        AboutModel aboutModel = new AboutModel(SystemHelper.getBundle(FileByDate.class, "about"), SystemHelper.getResourceAsImageView(MainApp.class, "calendar-icon-1024px.png"));
+        AboutModel aboutModel = new AboutModel(SystemHelper.getBundle(FileByDate.class, "about"), SystemHelperFx.getResourceAsImageView(MainApp.class, "calendar-icon-1024px.png"));
         aboutModel.setAppVersion(pomInfo.getVersion());
         mAboutAction = AboutPane.getAction(mStage, aboutModel);
 
