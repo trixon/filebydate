@@ -55,7 +55,7 @@ import se.trixon.filebydate.ProfileManager;
  */
 public class ProfilePanel extends GridPane {
 
-    private final ResourceBundle mBundleUI = SystemHelper.getBundle(MainApp.class, "Bundle");
+    private final ResourceBundle mBundleUI = SystemHelper.getBundle(FbdApp.class, "Bundle");
     private ComboBox<NameCase> mCaseBaseComboBox;
     private ComboBox<NameCase> mCaseExtComboBox;
     private ComboBox<String> mDatePatternComboBox;

@@ -74,8 +74,8 @@ import se.trixon.filebydate.Operation;
 import se.trixon.filebydate.OperationListener;
 import se.trixon.filebydate.Profile;
 import se.trixon.filebydate.ProfileManager;
-import static se.trixon.filebydate.ui.MainApp.ICON_SIZE_PROFILE;
-import static se.trixon.filebydate.ui.MainApp.ICON_SIZE_TOOLBAR;
+import static se.trixon.filebydate.ui.FbdApp.ICON_SIZE_PROFILE;
+import static se.trixon.filebydate.ui.FbdApp.ICON_SIZE_TOOLBAR;
 
 /**
  *
@@ -108,11 +108,11 @@ public class FbdView extends BorderPane {
     private Action mAboutAction;
     private final Workbench mWorkbench;
     private final FbdModule mModule;
-    private final ResourceBundle mBundle = SystemHelper.getBundle(MainApp.class, "Bundle");
+    private final ResourceBundle mBundle = SystemHelper.getBundle(FbdApp.class, "Bundle");
     private final Stage mStage = null;
-    private final MainApp mApp;
+    private final FbdApp mApp;
 
-    public FbdView(MainApp app, Workbench workbench, FbdModule module) {
+    public FbdView(FbdApp app, Workbench workbench, FbdModule module) {
         mApp = app;
         mWorkbench = workbench;
         mModule = module;

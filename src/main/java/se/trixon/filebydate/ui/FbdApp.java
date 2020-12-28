@@ -63,7 +63,7 @@ import se.trixon.filebydate.Options;
  *
  * @author Patrik Karlström
  */
-public class MainApp extends Application {
+public class FbdApp extends Application {
 
     public static final String APP_TITLE = "FileByDate";
     public static final int ICON_SIZE_PROFILE = 32;
@@ -71,7 +71,7 @@ public class MainApp extends Application {
     public static final int ICON_SIZE_DRAWER = ICON_SIZE_TOOLBAR / 2;
     public static final int MODULE_ICON_SIZE = 32;
     private static final boolean IS_MAC = SystemUtils.IS_OS_MAC;
-    private static final Logger LOGGER = Logger.getLogger(MainApp.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(FbdApp.class.getName());
     private final AlmondFx mAlmondFX = AlmondFx.getInstance();
     private Action mHelpAction;
     private final Options mOptions = Options.getInstance();
@@ -94,9 +94,9 @@ public class MainApp extends Application {
     @Override
     public void start(Stage stage) throws Exception {
         mStage = stage;
-        stage.getIcons().add(new Image(MainApp.class.getResourceAsStream("calendar-icon-1024px.png")));
+        stage.getIcons().add(new Image(FbdApp.class.getResourceAsStream("calendar-icon-1024px.png")));
 
-        mAlmondFX.addStageWatcher(stage, MainApp.class);
+        mAlmondFX.addStageWatcher(stage, FbdApp.class);
         createUI();
 
         if (IS_MAC) {
@@ -111,7 +111,7 @@ public class MainApp extends Application {
     private void createUI() {
         mWorkbench = Workbench.builder().build();
 
-        mWorkbench.getStylesheets().add(MainApp.class.getResource("customTheme.css").toExternalForm());
+        mWorkbench.getStylesheets().add(FbdApp.class.getResource("customTheme.css").toExternalForm());
         initToolbar();
         initWorkbenchDrawer();
 
@@ -218,7 +218,7 @@ public class MainApp extends Application {
 
             AboutModel aboutModel = new AboutModel(
                     SystemHelper.getBundle(FileByDate.class, "about"),
-                    SystemHelperFx.getResourceAsImageView(MainApp.class, "logo_small.png")
+                    SystemHelperFx.getResourceAsImageView(FbdApp.class, "logo_small.png")
             );
 
             AboutPane aboutPane = new AboutPane(aboutModel);

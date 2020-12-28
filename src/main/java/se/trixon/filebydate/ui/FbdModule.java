@@ -28,8 +28,8 @@ import javafx.scene.input.KeyCombination;
 import se.trixon.almond.util.Dict;
 import se.trixon.almond.util.icons.material.MaterialIcon;
 import se.trixon.filebydate.ui.FbdView.RunState;
-import static se.trixon.filebydate.ui.MainApp.ICON_SIZE_TOOLBAR;
-import static se.trixon.filebydate.ui.MainApp.MODULE_ICON_SIZE;
+import static se.trixon.filebydate.ui.FbdApp.ICON_SIZE_TOOLBAR;
+import static se.trixon.filebydate.ui.FbdApp.MODULE_ICON_SIZE;
 
 /**
  *
@@ -44,9 +44,9 @@ public class FbdModule extends WorkbenchModule {
     private ToolbarItem mHomeToolbarItem;
     private ToolbarItem mLogToolbarItem;
     private ToolbarItem mRunToolbarItem;
-    private final MainApp mApp;
+    private final FbdApp mApp;
 
-    public FbdModule(MainApp app) {
+    public FbdModule(FbdApp app) {
         super(null, MaterialIcon._Action.DATE_RANGE.getImageView(MODULE_ICON_SIZE).getImage());
         mApp = app;
     }
