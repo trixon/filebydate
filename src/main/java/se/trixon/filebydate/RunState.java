@@ -20,6 +20,6 @@ package se.trixon.filebydate;
  * @author Patrik Karlström
  */
 public enum RunState {
-    STARTABLE, CANCELABLE, CLOSEABLE
-
+    STARTABLE,
+    CANCELABLE
 }

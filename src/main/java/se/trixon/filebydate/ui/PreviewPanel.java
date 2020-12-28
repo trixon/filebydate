@@ -19,7 +19,6 @@ import java.io.File;
 import java.util.Locale;
 import java.util.ResourceBundle;
 import javafx.geometry.Insets;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -33,24 +32,24 @@ import se.trixon.filebydate.Profile;
  *
  * @author Patrik Karlström
  */
-public class PreviewPanel extends BorderPane {
+public class PreviewPanel extends TextFlow {
 
-    private Text mBasedOn = new Text();
+    private final Text mBasedOn = new Text();
     private final ResourceBundle mBundle = SystemHelper.getBundle(PreviewPanel.class, "Bundle");
-    private Text mCase = new Text();
-    private Text mDest = new Text("\n");
-    private Text mFilesFrom = new Text(mBundle.getString("files_from"));
-    private Text mOperation = new Text();
-    private Text mOptions = new Text();
-    private Text mSource = new Text("\n");
-    private Text mTo = new Text(String.format(" %s\n", Dict.TO.toString().toLowerCase(Locale.getDefault())));
+    private final Text mCase = new Text();
+    private final Text mDest = new Text("\n");
+    private final Text mFilesFrom = new Text(mBundle.getString("files_from"));
+    private final Text mOperation = new Text();
+    private final Text mOptions = new Text();
+    private final Text mSource = new Text("\n");
+    private final Text mTo = new Text(String.format(" %s\n", Dict.TO.toString().toLowerCase(Locale.getDefault())));
 
     public PreviewPanel() {
         mOperation.setFill(Color.RED);
         mSource.setFill(Color.RED);
         mDest.setFill(Color.RED);
 
-        TextFlow textFlow = new TextFlow(
+        getChildren().setAll(
                 mOperation,
                 mFilesFrom,
                 mSource,
@@ -61,23 +60,20 @@ public class PreviewPanel extends BorderPane {
                 mCase
         );
 
-        final int fontSize = 18;
-        textFlow.getChildren().stream().filter((node) -> (node instanceof Text)).forEachOrdered((node) -> {
+        final int fontSize = 16;
+        getChildren().stream().filter((node) -> (node instanceof Text)).forEachOrdered((node) -> {
             ((Text) node).setFont(Font.font(fontSize));
         });
-        textFlow.setVisible(false);
+        setVisible(false);
 
         Font defaultFont = Font.getDefault();
         mOperation.setFont(Font.font(defaultFont.getName(), FontWeight.EXTRA_BOLD, fontSize));
 
-        setCenter(textFlow);
-        setMargin(textFlow, new Insets(16));
-        setVisible(false);
+        setPadding(new Insets(8));
     }
 
     public void load(Profile p) {
         setVisible(true);
-        getCenter().setVisible(true);
 
         mOperation.setText(p.getCommand().toString());
         mSource.setText(String.format("%s%s%s",
@@ -85,17 +81,19 @@ public class PreviewPanel extends BorderPane {
                 File.separator,
                 p.getFilePattern())
         );
+
         mDest.setText(String.format("%s%s%s\n",
                 p.getDestDirAsString(),
                 File.separator,
                 p.getDatePattern())
         );
+
         mBasedOn.setText(String.format("%s = '%s'\n",
                 Dict.DATE_SOURCE.toString(),
                 p.getDateSource().toString()
         ));
 
-        StringBuilder sb = new StringBuilder();
+        var sb = new StringBuilder();
         sb.append(getBallotBox(p.isFollowLinks())).append(Dict.FOLLOW_LINKS.toString()).append(", ");
         sb.append(getBallotBox(p.isRecursive())).append(Dict.RECURSIVE.toString()).append(", ");
         sb.append(getBallotBox(p.isReplaceExisting())).append(Dict.REPLACE.toString()).append(". ");

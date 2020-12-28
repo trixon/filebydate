@@ -15,9 +15,7 @@
  */
 package se.trixon.filebydate.ui;
 
-import java.util.prefs.PreferenceChangeEvent;
 import javafx.application.Platform;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.Side;
 import javafx.scene.control.ProgressBar;
@@ -25,11 +23,11 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TabPane.TabClosingPolicy;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 import se.trixon.almond.util.Dict;
 import se.trixon.almond.util.fx.control.LogPanel;
 import se.trixon.filebydate.Options;
+import se.trixon.filebydate.RunStateManager;
 
 /**
  *
@@ -38,43 +36,19 @@ import se.trixon.filebydate.Options;
 public class ProgressPanel extends BorderPane {
 
     private final Tab mErrTab = new Tab(Dict.Dialog.ERROR.toString());
+    private final ProfileIndicator mIndicator = new ProfileIndicator();
     private final LogPanel mLogErrPanel = new LogPanel();
     private final LogPanel mLogOutPanel = new LogPanel();
     private final Options mOptions = Options.getInstance();
     private final Tab mOutTab = new Tab(Dict.OUTPUT.toString());
+    private final PreviewPanel mPreviewPanel = new PreviewPanel();
     private final ProgressBar mProgressBar = new ProgressBar();
+    private final RunStateManager mRunStateManager = RunStateManager.getInstance();
     private final TabPane mTabPane = new TabPane();
 
     public ProgressPanel() {
-        mLogOutPanel.setMonospaced();
-        mLogErrPanel.setMonospaced();
-        mOutTab.setContent(mLogOutPanel);
-        mErrTab.setContent(mLogErrPanel);
-        mTabPane.getTabs().addAll(mOutTab);
-        mTabPane.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
-        mTabPane.setSide(Side.BOTTOM);
-        Insets insets = new Insets(8);
-        mProgressBar.setPadding(insets);
-
-        HBox box = new HBox(8, mProgressBar);
-        HBox.setHgrow(mProgressBar, Priority.ALWAYS);
-        mProgressBar.setMaxWidth(Double.MAX_VALUE);
-        box.setAlignment(Pos.CENTER);
-        setTop(box);
-        setCenter(mTabPane);
-
-        mLogOutPanel.setWrapText(mOptions.isWordWrap());
-        mLogErrPanel.setWrapText(mOptions.isWordWrap());
-
-        mOptions.getPreferences().addPreferenceChangeListener((PreferenceChangeEvent evt) -> {
-            switch (evt.getKey()) {
-                case Options.KEY_WORD_WRAP:
-                    mLogOutPanel.setWrapText(mOptions.isWordWrap());
-                    mLogErrPanel.setWrapText(mOptions.isWordWrap());
-                    break;
-            }
-        });
-
+        createUI();
+        initListeners();
     }
 
     void clear() {
@@ -96,4 +70,44 @@ public class ProgressPanel extends BorderPane {
         });
     }
 
+    private void createUI() {
+        mLogOutPanel.setMonospaced();
+        mLogErrPanel.setMonospaced();
+        mOutTab.setContent(mLogOutPanel);
+        mErrTab.setContent(mLogErrPanel);
+        mTabPane.getTabs().addAll(mOutTab);
+        mTabPane.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
+        mTabPane.setSide(Side.BOTTOM);
+
+        var box = new VBox(
+                mIndicator,
+                mPreviewPanel,
+                mProgressBar
+        );
+
+        mProgressBar.setMaxWidth(Double.MAX_VALUE);
+        mProgressBar.setProgress(0);
+        box.setAlignment(Pos.CENTER);
+        setTop(box);
+        setCenter(mTabPane);
+
+        mLogOutPanel.setWrapText(mOptions.isWordWrap());
+        mLogErrPanel.setWrapText(mOptions.isWordWrap());
+    }
+
+    private void initListeners() {
+        mOptions.getPreferences().addPreferenceChangeListener(pce -> {
+            switch (pce.getKey()) {
+                case Options.KEY_WORD_WRAP:
+                    mLogOutPanel.setWrapText(mOptions.isWordWrap());
+                    mLogErrPanel.setWrapText(mOptions.isWordWrap());
+                    break;
+            }
+        });
+
+        mRunStateManager.profileProperty().addListener((observable, oldValue, newValue) -> {
+            mIndicator.setProfile(newValue);
+            mPreviewPanel.load(newValue);
+        });
+    }
 }

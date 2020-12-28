@@ -15,8 +15,11 @@
  */
 package se.trixon.filebydate;
 
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import se.trixon.almond.util.fx.FxHelper;
 
 /**
  *
@@ -24,25 +27,46 @@ import javafx.beans.property.SimpleObjectProperty;
  */
 public class RunStateManager {
 
+    private final ObjectProperty<Profile> mProfileProperty = new SimpleObjectProperty<>();
     private final ObjectProperty<RunState> mRunStateProperty = new SimpleObjectProperty<>();
-
-    private RunStateManager() {
-    }
+    private final BooleanProperty mRunningProperty = new SimpleBooleanProperty(false);
 
     public static RunStateManager getInstance() {
         return Holder.INSTANCE;
     }
 
-    public ObjectProperty<RunState> runStateProperty() {
-        return mRunStateProperty;
+    private RunStateManager() {
+    }
+
+    public Profile getProfile() {
+        return mProfileProperty.get();
     }
 
     public RunState getRunState() {
         return mRunStateProperty.get();
     }
 
+    public ObjectProperty<Profile> profileProperty() {
+        return mProfileProperty;
+    }
+
+    public ObjectProperty<RunState> runStateProperty() {
+        return mRunStateProperty;
+    }
+
+    public BooleanProperty runningProperty() {
+        return mRunningProperty;
+    }
+
+    public void setProfile(Profile profile) {
+        mProfileProperty.set(profile);
+    }
+
     public void setRunState(RunState runState) {
-        mRunStateProperty.set(runState);
+        FxHelper.runLater(() -> {
+            mRunStateProperty.set(runState);
+            mRunningProperty.set(runState == RunState.CANCELABLE);
+        });
     }
 
     private static class Holder {

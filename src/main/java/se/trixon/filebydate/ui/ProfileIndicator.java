@@ -34,7 +34,7 @@ public class ProfileIndicator extends VBox {
 
     public ProfileIndicator() {
         setAlignment(Pos.CENTER_LEFT);
-        setPadding(new Insets(0, 0, 0, 16));
+        setPadding(new Insets(8));
         getChildren().addAll(mNameLabel, mDescLabel);
         String fontFamily = Font.getDefault().getFamily();
         double fontSize = Font.getDefault().getSize();

@@ -17,7 +17,6 @@ package se.trixon.filebydate.ui;
 
 import com.dlsc.workbenchfx.Workbench;
 import com.dlsc.workbenchfx.model.WorkbenchDialog;
-import com.dlsc.workbenchfx.view.controls.ToolbarItem;
 import de.codecentric.centerdevice.MenuToolkit;
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -33,7 +32,6 @@ import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
-import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
@@ -41,7 +39,6 @@ import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
@@ -56,9 +53,9 @@ import se.trixon.almond.util.fx.AlmondFx;
 import se.trixon.almond.util.fx.FxHelper;
 import se.trixon.almond.util.fx.control.LocaleComboBox;
 import se.trixon.almond.util.fx.dialogs.about.AboutPane;
-import se.trixon.almond.util.icons.material.MaterialIcon;
 import se.trixon.filebydate.FileByDate;
 import se.trixon.filebydate.Options;
+import se.trixon.filebydate.RunStateManager;
 
 /**
  *
@@ -67,10 +64,6 @@ import se.trixon.filebydate.Options;
 public class FbdApp extends Application {
 
     public static final String APP_TITLE = "FileByDate";
-    public static final int ICON_SIZE_PROFILE = 32;
-    public static final int ICON_SIZE_TOOLBAR = 40;
-    public static final int ICON_SIZE_DRAWER = ICON_SIZE_TOOLBAR / 2;
-    public static final int MODULE_ICON_SIZE = 32;
     private static final boolean IS_MAC = SystemUtils.IS_OS_MAC;
     private static final Logger LOGGER = Logger.getLogger(FbdApp.class.getName());
     private final AlmondFx mAlmondFX = AlmondFx.getInstance();
@@ -78,11 +71,9 @@ public class FbdApp extends Application {
     private Action mHelpAction;
     private final Options mOptions = Options.getInstance();
     private Action mOptionsAction;
-    private ToolbarItem mOptionsToolbarItem;
+    private final RunStateManager mRunStateManager = RunStateManager.getInstance();
     private Stage mStage;
     private Workbench mWorkbench;
-    private ToolbarItem mAddToolbarItem;
-    private ToolbarItem mCancelToolbarItem;
 
     /**
      * @param args the command line arguments
@@ -117,11 +108,10 @@ public class FbdApp extends Application {
         mWorkbench = Workbench.builder().build();
         mWorkbench.getStylesheets().add(FbdApp.class.getResource("customTheme.css").toExternalForm());
 
-        initToolbar();
         initWorkbenchDrawer();
 
         mStage.setScene(new Scene(mWorkbench));
-        mWorkbench.getModules().add(mFbdModule = new FbdModule(this));
+        mWorkbench.getModules().add(mFbdModule = new FbdModule());
     }
 
     private void displayOptions() {
@@ -156,16 +146,12 @@ public class FbdApp extends Application {
     private void initAccelerators() {
         final ObservableMap<KeyCombination, Runnable> accelerators = mStage.getScene().getAccelerators();
 
-        accelerators.put(new KeyCodeCombination(KeyCode.Q, KeyCombination.SHORTCUT_DOWN), (Runnable) () -> {
+        accelerators.put(new KeyCodeCombination(KeyCode.Q, KeyCombination.SHORTCUT_DOWN), () -> {
             mStage.fireEvent(new WindowEvent(mStage, WindowEvent.WINDOW_CLOSE_REQUEST));
         });
 
-        accelerators.put(new KeyCodeCombination(KeyCode.N, KeyCombination.SHORTCUT_DOWN), (Runnable) () -> {
-//            profileEdit(null);
-        });
-
         if (!IS_MAC) {
-            accelerators.put(new KeyCodeCombination(KeyCode.COMMA, KeyCombination.SHORTCUT_DOWN), (Runnable) () -> {
+            accelerators.put(new KeyCodeCombination(KeyCode.COMMA, KeyCombination.SHORTCUT_DOWN), () -> {
                 displayOptions();
             });
         }
@@ -191,29 +177,6 @@ public class FbdApp extends Application {
         applicationMenu.getItems().get(cnt - 1).setText(String.format("%s %s", Dict.QUIT.toString(), APP_TITLE));
     }
 
-    private void initToolbar() {
-        mOptionsToolbarItem = new ToolbarItem(Dict.OPTIONS.toString(), MaterialIcon._Action.SETTINGS.getImageView(ICON_SIZE_TOOLBAR, Color.LIGHTGRAY),
-                actionEvent -> {
-                    displayOptions();
-                }
-        );
-
-        mAddToolbarItem = new ToolbarItem(Dict.ADD.toString(), MaterialIcon._Content.ADD.getImageView(ICON_SIZE_TOOLBAR, Color.LIGHTGRAY), event -> {
-            mFbdModule.profileEdit(null);
-        });
-
-        mCancelToolbarItem = new ToolbarItem(MaterialIcon._Navigation.CANCEL.getImageView(ICON_SIZE_TOOLBAR, Color.LIGHTGRAY), event -> {
-//                    mFbdView.doCancel();
-        });
-        mCancelToolbarItem.setTooltip(new Tooltip(Dict.CANCEL.toString()));
-
-        mWorkbench.getToolbarControlsRight().setAll(
-                mOptionsToolbarItem,
-                mAddToolbarItem,
-                mCancelToolbarItem
-        );
-    }
-
     private void initWorkbenchDrawer() {
         //options
         mOptionsAction = new Action(Dict.OPTIONS.toString(), actionEvent -> {
@@ -221,7 +184,7 @@ public class FbdApp extends Application {
             displayOptions();
         });
         mOptionsAction.setAccelerator(new KeyCodeCombination(KeyCode.COMMA, KeyCombination.SHORTCUT_DOWN));
-        mOptionsAction.setGraphic(MaterialIcon._Action.SETTINGS.getImageView(ICON_SIZE_DRAWER));
+        mOptionsAction.disabledProperty().bind(mRunStateManager.runningProperty());
 
         //help
         mHelpAction = new Action(Dict.HELP.toString(), actionEvent -> {
@@ -279,5 +242,4 @@ public class FbdApp extends Application {
             mOptionsAction.setAccelerator(new KeyCodeCombination(KeyCode.COMMA, KeyCombination.SHORTCUT_DOWN));
         }
     }
-
 }
