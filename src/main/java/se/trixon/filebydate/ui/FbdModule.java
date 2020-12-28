@@ -17,11 +17,9 @@ package se.trixon.filebydate.ui;
 
 import com.dlsc.workbenchfx.Workbench;
 import com.dlsc.workbenchfx.model.WorkbenchModule;
-import javafx.application.Platform;
 import javafx.scene.Node;
 import se.trixon.almond.util.icons.material.MaterialIcon;
 import static se.trixon.filebydate.ui.FbdApp.MODULE_ICON_SIZE;
-import se.trixon.filebydate.ui.FbdView.RunState;
 
 /**
  *
@@ -51,45 +49,6 @@ public class FbdModule extends WorkbenchModule {
         super.init(workbench);
         mFbdView = new FbdView(mApp, workbench, this);
         mApp.setFbdView(mFbdView);
-
-        setRunningState(RunState.STARTABLE);
     }
 
-    public void setRunningState(RunState runState) {
-        Platform.runLater(() -> {
-            switch (runState) {
-                case STARTABLE:
-                    getToolbarControlsLeft().setAll( //                            mLogToolbarItem
-                            );
-                    getToolbarControlsRight().setAll( //                            mAddToolbarItem
-                            );
-
-//                mOptionsAction.setDisabled(false);
-                    break;
-
-                case CANCELABLE:
-                    getToolbarControlsLeft().setAll( //                            mHomeToolbarItem
-                            );
-                    getToolbarControlsRight().setAll( //                            mCancelToolbarItem
-                            );
-//                    mHomeToolbarItem.setDisable(true);
-//                mOptionsAction.setDisabled(true);
-                    break;
-
-                case CLOSEABLE:
-                    getToolbarControlsLeft().setAll( //                            mHomeToolbarItem
-                            );
-
-                    getToolbarControlsRight().setAll( //                            mRunToolbarItem
-                            );
-
-//                    mHomeToolbarItem.setDisable(false);
-//                mOptionsAction.setDisabled(false);
-                    break;
-
-                default:
-                    throw new AssertionError();
-            }
-        });
-    }
 }

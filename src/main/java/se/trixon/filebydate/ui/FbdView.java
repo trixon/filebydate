@@ -72,6 +72,7 @@ import se.trixon.filebydate.Operation;
 import se.trixon.filebydate.OperationListener;
 import se.trixon.filebydate.Profile;
 import se.trixon.filebydate.ProfileManager;
+import se.trixon.filebydate.RunState;
 import static se.trixon.filebydate.ui.FbdApp.ICON_SIZE_PROFILE;
 import static se.trixon.filebydate.ui.FbdApp.ICON_SIZE_TOOLBAR;
 
@@ -448,10 +449,6 @@ public class FbdView extends BorderPane {
 
         actions.addAll(Arrays.asList());
 
-    }
-
-    public enum RunState {
-        STARTABLE, CANCELABLE, CLOSEABLE;
     }
 
     class ProfileListCell extends ListCell<Profile> {

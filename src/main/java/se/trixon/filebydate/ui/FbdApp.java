@@ -274,6 +274,7 @@ public class FbdApp extends Application {
         });
 
         mWorkbench.getNavigationDrawerItems().setAll(
+                ActionUtils.createMenuItem(mOptionsAction),
                 ActionUtils.createMenuItem(aboutDateFormatAction),
                 ActionUtils.createMenuItem(aboutAction),
                 ActionUtils.createMenuItem(mHelpAction)
