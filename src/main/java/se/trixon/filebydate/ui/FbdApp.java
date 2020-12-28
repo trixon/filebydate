@@ -75,7 +75,6 @@ public class FbdApp extends Application {
     private static final Logger LOGGER = Logger.getLogger(FbdApp.class.getName());
     private final AlmondFx mAlmondFX = AlmondFx.getInstance();
     private FbdModule mFbdModule;
-    private FbdView mFbdView;
     private Action mHelpAction;
     private final Options mOptions = Options.getInstance();
     private Action mOptionsAction;
@@ -112,10 +111,6 @@ public class FbdApp extends Application {
         mStage.show();
 
         initAccelerators();
-    }
-
-    void setFbdView(FbdView fbdView) {
-        mFbdView = fbdView;
     }
 
     private void createUI() {
@@ -204,7 +199,7 @@ public class FbdApp extends Application {
         );
 
         mAddToolbarItem = new ToolbarItem(Dict.ADD.toString(), MaterialIcon._Content.ADD.getImageView(ICON_SIZE_TOOLBAR, Color.LIGHTGRAY), event -> {
-            mFbdView.profileEdit(null);
+            mFbdModule.profileEdit(null);
         });
 
         mCancelToolbarItem = new ToolbarItem(MaterialIcon._Navigation.CANCEL.getImageView(ICON_SIZE_TOOLBAR, Color.LIGHTGRAY), event -> {

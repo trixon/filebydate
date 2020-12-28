@@ -19,9 +19,11 @@ import java.util.prefs.PreferenceChangeEvent;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.geometry.Side;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.TabPane.TabClosingPolicy;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -48,10 +50,9 @@ public class ProgressPanel extends BorderPane {
         mLogErrPanel.setMonospaced();
         mOutTab.setContent(mLogOutPanel);
         mErrTab.setContent(mLogErrPanel);
-        mOutTab.setClosable(false);
-        mErrTab.setClosable(false);
         mTabPane.getTabs().addAll(mOutTab);
-
+        mTabPane.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
+        mTabPane.setSide(Side.BOTTOM);
         Insets insets = new Insets(8);
         mProgressBar.setPadding(insets);
 
@@ -59,8 +60,8 @@ public class ProgressPanel extends BorderPane {
         HBox.setHgrow(mProgressBar, Priority.ALWAYS);
         mProgressBar.setMaxWidth(Double.MAX_VALUE);
         box.setAlignment(Pos.CENTER);
+        setTop(box);
         setCenter(mTabPane);
-        setBottom(box);
 
         mLogOutPanel.setWrapText(mOptions.isWordWrap());
         mLogErrPanel.setWrapText(mOptions.isWordWrap());
