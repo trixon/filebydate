@@ -33,6 +33,7 @@ import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
@@ -73,12 +74,16 @@ public class FbdApp extends Application {
     private static final boolean IS_MAC = SystemUtils.IS_OS_MAC;
     private static final Logger LOGGER = Logger.getLogger(FbdApp.class.getName());
     private final AlmondFx mAlmondFX = AlmondFx.getInstance();
+    private FbdModule mFbdModule;
+    private FbdView mFbdView;
     private Action mHelpAction;
     private final Options mOptions = Options.getInstance();
     private Action mOptionsAction;
     private ToolbarItem mOptionsToolbarItem;
     private Stage mStage;
     private Workbench mWorkbench;
+    private ToolbarItem mAddToolbarItem;
+    private ToolbarItem mCancelToolbarItem;
 
     /**
      * @param args the command line arguments
@@ -94,29 +99,34 @@ public class FbdApp extends Application {
     @Override
     public void start(Stage stage) throws Exception {
         mStage = stage;
-        stage.getIcons().add(new Image(FbdApp.class.getResourceAsStream("calendar-icon-1024px.png")));
 
-        mAlmondFX.addStageWatcher(stage, FbdApp.class);
+        mAlmondFX.addStageWatcher(mStage, FbdApp.class);
         createUI();
 
         if (IS_MAC) {
             initMac();
         }
+
+        mStage.getIcons().add(new Image(FbdApp.class.getResourceAsStream("calendar-icon-1024px.png")));
         mStage.setTitle(APP_TITLE);
         mStage.show();
 
         initAccelerators();
     }
 
+    void setFbdView(FbdView fbdView) {
+        mFbdView = fbdView;
+    }
+
     private void createUI() {
         mWorkbench = Workbench.builder().build();
-
         mWorkbench.getStylesheets().add(FbdApp.class.getResource("customTheme.css").toExternalForm());
+
         initToolbar();
         initWorkbenchDrawer();
 
-        mWorkbench.getModules().add(new FbdModule(this));
         mStage.setScene(new Scene(mWorkbench));
+        mWorkbench.getModules().add(mFbdModule = new FbdModule(this));
     }
 
     private void displayOptions() {
@@ -155,9 +165,10 @@ public class FbdApp extends Application {
             mStage.fireEvent(new WindowEvent(mStage, WindowEvent.WINDOW_CLOSE_REQUEST));
         });
 
-//        accelerators.put(new KeyCodeCombination(KeyCode.N, KeyCombination.SHORTCUT_DOWN), (Runnable) () -> {
+        accelerators.put(new KeyCodeCombination(KeyCode.N, KeyCombination.SHORTCUT_DOWN), (Runnable) () -> {
 //            profileEdit(null);
-//        });
+        });
+
         if (!IS_MAC) {
             accelerators.put(new KeyCodeCombination(KeyCode.COMMA, KeyCombination.SHORTCUT_DOWN), (Runnable) () -> {
                 displayOptions();
@@ -192,7 +203,20 @@ public class FbdApp extends Application {
                 }
         );
 
-        mWorkbench.getToolbarControlsRight().addAll(mOptionsToolbarItem);
+        mAddToolbarItem = new ToolbarItem(Dict.ADD.toString(), MaterialIcon._Content.ADD.getImageView(ICON_SIZE_TOOLBAR, Color.LIGHTGRAY), event -> {
+            mFbdView.profileEdit(null);
+        });
+
+        mCancelToolbarItem = new ToolbarItem(MaterialIcon._Navigation.CANCEL.getImageView(ICON_SIZE_TOOLBAR, Color.LIGHTGRAY), event -> {
+//                    mFbdView.doCancel();
+        });
+        mCancelToolbarItem.setTooltip(new Tooltip(Dict.CANCEL.toString()));
+
+        mWorkbench.getToolbarControlsRight().setAll(
+                mOptionsToolbarItem,
+                mAddToolbarItem,
+                mCancelToolbarItem
+        );
     }
 
     private void initWorkbenchDrawer() {
@@ -212,8 +236,13 @@ public class FbdApp extends Application {
         //mHelpAction.setAccelerator(new KeyCodeCombination(KeyCode.F1, KeyCombination.SHORTCUT_ANY));
         mHelpAction.setAccelerator(KeyCombination.keyCombination("F1"));
 
+        String title = String.format(Dict.ABOUT_S.toString(), Dict.DATE_PATTERN.toString().toLowerCase());
+        var aboutDateFormatAction = new Action(title, actionEvent -> {
+            SystemHelper.desktopBrowse("https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/text/SimpleDateFormat.html");
+        });
+
         //about
-        Action aboutAction = new Action(Dict.ABOUT.toString(), actionEvent -> {
+        var aboutAction = new Action(Dict.ABOUT.toString(), actionEvent -> {
             mWorkbench.hideNavigationDrawer();
 
             AboutModel aboutModel = new AboutModel(
@@ -245,8 +274,9 @@ public class FbdApp extends Application {
         });
 
         mWorkbench.getNavigationDrawerItems().setAll(
-                ActionUtils.createMenuItem(mHelpAction),
-                ActionUtils.createMenuItem(aboutAction)
+                ActionUtils.createMenuItem(aboutDateFormatAction),
+                ActionUtils.createMenuItem(aboutAction),
+                ActionUtils.createMenuItem(mHelpAction)
         );
 
         if (!IS_MAC) {

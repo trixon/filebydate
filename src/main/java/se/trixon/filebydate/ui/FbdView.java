@@ -29,7 +29,6 @@ import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.animation.FadeTransition;
-import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
@@ -61,7 +60,6 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 import org.apache.commons.io.FileUtils;
 import org.controlsfx.control.action.Action;
-import org.controlsfx.control.action.ActionGroup;
 import org.controlsfx.control.action.ActionUtils;
 import org.controlsfx.glyphfont.FontAwesome;
 import org.controlsfx.glyphfont.GlyphFont;
@@ -85,7 +83,6 @@ public class FbdView extends BorderPane {
 
     private static final Logger LOGGER = Logger.getLogger(FbdView.class.getName());
 
-    private Action mAboutDateFormatAction;
     private Action mAddAction;
     private Action mCancelAction;
     private Font mDefaultFont;
@@ -104,8 +101,6 @@ public class FbdView extends BorderPane {
     private LinkedList<Profile> mProfiles;
     private final ProgressPanel mProgressPanel = new ProgressPanel();
     private Action mRunAction;
-    private ToolBar mToolBar;
-    private Action mAboutAction;
     private final Workbench mWorkbench;
     private final FbdModule mModule;
     private final ResourceBundle mBundle = SystemHelper.getBundle(FbdApp.class, "Bundle");
@@ -117,6 +112,7 @@ public class FbdView extends BorderPane {
         mWorkbench = workbench;
         mModule = module;
         createUI();
+        initListeners();
         postInit();
         mListView.requestFocus();
     }
@@ -199,11 +195,6 @@ public class FbdView extends BorderPane {
 //        aboutModel.setAppVersion(pomInfo.getVersion());
 //        mAboutAction = AboutPane.getAction(mStage, aboutModel);
         //about date format
-        String title = String.format(Dict.ABOUT_S.toString(), Dict.DATE_PATTERN.toString().toLowerCase());
-        mAboutDateFormatAction = new Action(title, (ActionEvent event) -> {
-            SystemHelper.desktopBrowse("https://docs.oracle.com/javase/8/docs/api/java/text/SimpleDateFormat.html");
-        });
-
         mRunAction = new Action(Dict.RUN.toString(), (ActionEvent event) -> {
             profileRun(mLastRunProfile);
         });
@@ -426,9 +417,7 @@ public class FbdView extends BorderPane {
         switch (runState) {
             case STARTABLE:
                 actions.addAll(Arrays.asList(
-                        mLogAction,
-                        ActionUtils.ACTION_SPAN,
-                        mAddAction
+                        mLogAction
                 ));
                 mApp.getOptionsAction().setDisabled(false);
                 break;
@@ -457,32 +446,8 @@ public class FbdView extends BorderPane {
                 throw new AssertionError();
         }
 
-        actions.addAll(Arrays.asList(
-                mApp.getOptionsAction(),
-                new ActionGroup(Dict.HELP.toString(), mFontAwesome.create(FontAwesome.Glyph.QUESTION).size(ICON_SIZE_TOOLBAR).color(mIconColor),
-                        //                        mHelpAction,
-                        mAboutDateFormatAction,
-                        ActionUtils.ACTION_SEPARATOR,
-                        mAboutAction
-                )
-        ));
+        actions.addAll(Arrays.asList());
 
-        Platform.runLater(() -> {
-            if (mToolBar == null) {
-                mToolBar = ActionUtils.createToolBar(actions, ActionUtils.ActionTextBehavior.HIDE);
-                setTop(mToolBar);
-            } else {
-                mToolBar = ActionUtils.updateToolBar(mToolBar, actions, ActionUtils.ActionTextBehavior.HIDE);
-                mToolBar.getItems().add(1, mIndicator);
-                mIndicator.setVisible(runState != RunState.STARTABLE);
-            }
-
-            FxHelper.adjustButtonWidth(mToolBar.getItems().stream(), ICON_SIZE_TOOLBAR * 1.5);
-            mToolBar.getItems().stream().filter((item) -> (item instanceof ButtonBase))
-                    .map((item) -> (ButtonBase) item).forEachOrdered((buttonBase) -> {
-                FxHelper.undecorateButton(buttonBase);
-            });
-        });
     }
 
     public enum RunState {
