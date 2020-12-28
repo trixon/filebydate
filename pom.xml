@@ -86,6 +86,11 @@
             <artifactId>centerdevice-nsmenufx</artifactId>
             <version>2.1.7</version>
         </dependency>
+        <dependency>
+            <groupId>com.dlsc.workbenchfx</groupId>
+            <artifactId>workbenchfx-core</artifactId>
+            <version>11.1.0</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
