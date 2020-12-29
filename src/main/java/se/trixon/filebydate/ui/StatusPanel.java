@@ -33,20 +33,20 @@ import se.trixon.filebydate.RunStateManager;
  *
  * @author Patrik Karlström
  */
-public class ProgressPanel extends BorderPane {
+public class StatusPanel extends BorderPane {
 
     private final Tab mErrTab = new Tab(Dict.Dialog.ERROR.toString());
-    private final ProfileIndicator mIndicator = new ProfileIndicator();
     private final LogPanel mLogErrPanel = new LogPanel();
     private final LogPanel mLogOutPanel = new LogPanel();
     private final Options mOptions = Options.getInstance();
     private final Tab mOutTab = new Tab(Dict.OUTPUT.toString());
-    private final PreviewPanel mPreviewPanel = new PreviewPanel();
     private final ProgressBar mProgressBar = new ProgressBar();
     private final RunStateManager mRunStateManager = RunStateManager.getInstance();
+    private final SummaryDetails mSummaryDetails = new SummaryDetails();
+    private final SummaryHeader mSummaryHeader = new SummaryHeader();
     private final TabPane mTabPane = new TabPane();
 
-    public ProgressPanel() {
+    public StatusPanel() {
         createUI();
         initListeners();
     }
@@ -80,8 +80,8 @@ public class ProgressPanel extends BorderPane {
         mTabPane.setSide(Side.BOTTOM);
 
         var box = new VBox(
-                mIndicator,
-                mPreviewPanel,
+                mSummaryHeader,
+                mSummaryDetails,
                 mProgressBar
         );
 
@@ -106,8 +106,8 @@ public class ProgressPanel extends BorderPane {
         });
 
         mRunStateManager.profileProperty().addListener((observable, oldValue, newValue) -> {
-            mIndicator.setProfile(newValue);
-            mPreviewPanel.load(newValue);
+            mSummaryHeader.load(newValue);
+            mSummaryDetails.load(newValue);
         });
     }
 }

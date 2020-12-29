@@ -27,12 +27,12 @@ import se.trixon.filebydate.Profile;
  *
  * @author Patrik Karlström
  */
-public class ProfileIndicator extends VBox {
+public class SummaryHeader extends VBox {
 
     private final Label mDescLabel = new Label();
     private final Label mNameLabel = new Label();
 
-    public ProfileIndicator() {
+    public SummaryHeader() {
         setAlignment(Pos.CENTER_LEFT);
         setPadding(new Insets(8));
         getChildren().addAll(mNameLabel, mDescLabel);
@@ -43,7 +43,7 @@ public class ProfileIndicator extends VBox {
         mDescLabel.setFont(Font.font(fontFamily, FontWeight.NORMAL, fontSize * 1.2));
     }
 
-    public void setProfile(Profile profile) {
+    void load(Profile profile) {
         mNameLabel.setText(profile.getName());
         mDescLabel.setText(profile.getDescription());
     }

@@ -32,10 +32,10 @@ import se.trixon.filebydate.Profile;
  *
  * @author Patrik Karlström
  */
-public class PreviewPanel extends TextFlow {
+public class SummaryDetails extends TextFlow {
 
     private final Text mBasedOn = new Text();
-    private final ResourceBundle mBundle = SystemHelper.getBundle(PreviewPanel.class, "Bundle");
+    private final ResourceBundle mBundle = SystemHelper.getBundle(SummaryDetails.class, "Bundle");
     private final Text mCase = new Text();
     private final Text mDest = new Text("\n");
     private final Text mFilesFrom = new Text(mBundle.getString("files_from"));
@@ -44,7 +44,7 @@ public class PreviewPanel extends TextFlow {
     private final Text mSource = new Text("\n");
     private final Text mTo = new Text(String.format(" %s\n", Dict.TO.toString().toLowerCase(Locale.getDefault())));
 
-    public PreviewPanel() {
+    public SummaryDetails() {
         mOperation.setFill(Color.RED);
         mSource.setFill(Color.RED);
         mDest.setFill(Color.RED);
@@ -72,38 +72,38 @@ public class PreviewPanel extends TextFlow {
         setPadding(new Insets(8));
     }
 
-    public void load(Profile p) {
+    void load(Profile profile) {
         setVisible(true);
 
-        mOperation.setText(p.getCommand().toString());
+        mOperation.setText(profile.getCommand().toString());
         mSource.setText(String.format("%s%s%s",
-                p.getSourceDirAsString(),
+                profile.getSourceDirAsString(),
                 File.separator,
-                p.getFilePattern())
+                profile.getFilePattern())
         );
 
         mDest.setText(String.format("%s%s%s\n",
-                p.getDestDirAsString(),
+                profile.getDestDirAsString(),
                 File.separator,
-                p.getDatePattern())
+                profile.getDatePattern())
         );
 
         mBasedOn.setText(String.format("%s = '%s'\n",
                 Dict.DATE_SOURCE.toString(),
-                p.getDateSource().toString()
+                profile.getDateSource().toString()
         ));
 
         var sb = new StringBuilder();
-        sb.append(getBallotBox(p.isFollowLinks())).append(Dict.FOLLOW_LINKS.toString()).append(", ");
-        sb.append(getBallotBox(p.isRecursive())).append(Dict.RECURSIVE.toString()).append(", ");
-        sb.append(getBallotBox(p.isReplaceExisting())).append(Dict.REPLACE.toString()).append(". ");
+        sb.append(getBallotBox(profile.isFollowLinks())).append(Dict.FOLLOW_LINKS.toString()).append(", ");
+        sb.append(getBallotBox(profile.isRecursive())).append(Dict.RECURSIVE.toString()).append(", ");
+        sb.append(getBallotBox(profile.isReplaceExisting())).append(Dict.REPLACE.toString()).append(". ");
         mOptions.setText(sb.toString());
 
         String caseText = String.format("%s %s, %s %s",
                 Dict.BASENAME.toString(),
-                p.getCaseBase(),
+                profile.getCaseBase(),
                 Dict.EXTENSION.toString(),
-                p.getCaseExt()
+                profile.getCaseExt()
         );
 
         mCase.setText(caseText);

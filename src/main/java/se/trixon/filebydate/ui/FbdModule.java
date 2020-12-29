@@ -100,10 +100,10 @@ public class FbdModule extends WorkbenchModule {
     private Thread mOperationThread;
     private final ProfileManager mProfileManager = ProfileManager.getInstance();
     private LinkedList<Profile> mProfiles;
-    private final ProgressPanel mProgressPanel = new ProgressPanel();
     private final RunStateManager mRunStateManager = RunStateManager.getInstance();
     private SplitPane mSplitPane;
     private final Stage mStage = null;
+    private final StatusPanel mStatusPanel = new StatusPanel();
     private Workbench mWorkbench;
 
     public FbdModule() {
@@ -188,7 +188,7 @@ public class FbdModule extends WorkbenchModule {
         welcomeLabel.setFont(Font.font(mDefaultFont.getName(), FontPosture.ITALIC, 18));
 
         mListView.setPlaceholder(welcomeLabel);
-        mSplitPane = new SplitPane(mListView, mProgressPanel);
+        mSplitPane = new SplitPane(mListView, mStatusPanel);
     }
 
     private void initAccelerators() {
@@ -217,7 +217,7 @@ public class FbdModule extends WorkbenchModule {
 
             @Override
             public void onOperationError(String message) {
-                mProgressPanel.err(message);
+                mStatusPanel.err(message);
             }
 
             @Override
@@ -229,40 +229,40 @@ public class FbdModule extends WorkbenchModule {
             @Override
             public void onOperationFinished(String message, int fileCount) {
                 mRunStateManager.setRunState(RunState.STARTABLE);
-                mProgressPanel.out(Dict.DONE.toString());
+                mStatusPanel.out(Dict.DONE.toString());
                 populateProfiles(mLastRunProfile);
 
                 if (0 == fileCount) {
-                    mProgressPanel.setProgress(1);
+                    mStatusPanel.setProgress(1);
                 }
             }
 
             @Override
             public void onOperationInterrupted() {
                 mRunStateManager.setRunState(RunState.STARTABLE);
-                mProgressPanel.setProgress(0);
+                mStatusPanel.setProgress(0);
                 mSuccess = false;
             }
 
             @Override
             public void onOperationLog(String message) {
-                mProgressPanel.out(message);
+                mStatusPanel.out(message);
             }
 
             @Override
             public void onOperationProcessingStarted() {
-                mProgressPanel.setProgress(-1);
+                mStatusPanel.setProgress(-1);
             }
 
             @Override
             public void onOperationProgress(int value, int max) {
-                mProgressPanel.setProgress(value / (double) max);
+                mStatusPanel.setProgress(value / (double) max);
             }
 
             @Override
             public void onOperationStarted() {
                 mRunStateManager.setRunState(RunState.CANCELABLE);
-                mProgressPanel.setProgress(0);
+                mStatusPanel.setProgress(0);
                 mSuccess = true;
             }
         };
@@ -330,7 +330,7 @@ public class FbdModule extends WorkbenchModule {
         alert.setGraphic(null);
         alert.setHeaderText(null);
 
-        PreviewPanel previewPanel = new PreviewPanel();
+        SummaryDetails previewPanel = new SummaryDetails();
         previewPanel.load(profile);
         final DialogPane dialogPane = alert.getDialogPane();
         dialogPane.setContent(previewPanel);
@@ -344,7 +344,7 @@ public class FbdModule extends WorkbenchModule {
         if (result.get() != cancelButtonType) {
             boolean dryRun = result.get() == dryRunButtonType;
             profile.setDryRun(dryRun);
-            mProgressPanel.clear();
+            mStatusPanel.clear();
 
             if (profile.isValid()) {
                 mLastRunProfile = profile;
@@ -355,9 +355,9 @@ public class FbdModule extends WorkbenchModule {
                 mOperationThread.setName("Operation");
                 mOperationThread.start();
             } else {
-                mProgressPanel.out(profile.toDebugString());
-                mProgressPanel.out(profile.getValidationError());
-                mProgressPanel.out(Dict.ABORTING.toString());
+                mStatusPanel.out(profile.toDebugString());
+                mStatusPanel.out(profile.getValidationError());
+                mStatusPanel.out(Dict.ABORTING.toString());
             }
         }
     }
