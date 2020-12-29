@@ -86,18 +86,19 @@ public class FbdApp extends Application {
     public void start(Stage stage) throws Exception {
         mStage = stage;
 
-        mAlmondFX.addStageWatcher(mStage, FbdApp.class);
         createUI();
-
         if (IS_MAC) {
             initMac();
         }
 
-        mStage.getIcons().add(new Image(FbdApp.class.getResourceAsStream("calendar-icon-1024px.png")));
-        mStage.setTitle(APP_TITLE);
-        mStage.show();
-
         initAccelerators();
+
+        FxHelper.runLaterDelayed(1, () -> {
+            mStage.getIcons().add(new Image(FbdApp.class.getResourceAsStream("calendar-icon-1024px.png")));
+            mStage.setTitle(APP_TITLE);
+            mAlmondFX.addStageWatcher(mStage, FbdApp.class);
+            mStage.show();
+        });
     }
 
     private void createUI() {

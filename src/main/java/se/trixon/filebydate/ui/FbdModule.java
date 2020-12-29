@@ -30,8 +30,6 @@ import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.animation.FadeTransition;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -85,7 +83,6 @@ public class FbdModule extends WorkbenchModule {
     private Font mDefaultFont;
     private final GlyphFont mFontAwesome = GlyphFontRegistry.font("FontAwesome");
     private final Color mIconColor = Color.BLACK;
-    private final ObservableList<Profile> mItems = FXCollections.observableArrayList();
     private Profile mLastRunProfile;
     private ListView<Profile> mListView;
     private OperationListener mOperationListener;
@@ -171,7 +168,6 @@ public class FbdModule extends WorkbenchModule {
         mDefaultFont = Font.getDefault();
 
         mListView = new ListView<>();
-        mListView.setItems(mItems);
         mListView.setCellFactory(listView -> new ProfileListCell());
         mListView.disableProperty().bind(mRunStateManager.runningProperty());
         var welcomeLabel = new Label(mBundle.getString("welcome"));
@@ -282,12 +278,8 @@ public class FbdModule extends WorkbenchModule {
 
     private void populateProfiles(Profile profile) {
         FxHelper.runLater(() -> {
-            mItems.clear();
             Collections.sort(mProfiles);
-
-            mProfiles.stream().forEach((item) -> {
-                mItems.add(item);
-            });
+            mListView.getItems().setAll(mProfiles);
 
             if (profile != null) {
                 mListView.getSelectionModel().select(profile);
