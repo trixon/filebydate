@@ -46,6 +46,10 @@ public class RunStateManager {
         return mRunStateProperty.get();
     }
 
+    public boolean isRunning() {
+        return mRunningProperty.get();
+    }
+
     public ObjectProperty<Profile> profileProperty() {
         return mProfileProperty;
     }

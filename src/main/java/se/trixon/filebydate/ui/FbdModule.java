@@ -32,7 +32,6 @@ import java.util.logging.Logger;
 import javafx.animation.FadeTransition;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.ObservableMap;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -192,10 +191,18 @@ public class FbdModule extends WorkbenchModule {
     }
 
     private void initAccelerators() {
-        final ObservableMap<KeyCombination, Runnable> accelerators = mWorkbench.getScene().getAccelerators();
+        var accelerators = mWorkbench.getScene().getAccelerators();
 
         accelerators.put(new KeyCodeCombination(KeyCode.N, KeyCombination.SHORTCUT_DOWN), () -> {
-            profileEdit(null);
+            if (!mRunStateManager.isRunning()) {
+                profileEdit(null);
+            }
+        });
+
+        accelerators.put(new KeyCodeCombination(KeyCode.ESCAPE, KeyCombination.SHORTCUT_ANY), () -> {
+            if (mRunStateManager.isRunning()) {
+                mOperationThread.interrupt();
+            }
         });
     }
 
@@ -273,10 +280,12 @@ public class FbdModule extends WorkbenchModule {
         mAddToolbarItem = new ToolbarItem(Dict.ADD.toString(), MaterialIcon._Content.ADD.getImageView(ICON_SIZE_TOOLBAR, Color.LIGHTGRAY), event -> {
             profileEdit(null);
         });
+        mAddToolbarItem.setTooltip(FxHelper.getTooltip(mAddToolbarItem.getText(), new KeyCodeCombination(KeyCode.N, KeyCombination.SHORTCUT_DOWN)));
 
         mCancelToolbarItem = new ToolbarItem(Dict.CANCEL.toString(), MaterialIcon._Navigation.CANCEL.getImageView(ICON_SIZE_TOOLBAR, Color.LIGHTGRAY), event -> {
             mOperationThread.interrupt();
         });
+        mCancelToolbarItem.setTooltip(FxHelper.getTooltip(mCancelToolbarItem.getText(), new KeyCodeCombination(KeyCode.ESCAPE, KeyCombination.SHORTCUT_ANY)));
     }
 
     private void populateProfiles(Profile profile) {
