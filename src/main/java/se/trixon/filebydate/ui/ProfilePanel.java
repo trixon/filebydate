@@ -18,7 +18,6 @@ package se.trixon.filebydate.ui;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.ResourceBundle;
 import java.util.function.Predicate;
 import javafx.application.Platform;
 import javafx.beans.value.ObservableValue;
@@ -39,7 +38,6 @@ import org.controlsfx.validation.ValidationResult;
 import org.controlsfx.validation.ValidationSupport;
 import org.controlsfx.validation.Validator;
 import se.trixon.almond.util.Dict;
-import se.trixon.almond.util.SystemHelper;
 import se.trixon.almond.util.fx.control.FileChooserPane;
 import se.trixon.almond.util.fx.control.FileChooserPane.ObjectMode;
 import se.trixon.filebydate.DateSource;
@@ -55,7 +53,6 @@ import se.trixon.filebydate.ProfileManager;
  */
 public class ProfilePanel extends GridPane {
 
-    private final ResourceBundle mBundleUI = SystemHelper.getBundle(FbdApp.class, "Bundle");
     private ComboBox<NameCase> mCaseBaseComboBox;
     private ComboBox<NameCase> mCaseExtComboBox;
     private ComboBox<String> mDatePatternComboBox;
@@ -117,17 +114,21 @@ public class ProfilePanel extends GridPane {
         mProfile.setCaseExt(mCaseExtComboBox.getValue());
     }
 
+    void setOkButton(Button button) {
+        mOkButton = button;
+    }
+
     private void createUI() {
         //setGridLinesVisible(true);
 
-        Label nameLabel = new Label(Dict.NAME.toString());
-        Label descLabel = new Label(Dict.DESCRIPTION.toString());
-        Label filePatternLabel = new Label(Dict.FILE_PATTERN.toString());
-        Label dateSourceLabel = new Label(Dict.DATE_SOURCE.toString());
+        var nameLabel = new Label(Dict.NAME.toString());
+        var descLabel = new Label(Dict.DESCRIPTION.toString());
+        var filePatternLabel = new Label(Dict.FILE_PATTERN.toString());
+        var dateSourceLabel = new Label(Dict.DATE_SOURCE.toString());
         mDatePatternLabel = new Label(Dict.DATE_PATTERN.toString());
-        Label operationLabel = new Label(Dict.OPERATION.toString());
-        Label caseBaseLabel = new Label(Dict.BASENAME.toString());
-        Label caseExtLabel = new Label(Dict.EXTENSION.toString());
+        var operationLabel = new Label(Dict.OPERATION.toString());
+        var caseBaseLabel = new Label(Dict.BASENAME.toString());
+        var caseExtLabel = new Label(Dict.EXTENSION.toString());
 
         mLinksCheckBox = new CheckBox(Dict.FOLLOW_LINKS.toString());
         mRecursiveCheckBox = new CheckBox(Dict.RECURSIVE.toString());
@@ -152,7 +153,7 @@ public class ProfilePanel extends GridPane {
 
         int col = 0;
         int row = 0;
-
+        nameLabel.setPrefWidth(9999);
         add(nameLabel, col, row, REMAINING, 1);
         add(mNameTextField, col, ++row, REMAINING, 1);
         add(descLabel, col, ++row, REMAINING, 1);
@@ -160,7 +161,7 @@ public class ProfilePanel extends GridPane {
         add(mSourceChooserPane, col, ++row, REMAINING, 1);
         add(mDestChooserPane, col, ++row, REMAINING, 1);
 
-        GridPane patternPane = new GridPane();
+        var patternPane = new GridPane();
         patternPane.addRow(0, filePatternLabel, dateSourceLabel, mDatePatternLabel);
         patternPane.addRow(1, mFilePatternComboBox, mDateSourceComboBox, mDatePatternComboBox);
         patternPane.setHgap(8);
@@ -175,11 +176,11 @@ public class ProfilePanel extends GridPane {
         GridPane.setFillWidth(mDatePatternComboBox, true);
 
         double width = 100.0 / 3.0;
-        ColumnConstraints col1 = new ColumnConstraints();
+        var col1 = new ColumnConstraints();
         col1.setPercentWidth(width);
-        ColumnConstraints col2 = new ColumnConstraints();
+        var col2 = new ColumnConstraints();
         col2.setPercentWidth(width);
-        ColumnConstraints col3 = new ColumnConstraints();
+        var col3 = new ColumnConstraints();
         col3.setPercentWidth(width);
         patternPane.getColumnConstraints().addAll(col1, col2, col3);
 
@@ -236,7 +237,7 @@ public class ProfilePanel extends GridPane {
             return !StringUtils.isBlank((String) o) && previewDateFormat();
         };
 
-        ValidationSupport validationSupport = new ValidationSupport();
+        var validationSupport = new ValidationSupport();
         validationSupport.registerValidator(mNameTextField, indicateRequired, Validator.createEmptyValidator(text_is_required));
         validationSupport.registerValidator(mNameTextField, indicateRequired, Validator.createPredicateValidator(namePredicate, text_is_required));
         validationSupport.registerValidator(mDescTextField, indicateRequired, Validator.createEmptyValidator(text_is_required));
@@ -247,7 +248,9 @@ public class ProfilePanel extends GridPane {
         validationSupport.registerValidator(mDatePatternComboBox, indicateRequired, Validator.createPredicateValidator(datePredicate, text_is_required));
 
         validationSupport.validationResultProperty().addListener((ObservableValue<? extends ValidationResult> observable, ValidationResult oldValue, ValidationResult newValue) -> {
-            mOkButton.setDisable(validationSupport.isInvalid());
+            if (mOkButton != null) {
+                mOkButton.setDisable(validationSupport.isInvalid());
+            }
         });
 
         mFilePatternComboBox.getEditor().textProperty().addListener((observable, oldValue, newValue) -> {
@@ -266,7 +269,7 @@ public class ProfilePanel extends GridPane {
         String datePreview;
 
         try {
-            SimpleDateFormat simpleDateFormat = new SimpleDateFormat(mDatePatternComboBox.getValue(), mOptions.getLocale());
+            var simpleDateFormat = new SimpleDateFormat(mDatePatternComboBox.getValue(), mOptions.getLocale());
             datePreview = simpleDateFormat.format(new Date(System.currentTimeMillis()));
         } catch (IllegalArgumentException ex) {
             datePreview = Dict.Dialog.ERROR.toString();
@@ -278,9 +281,5 @@ public class ProfilePanel extends GridPane {
         mDatePatternLabel.setTooltip(new Tooltip(datePreview));
 
         return validFormat;
-    }
-
-    void setOkButton(Button button) {
-        mOkButton = button;
     }
 }

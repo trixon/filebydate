@@ -44,6 +44,11 @@ public class SummaryHeader extends VBox {
     }
 
     void load(Profile profile) {
+        setVisible(profile != null);
+        if (profile == null) {
+            return;
+        }
+
         mNameLabel.setText(profile.getName());
         mDescLabel.setText(profile.getDescription());
     }

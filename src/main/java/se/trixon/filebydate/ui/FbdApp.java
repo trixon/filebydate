@@ -18,19 +18,15 @@ package se.trixon.filebydate.ui;
 import com.dlsc.workbenchfx.Workbench;
 import com.dlsc.workbenchfx.model.WorkbenchDialog;
 import de.codecentric.centerdevice.MenuToolkit;
-import java.util.Optional;
 import java.util.logging.Logger;
 import javafx.application.Application;
 import javafx.collections.ObservableMap;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
-import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
-import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
@@ -115,32 +111,26 @@ public class FbdApp extends Application {
     }
 
     private void displayOptions() {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-//        alert.initOwner(mStage);
-        alert.initOwner(null);
-        alert.setTitle(Dict.OPTIONS.toString());
-        alert.setGraphic(null);
-        alert.setHeaderText(null);
-
-        Label label = new Label(Dict.CALENDAR_LANGUAGE.toString());
-        LocaleComboBox localeComboBox = new LocaleComboBox();
-        CheckBox checkBox = new CheckBox(Dict.DYNAMIC_WORD_WRAP.toString());
-        GridPane gridPane = new GridPane();
+        var label = new Label(Dict.CALENDAR_LANGUAGE.toString());
+        var localeComboBox = new LocaleComboBox();
+        var checkBox = new CheckBox(Dict.DYNAMIC_WORD_WRAP.toString());
+        var gridPane = new GridPane();
         //gridPane.setGridLinesVisible(true);
         gridPane.addColumn(0, label, localeComboBox, checkBox);
         GridPane.setMargin(checkBox, new Insets(16, 0, 0, 0));
 
-        final DialogPane dialogPane = alert.getDialogPane();
-        dialogPane.setContent(gridPane);
-
         localeComboBox.setLocale(mOptions.getLocale());
         checkBox.setSelected(mOptions.isWordWrap());
+        String title = Dict.OPTIONS.toString();
 
-        Optional<ButtonType> result = FxHelper.showAndWait(alert, mStage);
-        if (result.get() == ButtonType.OK) {
-            mOptions.setLocale(localeComboBox.getLocale());
-            mOptions.setWordWrap(checkBox.isSelected());
-        }
+        var dialog = WorkbenchDialog.builder(title, gridPane, ButtonType.CANCEL, ButtonType.OK).onResult(buttonType -> {
+            if (buttonType == ButtonType.OK) {
+                mOptions.setLocale(localeComboBox.getLocale());
+                mOptions.setWordWrap(checkBox.isSelected());
+            }
+        }).build();
+
+        mWorkbench.showDialog(dialog);
     }
 
     private void initAccelerators() {
@@ -158,15 +148,15 @@ public class FbdApp extends Application {
     }
 
     private void initMac() {
-        MenuToolkit menuToolkit = MenuToolkit.toolkit();
-        Menu applicationMenu = menuToolkit.createDefaultApplicationMenu(APP_TITLE);
+        var menuToolkit = MenuToolkit.toolkit();
+        var applicationMenu = menuToolkit.createDefaultApplicationMenu(APP_TITLE);
         menuToolkit.setApplicationMenu(applicationMenu);
 
         applicationMenu.getItems().remove(0);
-        MenuItem aboutMenuItem = new MenuItem(String.format(Dict.ABOUT_S.toString(), APP_TITLE));
+        var aboutMenuItem = new MenuItem(String.format(Dict.ABOUT_S.toString(), APP_TITLE));
 //        aboutMenuItem.setOnAction(mAboutAction);
 
-        MenuItem settingsMenuItem = new MenuItem(Dict.PREFERENCES.toString());
+        var settingsMenuItem = new MenuItem(Dict.PREFERENCES.toString());
         settingsMenuItem.setOnAction(mOptionsAction);
         settingsMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.COMMA, KeyCombination.SHORTCUT_DOWN));
 
@@ -203,31 +193,31 @@ public class FbdApp extends Application {
         var aboutAction = new Action(Dict.ABOUT.toString(), actionEvent -> {
             mWorkbench.hideNavigationDrawer();
 
-            AboutModel aboutModel = new AboutModel(
+            var aboutModel = new AboutModel(
                     SystemHelper.getBundle(FileByDate.class, "about"),
                     SystemHelperFx.getResourceAsImageView(FbdApp.class, "logo_small.png")
             );
 
-            AboutPane aboutPane = new AboutPane(aboutModel);
+            var aboutPane = new AboutPane(aboutModel);
 
             double scaledFontSize = FxHelper.getScaledFontSize();
-            Label appLabel = new Label(aboutModel.getAppName());
+            var appLabel = new Label(aboutModel.getAppName());
             appLabel.setFont(new Font(scaledFontSize * 1.8));
-            Label verLabel = new Label(String.format("%s %s", Dict.VERSION.toString(), aboutModel.getAppVersion()));
+            var verLabel = new Label(String.format("%s %s", Dict.VERSION.toString(), aboutModel.getAppVersion()));
             verLabel.setFont(new Font(scaledFontSize * 1.2));
-            Label dateLabel = new Label(aboutModel.getAppDate());
+            var dateLabel = new Label(aboutModel.getAppDate());
             dateLabel.setFont(new Font(scaledFontSize * 1.2));
 
-            VBox box = new VBox(appLabel, verLabel, dateLabel);
+            var box = new VBox(appLabel, verLabel, dateLabel);
             box.setAlignment(Pos.CENTER_LEFT);
             box.setPadding(new Insets(0, 0, 0, 22));
-            BorderPane topBorderPane = new BorderPane(box);
+            var topBorderPane = new BorderPane(box);
             topBorderPane.setLeft(aboutModel.getImageView());
             topBorderPane.setPadding(new Insets(22));
-            BorderPane mainBorderPane = new BorderPane(aboutPane);
+            var mainBorderPane = new BorderPane(aboutPane);
             mainBorderPane.setTop(topBorderPane);
 
-            WorkbenchDialog dialog = WorkbenchDialog.builder(Dict.ABOUT.toString(), mainBorderPane, ButtonType.CLOSE).build();
+            var dialog = WorkbenchDialog.builder(Dict.ABOUT.toString(), mainBorderPane, ButtonType.CLOSE).build();
             mWorkbench.showDialog(dialog);
         });
 

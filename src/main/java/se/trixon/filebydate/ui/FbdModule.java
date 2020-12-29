@@ -16,6 +16,7 @@
 package se.trixon.filebydate.ui;
 
 import com.dlsc.workbenchfx.Workbench;
+import com.dlsc.workbenchfx.model.WorkbenchDialog;
 import com.dlsc.workbenchfx.model.WorkbenchModule;
 import com.dlsc.workbenchfx.view.controls.ToolbarItem;
 import java.io.IOException;
@@ -25,7 +26,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
-import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -35,11 +35,8 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
-import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
@@ -54,7 +51,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
-import javafx.stage.Stage;
 import javafx.util.Duration;
 import org.apache.commons.io.FileUtils;
 import org.controlsfx.control.action.Action;
@@ -98,7 +94,6 @@ public class FbdModule extends WorkbenchModule {
     private LinkedList<Profile> mProfiles;
     private final RunStateManager mRunStateManager = RunStateManager.getInstance();
     private SplitPane mSplitPane;
-    private final Stage mStage = null;
     private final StatusPanel mStatusPanel = new StatusPanel();
     private Workbench mWorkbench;
 
@@ -124,9 +119,6 @@ public class FbdModule extends WorkbenchModule {
     }
 
     void profileEdit(Profile profile) {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-//        alert.initOwner(mStage);
-        alert.initOwner(null);
         String title = Dict.EDIT.toString();
         boolean addNew = false;
         boolean clone = profile != null && profile.getName() == null;
@@ -150,26 +142,28 @@ public class FbdModule extends WorkbenchModule {
             profile.setLastRun(0);
         }
 
-        alert.setTitle(title);
-        alert.setGraphic(null);
-        alert.setHeaderText(null);
+        var profilePanel = new ProfilePanel(profile);
 
-        ProfilePanel profilePanel = new ProfilePanel(profile);
+        final boolean add = addNew;
+        final Profile p = profile;
+        var dialog = WorkbenchDialog.builder(title, profilePanel, ButtonType.CANCEL, ButtonType.OK).onResult(buttonType -> {
+            if (buttonType == ButtonType.OK) {
+                profilePanel.save();
+                if (add || clone) {
+                    mProfiles.add(p);
+                }
 
-        final DialogPane dialogPane = alert.getDialogPane();
-        dialogPane.setContent(profilePanel);
-        profilePanel.setOkButton((Button) dialogPane.lookupButton(ButtonType.OK));
-
-        Optional<ButtonType> result = FxHelper.showAndWait(alert, mStage);
-        if (result.get() == ButtonType.OK) {
-            profilePanel.save();
-            if (addNew || clone) {
-                mProfiles.add(profile);
+                profilesSave();
+                populateProfiles(p);
             }
+        }).build();
 
-            profilesSave();
-            populateProfiles(profile);
-        }
+        dialog.setOnShown(event -> {
+            profilePanel.setOkButton(dialog.getButton(ButtonType.OK).get());
+        });
+
+//        dialog.setMaximized(true);
+        mWorkbench.showDialog(dialog);
     }
 
     private void createUI() {
@@ -308,65 +302,53 @@ public class FbdModule extends WorkbenchModule {
     }
 
     private void profileRemove(Profile profile) {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-//        alert.initOwner(mStage);
-        alert.initOwner(null);
-        alert.setTitle(Dict.Dialog.TITLE_PROFILE_REMOVE.toString() + "?");
+        String title = Dict.Dialog.TITLE_PROFILE_REMOVE.toString() + "?";
         String message = String.format(Dict.Dialog.MESSAGE_PROFILE_REMOVE.toString(), profile.getName());
-        alert.setHeaderText(message);
 
-        ButtonType removeButtonType = new ButtonType(Dict.REMOVE.toString(), ButtonBar.ButtonData.OK_DONE);
-        ButtonType cancelButtonType = new ButtonType(Dict.CANCEL.toString(), ButtonBar.ButtonData.CANCEL_CLOSE);
-        alert.getButtonTypes().setAll(removeButtonType, cancelButtonType);
+        var removeButtonType = new ButtonType(Dict.REMOVE.toString(), ButtonData.OK_DONE);
+        var cancelButtonType = new ButtonType(Dict.CANCEL.toString(), ButtonData.CANCEL_CLOSE);
 
-        Optional<ButtonType> result = FxHelper.showAndWait(alert, mStage);
-        if (result.get() == removeButtonType) {
-            mProfiles.remove(profile);
-            profilesSave();
-            populateProfiles(null);
-        }
+        var dialog = WorkbenchDialog.builder(title, message, removeButtonType, cancelButtonType).onResult(buttonType -> {
+            if (buttonType == removeButtonType) {
+                mProfiles.remove(profile);
+                profilesSave();
+                populateProfiles(null);
+                mRunStateManager.setProfile(null);
+            }
+        }).build();
+        mWorkbench.showDialog(dialog);
     }
 
     private void profileRun(Profile profile) {
+        var summaryDetails = new SummaryDetails(profile);
+        var runButtonType = new ButtonType(Dict.RUN.toString());
+        var dryRunButtonType = new ButtonType(Dict.DRY_RUN.toString(), ButtonData.OK_DONE);
+        var cancelButtonType = new ButtonType(Dict.CANCEL.toString(), ButtonData.CANCEL_CLOSE);
+
         String title = String.format(Dict.Dialog.TITLE_PROFILE_RUN.toString(), profile.getName());
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-//        alert.initOwner(mStage);
-        alert.initOwner(null);
 
-        alert.setTitle(title);
-        alert.setGraphic(null);
-        alert.setHeaderText(null);
+        var dialog = WorkbenchDialog.builder(title, summaryDetails, runButtonType, dryRunButtonType, cancelButtonType).onResult(buttonType -> {
+            if (buttonType != cancelButtonType) {
+                boolean dryRun = buttonType == dryRunButtonType;
+                profile.setDryRun(dryRun);
+                mStatusPanel.clear();
 
-        SummaryDetails previewPanel = new SummaryDetails();
-        previewPanel.load(profile);
-        final DialogPane dialogPane = alert.getDialogPane();
-        dialogPane.setContent(previewPanel);
-
-        ButtonType runButtonType = new ButtonType(Dict.RUN.toString());
-        ButtonType dryRunButtonType = new ButtonType(Dict.DRY_RUN.toString(), ButtonBar.ButtonData.OK_DONE);
-        ButtonType cancelButtonType = new ButtonType(Dict.CANCEL.toString(), ButtonBar.ButtonData.CANCEL_CLOSE);
-
-        alert.getButtonTypes().setAll(runButtonType, dryRunButtonType, cancelButtonType);
-        Optional<ButtonType> result = alert.showAndWait();
-        if (result.get() != cancelButtonType) {
-            boolean dryRun = result.get() == dryRunButtonType;
-            profile.setDryRun(dryRun);
-            mStatusPanel.clear();
-
-            if (profile.isValid()) {
-                mLastRunProfile = profile;
-                mOperationThread = new Thread(() -> {
-                    Operation operation = new Operation(mOperationListener, profile);
-                    operation.start();
-                });
-                mOperationThread.setName("Operation");
-                mOperationThread.start();
-            } else {
-                mStatusPanel.out(profile.toDebugString());
-                mStatusPanel.out(profile.getValidationError());
-                mStatusPanel.out(Dict.ABORTING.toString());
+                if (profile.isValid()) {
+                    mLastRunProfile = profile;
+                    mOperationThread = new Thread(() -> {
+                        Operation operation = new Operation(mOperationListener, profile);
+                        operation.start();
+                    });
+                    mOperationThread.setName("Operation");
+                    mOperationThread.start();
+                } else {
+                    mStatusPanel.out(profile.toDebugString());
+                    mStatusPanel.out(profile.getValidationError());
+                    mStatusPanel.out(Dict.ABORTING.toString());
+                }
             }
-        }
+        }).build();
+        mWorkbench.showDialog(dialog);
     }
 
     private void profilesLoad() {

@@ -72,8 +72,16 @@ public class SummaryDetails extends TextFlow {
         setPadding(new Insets(8));
     }
 
+    public SummaryDetails(Profile profile) {
+        this();
+        load(profile);
+    }
+
     void load(Profile profile) {
-        setVisible(true);
+        setVisible(profile != null);
+        if (profile == null) {
+            return;
+        }
 
         mOperation.setText(profile.getCommand().toString());
         mSource.setText(String.format("%s%s%s",
