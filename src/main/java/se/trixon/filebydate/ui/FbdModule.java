@@ -33,7 +33,6 @@ import javafx.animation.FadeTransition;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
@@ -48,9 +47,8 @@ import javafx.scene.control.SplitPane;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Background;
-import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -82,7 +80,6 @@ import se.trixon.filebydate.RunStateManager;
  */
 public class FbdModule extends WorkbenchModule {
 
-    private static final int ICON_SIZE_PROFILE = 32;
     private static final int ICON_SIZE_TOOLBAR = 40;
     private static final Logger LOGGER = Logger.getLogger(FbdModule.class.getName());
     private static final int MODULE_ICON_SIZE = 32;
@@ -188,6 +185,7 @@ public class FbdModule extends WorkbenchModule {
 
         mListView.setPlaceholder(welcomeLabel);
         mSplitPane = new SplitPane(mListView, mStatusPanel);
+        mSplitPane.setDividerPosition(0, 0.33);
     }
 
     private void initAccelerators() {
@@ -390,7 +388,9 @@ public class FbdModule extends WorkbenchModule {
 
     class ProfileListCell extends ListCell<Profile> {
 
-        private final BorderPane mBorderPane = new BorderPane();
+        private static final int ICON_SIZE_PROFILE = 24;
+
+        private final StackPane mStackPane = new StackPane();
         private final Label mDescLabel = new Label();
         private final Duration mDuration = Duration.millis(200);
         private final FadeTransition mFadeInTransition = new FadeTransition();
@@ -433,7 +433,7 @@ public class FbdModule extends WorkbenchModule {
             }
             mLastLabel.setText(lastRun);
 
-            setGraphic(mBorderPane);
+            setGraphic(mStackPane);
         }
 
         private void clearContent() {
@@ -445,29 +445,33 @@ public class FbdModule extends WorkbenchModule {
             String fontFamily = mDefaultFont.getFamily();
             double fontSize = mDefaultFont.getSize();
 
-            mNameLabel.setFont(Font.font(fontFamily, FontWeight.BOLD, fontSize * 2));
+            mNameLabel.setFont(Font.font(fontFamily, FontWeight.BOLD, fontSize * 1.6));
             mDescLabel.setFont(Font.font(fontFamily, FontWeight.NORMAL, fontSize * 1.3));
             mLastLabel.setFont(Font.font(fontFamily, FontWeight.NORMAL, fontSize * 1.3));
 
             var runAction = new Action(Dict.RUN.toString(), (ActionEvent event) -> {
+                mFadeOutTransition.playFromStart();
                 profileRun(getSelectedProfile());
                 mListView.requestFocus();
             });
             runAction.setGraphic(mFontAwesome.create(FontAwesome.Glyph.PLAY).size(ICON_SIZE_PROFILE).color(mIconColor));
 
             var editAction = new Action(Dict.EDIT.toString(), (ActionEvent event) -> {
+                mFadeOutTransition.playFromStart();
                 profileEdit(getSelectedProfile());
                 mListView.requestFocus();
             });
             editAction.setGraphic(mFontAwesome.create(FontAwesome.Glyph.EDIT).size(ICON_SIZE_PROFILE).color(mIconColor));
 
             var cloneAction = new Action(Dict.CLONE.toString(), (ActionEvent event) -> {
+                mFadeOutTransition.playFromStart();
                 profileClone();
                 mListView.requestFocus();
             });
             cloneAction.setGraphic(mFontAwesome.create(FontAwesome.Glyph.COPY).size(ICON_SIZE_PROFILE).color(mIconColor));
 
             var removeAction = new Action(Dict.REMOVE.toString(), (ActionEvent event) -> {
+                mFadeOutTransition.playFromStart();
                 profileRemove(getSelectedProfile());
                 mListView.requestFocus();
             });
@@ -486,19 +490,17 @@ public class FbdModule extends WorkbenchModule {
             var toolBar = ActionUtils.createToolBar(actions, ActionUtils.ActionTextBehavior.HIDE);
             toolBar.setBackground(Background.EMPTY);
             toolBar.setVisible(false);
+            toolBar.setMaxWidth(4 * ICON_SIZE_PROFILE * 1.84);
             FxHelper.slimToolBar(toolBar);
             FxHelper.undecorateButtons(toolBar.getItems().stream());
             FxHelper.adjustButtonWidth(toolBar.getItems().stream(), ICON_SIZE_PROFILE * 1.8);
 
-            BorderPane.setAlignment(toolBar, Pos.CENTER);
-
-            mBorderPane.setCenter(mainBox);
-            BorderPane.setMargin(mainBox, new Insets(8));
-            mBorderPane.setRight(toolBar);
             mFadeInTransition.setNode(toolBar);
             mFadeOutTransition.setNode(toolBar);
+            mStackPane.getChildren().setAll(mainBox, toolBar);
+            StackPane.setAlignment(toolBar, Pos.CENTER_RIGHT);
 
-            mBorderPane.setOnMouseEntered((MouseEvent event) -> {
+            mStackPane.setOnMouseEntered(mouseEvent -> {
                 if (!toolBar.isVisible()) {
                     toolBar.setVisible(true);
                 }
@@ -508,7 +510,7 @@ public class FbdModule extends WorkbenchModule {
                 mFadeInTransition.playFromStart();
             });
 
-            mBorderPane.setOnMouseExited((MouseEvent event) -> {
+            mStackPane.setOnMouseExited(mouseEvent -> {
                 mFadeOutTransition.playFromStart();
             });
         }
@@ -527,6 +529,5 @@ public class FbdModule extends WorkbenchModule {
             mListView.getSelectionModel().select(this.getIndex());
             mListView.requestFocus();
         }
-
     }
 }

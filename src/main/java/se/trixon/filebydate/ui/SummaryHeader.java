@@ -39,8 +39,8 @@ public class SummaryHeader extends VBox {
         String fontFamily = Font.getDefault().getFamily();
         double fontSize = Font.getDefault().getSize();
 
-        mNameLabel.setFont(Font.font(fontFamily, FontWeight.BOLD, fontSize * 1.7));
-        mDescLabel.setFont(Font.font(fontFamily, FontWeight.NORMAL, fontSize * 1.2));
+        mNameLabel.setFont(Font.font(fontFamily, FontWeight.BOLD, fontSize * 1.6));
+        mDescLabel.setFont(Font.font(fontFamily, FontWeight.NORMAL, fontSize * 1.3));
     }
 
     void load(Profile profile) {
