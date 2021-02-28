@@ -15,7 +15,6 @@
  */
 package se.trixon.filebydate;
 
-import java.awt.GraphicsEnvironment;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -32,7 +31,6 @@ import org.apache.commons.cli.ParseException;
 import se.trixon.almond.util.Dict;
 import se.trixon.almond.util.PomInfo;
 import se.trixon.almond.util.SystemHelper;
-import se.trixon.almond.util.Xlog;
 import se.trixon.filebydate.ui.FbdApp;
 
 /**
@@ -165,13 +163,6 @@ public class FileByDate implements OperationListener {
     }
 
     private void displayGui() {
-        if (GraphicsEnvironment.isHeadless()) {
-            Xlog.timedErr(Dict.Dialog.ERROR_NO_GUI_IN_HEADLESS.toString());
-            System.exit(1);
-
-            return;
-        }
-
         new Thread(() -> {
             FbdApp.main(sArgs);
         }).start();

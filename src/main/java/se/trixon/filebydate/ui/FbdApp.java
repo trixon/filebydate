@@ -17,7 +17,7 @@ package se.trixon.filebydate.ui;
 
 import com.dlsc.workbenchfx.Workbench;
 import com.dlsc.workbenchfx.model.WorkbenchDialog;
-import de.codecentric.centerdevice.MenuToolkit;
+import de.jangassen.MenuToolkit;
 import java.util.logging.Logger;
 import javafx.application.Application;
 import javafx.collections.ObservableMap;
