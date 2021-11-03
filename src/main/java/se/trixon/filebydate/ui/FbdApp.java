@@ -120,13 +120,13 @@ public class FbdApp extends Application {
         gridPane.addColumn(0, label, localeComboBox, checkBox);
         GridPane.setMargin(checkBox, new Insets(16, 0, 0, 0));
 
-        localeComboBox.setLocale(mOptions.getLocale());
+        localeComboBox.setValue(mOptions.getLocale());
         checkBox.setSelected(mOptions.isWordWrap());
         String title = Dict.OPTIONS.toString();
 
         var dialog = WorkbenchDialog.builder(title, gridPane, ButtonType.CANCEL, ButtonType.OK).onResult(buttonType -> {
             if (buttonType == ButtonType.OK) {
-                mOptions.setLocale(localeComboBox.getLocale());
+                mOptions.setLocale(localeComboBox.getValue());
                 mOptions.setWordWrap(checkBox.isSelected());
             }
         }).build();
