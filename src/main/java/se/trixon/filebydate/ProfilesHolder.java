@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.LinkedList;
 import org.apache.commons.io.FileUtils;
+import se.trixon.almond.util.gson_adapter.FileAdapter;
 
 /**
  *
@@ -36,6 +37,7 @@ public class ProfilesHolder {
             .setVersion(1.0)
             .serializeNulls()
             .setPrettyPrinting()
+            .registerTypeAdapter(File.class, new FileAdapter())
             .create();
     @SerializedName("format_version")
     private int mFileFormatVersion;
