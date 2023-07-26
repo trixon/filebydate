@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+OpenIDE-Module-Install: se/trixon/filebydate/boot/Installer.class
+OpenIDE-Module-Layer: se/trixon/filebydate/layer.xml
+OpenIDE-Module-Localizing-Bundle: se/trixon/filebydate/Bundle.properties
+OpenIDE-Module-Requires: org.openide.windows.WindowManager
+
