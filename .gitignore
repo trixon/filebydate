@@ -58,6 +58,7 @@ nbdist/
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
+!/branding/src/main/nbm-branding/core/core.jar/
 !/branding/src/main/nbm-branding/modules/org-netbeans-core-windows.jar/
 !/branding/src/main/nbm-branding/modules/org-netbeans-core.jar/
 

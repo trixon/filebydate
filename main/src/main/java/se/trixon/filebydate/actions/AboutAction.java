@@ -32,7 +32,7 @@ public final class AboutAction implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        var aboutModel = new AboutModel(SystemHelper.getBundle(Filebydate.class, "about"), SystemHelper.getResourceAsImageIcon(Filebydate.class, "logo.png"));
+        var aboutModel = new AboutModel(SystemHelper.getBundle(Filebydate.class, "about"), SystemHelper.getResourceAsImageIcon(Filebydate.class, "about_logo.png"));
         aboutModel.setAppDate(ModuleHelper.getBuildTime(Filebydate.class));
 
         new NbAbout(aboutModel).display();
