@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2023 Patrik Karlström <patrik@trixon.se>.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,13 +15,9 @@
  */
 package se.trixon.filebydate;
 
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.scene.paint.Color;
+import java.util.Locale;
 import org.openide.util.NbPreferences;
 import se.trixon.almond.util.OptionsBase;
-import se.trixon.almond.util.icons.material.MaterialIcon;
 
 /**
  *
@@ -29,11 +25,8 @@ import se.trixon.almond.util.icons.material.MaterialIcon;
  */
 public class Options extends OptionsBase {
 
-    private static final boolean DEFAULT_UI_NIGHTMODE = false;
-    private static final String KEY_UI_NIGHTMODE = "ui.nightmode";
-    private final boolean DEFAULT_ACTIVE = false;
-    private final String KEY_ACTIVE = "active";
-    private final BooleanProperty mNightModeProperty = new SimpleBooleanProperty();
+    public static final String KEY_LOCALE = "locale";
+    private static final Locale DEFAULT_LOCALE = Locale.getDefault();
 
     public static Options getInstance() {
         return Holder.INSTANCE;
@@ -41,46 +34,14 @@ public class Options extends OptionsBase {
 
     private Options() {
         mPreferences = NbPreferences.forModule(getClass());
-        init();
     }
 
-    public boolean isActive() {
-        return mPreferences.getBoolean(KEY_ACTIVE, DEFAULT_ACTIVE);
+    public Locale getLocale() {
+        return Locale.forLanguageTag(mPreferences.get(KEY_LOCALE, DEFAULT_LOCALE.toLanguageTag()));
     }
 
-    public boolean isNightMode() {
-        return mNightModeProperty.get();
-    }
-
-    public BooleanProperty nightModeProperty() {
-        return mNightModeProperty;
-    }
-
-    public void setActive(boolean value) {
-        mPreferences.putBoolean(KEY_ACTIVE, value);
-    }
-
-    public void setNightMode(boolean nightMode) {
-        mNightModeProperty.set(nightMode);
-    }
-
-    private void init() {
-        initListeners();
-        mNightModeProperty.set(is(KEY_UI_NIGHTMODE, DEFAULT_UI_NIGHTMODE));
-    }
-
-    private void initListeners() {
-        ChangeListener<Object> changeListener = (observable, oldValue, newValue) -> {
-            MaterialIcon.setDefaultColor(isNightMode() ? Color.LIGHTGRAY : Color.BLACK);
-
-            save();
-        };
-
-        mNightModeProperty.addListener(changeListener);
-    }
-
-    private void save() {
-        put(KEY_UI_NIGHTMODE, isNightMode());
+    public void setLocale(Locale locale) {
+        mPreferences.put(KEY_LOCALE, locale.toLanguageTag());
     }
 
     private static class Holder {

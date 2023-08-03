@@ -16,13 +16,11 @@
 package se.trixon.filebydate.boot;
 
 import java.util.prefs.BackingStoreException;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.openide.modules.OnStart;
 import org.openide.util.NbPreferences;
 import se.trixon.almond.nbp.dialogs.NbOptionalDialog;
 import se.trixon.almond.util.PrefsHelper;
-import se.trixon.almond.util.fx.FxHelper;
 import se.trixon.filebydate.Options;
 
 /**
@@ -43,8 +41,6 @@ public class DoOnStart implements Runnable {
             var defaultLAF = !SystemUtils.IS_OS_MAC ? "com.formdev.flatlaf.FlatLightLaf" : "com.formdev.flatlaf.themes.FlatMacLightLaf";
             var preferences = NbPreferences.root().node("laf");
             PrefsHelper.putIfAbsent(preferences, key, defaultLAF);
-            mOptions.setNightMode(StringUtils.containsIgnoreCase(preferences.get(key, ""), "dark"));
-            FxHelper.setDarkThemeEnabled(mOptions.isNightMode());
         } catch (BackingStoreException ex) {
             //Exceptions.printStackTrace(ex);
         }

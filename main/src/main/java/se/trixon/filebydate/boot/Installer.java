@@ -38,7 +38,7 @@ public class Installer extends ModuleInstall {
     public boolean closing() {
         boolean exit = true;
 
-        if (mOptions.isActive() && mTaskManager.hasActiveTasks()) {
+        if (mTaskManager.hasActiveTasks()) {
             var d = new NotifyDescriptor(
                     NbBundle.getMessage(Installer.class, "confirmExit"),
                     "filebydate",
