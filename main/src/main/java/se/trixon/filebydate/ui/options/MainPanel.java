@@ -22,6 +22,7 @@ import javafx.scene.layout.GridPane;
 import javax.swing.JPanel;
 import se.trixon.almond.nbp.fx.FxPanel;
 import se.trixon.almond.util.Dict;
+import se.trixon.almond.util.fx.FxHelper;
 import se.trixon.almond.util.fx.control.LocaleComboBox;
 import se.trixon.filebydate.Options;
 
@@ -29,7 +30,7 @@ final class MainPanel extends JPanel {
 
     private final MainPanelController mController;
     private final FxPanel mFxPanel;
-    private LocaleComboBox mLocaleComboBox = new LocaleComboBox();
+    private final LocaleComboBox mLocaleComboBox = new LocaleComboBox();
     private final Options mOptions = Options.getInstance();
 
     MainPanel(MainPanelController controller) {
@@ -38,7 +39,10 @@ final class MainPanel extends JPanel {
 
             @Override
             protected void fxConstructor() {
-                setScene(createScene());
+                Scene scene = createScene();
+                FxHelper.applyFontScale(scene);
+
+                setScene(scene);
             }
 
             private Scene createScene() {
