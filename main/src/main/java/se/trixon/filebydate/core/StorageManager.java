@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2023 Patrik Karlström <patrik@trixon.se>.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,7 +35,7 @@ public class StorageManager {
     private final File mProfilesBackupFile;
     private final File mProfilesFile;
     private Storage mStorage = new Storage();
-    private final TaskManager mTaskManager = TaskManager.getInstance();
+    private final ProfileManager mProfileManager = ProfileManager.getInstance();
     private final File mUserDirectory;
 
     public static StorageManager getInstance() {
@@ -75,8 +75,8 @@ public class StorageManager {
         return mProfilesFile;
     }
 
-    public TaskManager getTaskManager() {
-        return mTaskManager;
+    public ProfileManager getProfileManager() {
+        return mProfileManager;
     }
 
     public File getUserDirectory() {
@@ -87,16 +87,16 @@ public class StorageManager {
         if (mProfilesFile.exists()) {
             mStorage = Storage.open(mProfilesFile);
 
-            var taskItems = mTaskManager.getIdToItem();
+            var taskItems = mProfileManager.getIdToItem();
             taskItems.clear();
-            taskItems.putAll(mStorage.getTasks());
+            taskItems.putAll(mStorage.getProfiles());
         } else {
             mStorage = new Storage();
         }
     }
 
     private void saveToFile() throws IOException {
-        mStorage.setTasks(mTaskManager.getIdToItem());
+        mStorage.setProfiles(mProfileManager.getIdToItem());
         String json = mStorage.save(mProfilesFile);
         String tag = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         FileUtils.writeStringToFile(mProfilesBackupFile, String.format("%s=%s\n", tag, json), Charset.defaultCharset(), true);

@@ -15,7 +15,7 @@
  */
 package se.trixon.filebydate.core;
 
-import it.sauronsoftware.cron4j.Scheduler;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.beans.property.ObjectProperty;
@@ -30,29 +30,27 @@ import org.apache.commons.lang3.StringUtils;
  *
  * @author Patrik Karlström <patrik@trixon.se>
  */
-public class TaskManager {
+public class ProfileManager {
 
-    private final ObjectProperty<ObservableMap<String, Task>> mIdToItemProperty = new SimpleObjectProperty<>();
-    private final ObjectProperty<ObservableList<Task>> mItemsProperty = new SimpleObjectProperty<>();
+    private final ObjectProperty<ObservableMap<String, Profile>> mIdToItemProperty = new SimpleObjectProperty<>();
+    private final ObjectProperty<ObservableList<Profile>> mItemsProperty = new SimpleObjectProperty<>();
 
-    private Scheduler mScheduler = new Scheduler();
-
-    public static TaskManager getInstance() {
+    public static ProfileManager getInstance() {
         return Holder.INSTANCE;
     }
 
-    private TaskManager() {
+    private ProfileManager() {
         mItemsProperty.setValue(FXCollections.observableArrayList());
         mIdToItemProperty.setValue(FXCollections.observableHashMap());
 
-        mIdToItemProperty.get().addListener((MapChangeListener.Change<? extends String, ? extends Task> change) -> {
-            var values = new ArrayList<Task>(getIdToItem().values());
+        mIdToItemProperty.get().addListener((MapChangeListener.Change<? extends String, ? extends Profile> change) -> {
+            var values = new ArrayList<Profile>(getIdToItem().values());
             values.sort((o1, o2) -> o1.getName().compareToIgnoreCase(o2.getName()));
             getItems().setAll(values);
         });
     }
 
-    public boolean exists(Task item) {
+    public boolean exists(Profile item) {
         return getIdToItem().containsValue(item);
     }
 
@@ -61,20 +59,20 @@ public class TaskManager {
                 .anyMatch(item -> (StringUtils.equalsIgnoreCase(name, item.getName())));
     }
 
-    public Task getById(String id) {
+    public Profile getById(String id) {
         return getIdToItem().get(id);
     }
 
-    public final ObservableMap<String, Task> getIdToItem() {
+    public final ObservableMap<String, Profile> getIdToItem() {
         return mIdToItemProperty.get();
     }
 
-    public final ObservableList<Task> getItems() {
+    public final ObservableList<Profile> getItems() {
         return mItemsProperty.get();
     }
 
-    public List<Task> getTasks(ArrayList<String> taskIds) {
-        var tasks = new ArrayList<Task>();
+    public List<Profile> getTasks(ArrayList<String> taskIds) {
+        var tasks = new ArrayList<Profile>();
 
         taskIds.forEach(id -> {
             var task = getById(id);
@@ -90,7 +88,7 @@ public class TaskManager {
         return false;
     }
 
-    public ObjectProperty<ObservableList<Task>> itemsProperty() {
+    public ObjectProperty<ObservableList<Profile>> itemsProperty() {
         return mItemsProperty;
     }
 
@@ -98,12 +96,12 @@ public class TaskManager {
         System.out.println(message);
     }
 
-    public Task save() {
+    public Profile save() throws IOException {
         return null;
     }
 
     private static class Holder {
 
-        private static final TaskManager INSTANCE = new TaskManager();
+        private static final ProfileManager INSTANCE = new ProfileManager();
     }
 }

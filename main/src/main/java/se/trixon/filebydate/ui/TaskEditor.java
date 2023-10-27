@@ -27,11 +27,10 @@ import org.controlsfx.validation.ValidationSupport;
 import org.controlsfx.validation.Validator;
 import org.openide.DialogDescriptor;
 import se.trixon.almond.util.Dict;
-import se.trixon.almond.util.fx.FxHelper;
 import se.trixon.almond.util.fx.control.FileChooserPane;
+import se.trixon.filebydate.core.Profile;
+import se.trixon.filebydate.core.ProfileManager;
 import se.trixon.filebydate.core.StorageManager;
-import se.trixon.filebydate.core.Task;
-import se.trixon.filebydate.core.TaskManager;
 
 /**
  *
@@ -43,34 +42,32 @@ public class TaskEditor extends BorderPane {
     private final TextField mDescTextField = new TextField();
     private DialogDescriptor mDialogDescriptor;
     private FileChooserPane mDirDestFileChooser;
-    private Task mItem;
+    private Profile mItem;
     private final TextField mNameTextField = new TextField();
-    private final TaskManager mTaskManager = TaskManager.getInstance();
-    private final CronEditor mCronEditor = new CronEditor();
+    private final ProfileManager mProfileManager = ProfileManager.getInstance();
 
     public TaskEditor() {
         createUI();
         initValidation();
     }
 
-    public void load(Task item, DialogDescriptor dialogDescriptor) {
+    public void load(Profile item, DialogDescriptor dialogDescriptor) {
         if (item == null) {
-            item = new Task();
+            item = new Profile();
         }
         mItem = item;
         mDialogDescriptor = dialogDescriptor;
         mNameTextField.setText(item.getName());
         mDescTextField.setText(item.getDescription());
-        mDirDestFileChooser.setPath(item.getDestination());
-        mCronEditor.load(item);
+//        mDirDestFileChooser.setPath(item.getDestination());
     }
 
-    public Task save() {
-        mTaskManager.getIdToItem().put(mItem.getId(), mItem);
+    public Profile save() {
+        mProfileManager.getIdToItem().put(mItem.getId(), mItem);
 
         mItem.setName(mNameTextField.getText());
         mItem.setDescription(mDescTextField.getText());
-        mItem.setDestination(mDirDestFileChooser.getPathAsString());
+//        mItem.setDestination(mDirDestFileChooser.getPathAsString());
 
         StorageManager.save();
 
@@ -96,9 +93,6 @@ public class TaskEditor extends BorderPane {
         );
 
         setTop(vbox);
-        setCenter(mCronEditor);
-
-        FxHelper.setPadding(FxHelper.getUIScaledInsets(8, 0, 0, 0), descLabel, mCronEditor);
     }
 
     private void initValidation() {
@@ -113,7 +107,7 @@ public class TaskEditor extends BorderPane {
 
         Predicate uniqueNamePredicate = (Predicate) (Object o) -> {
             var newName = mNameTextField.getText();
-            if (!mTaskManager.exists(newName)) {
+            if (!mProfileManager.exists(newName)) {
                 return true;
             } else {
                 return StringUtils.equalsIgnoreCase(newName, mItem.getName());

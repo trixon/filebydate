@@ -1,5 +1,5 @@
-/* 
- * Copyright 2023 Patrik Karlström <patrik@trixon.se>.
+/*
+ * Copyright 2022 Patrik Karlström.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,27 @@
  */
 package se.trixon.filebydate.core;
 
-import java.io.File;
-import java.io.IOException;
+import java.util.Locale;
+import java.util.ResourceBundle;
+import se.trixon.almond.util.SystemHelper;
+import se.trixon.filebydate.ui.MainTopComponent;
 
-public interface DownloadListener {
+/**
+ *
+ * @author Patrik Karlström
+ */
+public enum DateSource {
 
-    void onDownloadFailed(Task task, IOException ex);
+    EXIF_ORIGINAL,
+    FILE_CREATED,
+    FILE_MODIFIED;
+    private final ResourceBundle mBundleUI = SystemHelper.getBundle(MainTopComponent.class, "Bundle");
 
-    void onDownloadFinished(Task task, File destFile);
+    private DateSource() {
+    }
 
-    void onDownloadStarted(Task task);
+    @Override
+    public String toString() {
+        return mBundleUI.getString("dateSource_" + name().toLowerCase(Locale.ROOT));
+    }
 }

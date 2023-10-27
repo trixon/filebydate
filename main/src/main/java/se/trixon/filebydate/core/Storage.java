@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2023 Patrik Karlström <patrik@trixon.se>.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,7 +41,7 @@ public class Storage {
     @SerializedName("fileFormatVersion")
     private int mFileFormatVersion;
     @SerializedName("tasks")
-    private final HashMap<String, Task> mTasks = new HashMap<>();
+    private final HashMap<String, Profile> mProfiles = new HashMap<>();
 
     public static Storage open(File file) throws IOException, JsonSyntaxException {
         String json = FileUtils.readFileToString(file, Charset.defaultCharset());
@@ -59,8 +59,8 @@ public class Storage {
         return mFileFormatVersion;
     }
 
-    public HashMap<String, Task> getTasks() {
-        return mTasks;
+    public HashMap<String, Profile> getProfiles() {
+        return mProfiles;
     }
 
     public String save(File file) throws IOException {
@@ -71,8 +71,8 @@ public class Storage {
         return json;
     }
 
-    void setTasks(ObservableMap<String, Task> tasks) {
-        mTasks.clear();
-        mTasks.putAll(tasks);
+    void setProfiles(ObservableMap<String, Profile> tasks) {
+        mProfiles.clear();
+        mProfiles.putAll(tasks);
     }
 }
