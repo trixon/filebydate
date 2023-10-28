@@ -1,4 +1,4 @@
-/*
+/* 
  * Copyright 2023 Patrik Karlström <patrik@trixon.se>.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,9 +28,9 @@ import org.controlsfx.validation.Validator;
 import org.openide.DialogDescriptor;
 import se.trixon.almond.util.Dict;
 import se.trixon.almond.util.fx.control.FileChooserPane;
-import se.trixon.filebydate.core.Profile;
-import se.trixon.filebydate.core.ProfileManager;
 import se.trixon.filebydate.core.StorageManager;
+import se.trixon.filebydate.core.Task;
+import se.trixon.filebydate.core.TaskManager;
 
 /**
  *
@@ -42,18 +42,18 @@ public class TaskEditor extends BorderPane {
     private final TextField mDescTextField = new TextField();
     private DialogDescriptor mDialogDescriptor;
     private FileChooserPane mDirDestFileChooser;
-    private Profile mItem;
+    private Task mItem;
     private final TextField mNameTextField = new TextField();
-    private final ProfileManager mProfileManager = ProfileManager.getInstance();
+    private final TaskManager mTaskManager = TaskManager.getInstance();
 
     public TaskEditor() {
         createUI();
         initValidation();
     }
 
-    public void load(Profile item, DialogDescriptor dialogDescriptor) {
+    public void load(Task item, DialogDescriptor dialogDescriptor) {
         if (item == null) {
-            item = new Profile();
+            item = new Task();
         }
         mItem = item;
         mDialogDescriptor = dialogDescriptor;
@@ -62,8 +62,8 @@ public class TaskEditor extends BorderPane {
 //        mDirDestFileChooser.setPath(item.getDestination());
     }
 
-    public Profile save() {
-        mProfileManager.getIdToItem().put(mItem.getId(), mItem);
+    public Task save() {
+        mTaskManager.getIdToItem().put(mItem.getId(), mItem);
 
         mItem.setName(mNameTextField.getText());
         mItem.setDescription(mDescTextField.getText());
@@ -107,7 +107,7 @@ public class TaskEditor extends BorderPane {
 
         Predicate uniqueNamePredicate = (Predicate) (Object o) -> {
             var newName = mNameTextField.getText();
-            if (!mProfileManager.exists(newName)) {
+            if (!mTaskManager.exists(newName)) {
                 return true;
             } else {
                 return StringUtils.equalsIgnoreCase(newName, mItem.getName());

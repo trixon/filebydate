@@ -1,5 +1,5 @@
 /* 
- * Copyright 2022 Patrik Karlström.
+ * Copyright 2023 Patrik Karlström <patrik@trixon.se>.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,11 +56,11 @@ public class Operation {
     private final List<File> mFiles = new ArrayList<>();
     private boolean mInterrupted;
     private final OperationListener mListener;
-    private final Profile mProfile;
+    private final Task mTask;
 
-    public Operation(OperationListener operationListener, Profile profile) {
+    public Operation(OperationListener operationListener, Task task) {
         mListener = operationListener;
-        mProfile = profile;
+        mTask = task;
         mBundle = SystemHelper.getBundle(Operation.class, "Bundle");
     }
 
@@ -83,7 +83,7 @@ public class Operation {
             mListener.onOperationLog(status);
 
             int progress = 0;
-            SimpleDateFormat simpleDateFormat = mProfile.getDateFormat();
+            SimpleDateFormat simpleDateFormat = mTask.getDateFormat();
             for (File sourceFile : mFiles) {
                 try {
                     try {
@@ -94,20 +94,20 @@ public class Operation {
                     }
 
                     String fileDate = simpleDateFormat.format(getDate(sourceFile));
-                    File destDir = new File(mProfile.getDestDir(), fileDate);
+                    File destDir = new File(mTask.getDestDir(), fileDate);
 
                     if (destDir.isFile()) {
                         mListener.onOperationLog(String.format(Dict.Dialog.ERROR_DEST_DIR_IS_FILE.toString(), destDir.getAbsolutePath()));
                         break;
-                    } else if (!destDir.exists() && !mProfile.isDryRun()) {
+                    } else if (!destDir.exists() && !mTask.isDryRun()) {
                         FileUtils.forceMkdir(destDir);
                     }
 
                     String destFilename = sourceFile.getName();
                     String base = FilenameUtils.getBaseName(destFilename);
                     String ext = FilenameUtils.getExtension(destFilename);
-                    NameCase caseBase = mProfile.getCaseBase();
-                    NameCase caseExt = mProfile.getCaseExt();
+                    NameCase caseBase = mTask.getCaseBase();
+                    NameCase caseExt = mTask.getCaseExt();
 
                     if (caseBase != NameCase.UNCHANGED || caseExt != NameCase.UNCHANGED) {
                         if (caseBase == NameCase.LOWER) {
@@ -133,15 +133,15 @@ public class Operation {
 
                     File destFile = new File(destDir, destFilename);
                     String log;
-                    if (destFile.exists() && !mProfile.isReplaceExisting()) {
+                    if (destFile.exists() && !mTask.isReplaceExisting()) {
                         log = String.format(Dict.Dialog.ERROR_DEST_FILE_EXISTS.toString(), destFile.getAbsolutePath());
                     } else {
-                        Command command = mProfile.getCommand();
+                        Command command = mTask.getCommand();
                         String cmd = command == Command.COPY ? "cp" : "mv";
                         log = String.format("%s %s  %s", cmd, sourceFile.getAbsolutePath(), destFile.toString());
 
                         if (destDir.canWrite()) {
-                            if (!mProfile.isDryRun()) {
+                            if (!mTask.isDryRun()) {
                                 if (command == Command.COPY) {
                                     FileUtils.copyFile(sourceFile, destFile);
                                 } else if (command == Command.MOVE) {
@@ -153,7 +153,7 @@ public class Operation {
                                     }
                                 }
                             }
-                        } else if (!mProfile.isDryRun()) {
+                        } else if (!mTask.isDryRun()) {
                             log = Dict.Dialog.ERROR_DEST_CANT_WRITE.toString();
                         }
                     }
@@ -180,10 +180,10 @@ public class Operation {
             status = String.format("%s (%d %s, %d %s)", Dict.TASK_COMPLETED.toString(), min, Dict.TIME_MIN.toString(), sec, Dict.TIME_SEC.toString());
             mListener.onOperationFinished(status, mFiles.size());
 
-            if (!mProfile.isDryRun()) {
-                mProfile.setLastRun(System.currentTimeMillis());
+            if (!mTask.isDryRun()) {
+                mTask.setLastRun(System.currentTimeMillis());
                 try {
-                    ProfileManager.getInstance().save();
+                    TaskManager.getInstance().save();
                 } catch (IOException ex) {
                     LOGGER.log(Level.SEVERE, null, ex);
                 }
@@ -191,21 +191,25 @@ public class Operation {
         }
     }
 
+    OperationListener getListener() {
+        return mListener;
+    }
+
     private boolean generateFileList() {
         mListener.onOperationLog("");
         mListener.onOperationLog(Dict.GENERATING_FILELIST.toString());
-        PathMatcher pathMatcher = mProfile.getPathMatcher();
+        PathMatcher pathMatcher = mTask.getPathMatcher();
 
         EnumSet<FileVisitOption> fileVisitOptions = EnumSet.noneOf(FileVisitOption.class);
-        if (mProfile.isFollowLinks()) {
+        if (mTask.isFollowLinks()) {
             fileVisitOptions = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
         }
 
-        File file = mProfile.getSourceDir();
+        File file = mTask.getSourceDir();
         if (file.isDirectory()) {
             FileVisitor fileVisitor = new FileVisitor(pathMatcher, mFiles, this);
             try {
-                if (mProfile.isRecursive()) {
+                if (mTask.isRecursive()) {
                     Files.walkFileTree(file.toPath(), fileVisitOptions, Integer.MAX_VALUE, fileVisitor);
                 } else {
                     Files.walkFileTree(file.toPath(), fileVisitOptions, 1, fileVisitor);
@@ -232,7 +236,7 @@ public class Operation {
 
     private Date getDate(File sourceFile) throws IOException, ImageProcessingException {
         Date date = new Date(System.currentTimeMillis());
-        DateSource dateSource = mProfile.getDateSource();
+        DateSource dateSource = mTask.getDateSource();
 
         if (dateSource == DateSource.FILE_CREATED) {
             BasicFileAttributes attr = Files.readAttributes(sourceFile.toPath(), BasicFileAttributes.class);
@@ -264,15 +268,11 @@ public class Operation {
     }
 
     private String getMessage(String message) {
-        if (mProfile.isDryRun()) {
+        if (mTask.isDryRun()) {
             message = String.format("dry-run: %s", message);
         }
 
         return StringUtils.defaultString(message, "");
-    }
-
-    OperationListener getListener() {
-        return mListener;
     }
 
     public enum Command {

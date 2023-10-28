@@ -1,4 +1,4 @@
-/*
+/* 
  * Copyright 2023 Patrik Karlström <patrik@trixon.se>.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,10 +32,10 @@ public class StorageManager {
 
     private final File mHistoryFile;
     private final File mLogFile;
-    private final File mProfilesBackupFile;
-    private final File mProfilesFile;
+    private final File mTasksBackupFile;
+    private final File mTasksFile;
     private Storage mStorage = new Storage();
-    private final ProfileManager mProfileManager = ProfileManager.getInstance();
+    private final TaskManager mTaskManager = TaskManager.getInstance();
     private final File mUserDirectory;
 
     public static StorageManager getInstance() {
@@ -53,8 +53,8 @@ public class StorageManager {
     private StorageManager() {
         mUserDirectory = Places.getUserDirectory();
 
-        mProfilesFile = new File(mUserDirectory, "config.json");
-        mProfilesBackupFile = new File(mUserDirectory, "config.bak");
+        mTasksFile = new File(mUserDirectory, "config.json");
+        mTasksBackupFile = new File(mUserDirectory, "config.bak");
         mHistoryFile = new File(mUserDirectory, "var/history");
         mLogFile = new File(mUserDirectory, "var/filebydate.log");
     }
@@ -71,12 +71,12 @@ public class StorageManager {
         return mLogFile;
     }
 
-    public File getProfilesFile() {
-        return mProfilesFile;
+    public File getTasksFile() {
+        return mTasksFile;
     }
 
-    public ProfileManager getProfileManager() {
-        return mProfileManager;
+    public TaskManager getTaskManager() {
+        return mTaskManager;
     }
 
     public File getUserDirectory() {
@@ -84,22 +84,22 @@ public class StorageManager {
     }
 
     public void load() throws IOException {
-        if (mProfilesFile.exists()) {
-            mStorage = Storage.open(mProfilesFile);
+        if (mTasksFile.exists()) {
+            mStorage = Storage.open(mTasksFile);
 
-            var taskItems = mProfileManager.getIdToItem();
+            var taskItems = mTaskManager.getIdToItem();
             taskItems.clear();
-            taskItems.putAll(mStorage.getProfiles());
+            taskItems.putAll(mStorage.getTasks());
         } else {
             mStorage = new Storage();
         }
     }
 
     private void saveToFile() throws IOException {
-        mStorage.setProfiles(mProfileManager.getIdToItem());
-        String json = mStorage.save(mProfilesFile);
+        mStorage.setTasks(mTaskManager.getIdToItem());
+        String json = mStorage.save(mTasksFile);
         String tag = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        FileUtils.writeStringToFile(mProfilesBackupFile, String.format("%s=%s\n", tag, json), Charset.defaultCharset(), true);
+        FileUtils.writeStringToFile(mTasksBackupFile, String.format("%s=%s\n", tag, json), Charset.defaultCharset(), true);
 
         load(); //This will refresh and sort ListViews
     }

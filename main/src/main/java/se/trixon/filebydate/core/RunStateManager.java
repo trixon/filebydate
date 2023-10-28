@@ -1,5 +1,5 @@
 /* 
- * Copyright 2022 Patrik Karlström.
+ * Copyright 2023 Patrik Karlström <patrik@trixon.se>.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import se.trixon.almond.util.fx.FxHelper;
  */
 public class RunStateManager {
 
-    private final ObjectProperty<Profile> mProfileProperty = new SimpleObjectProperty<>();
+    private final ObjectProperty<Task> mTaskProperty = new SimpleObjectProperty<>();
     private final ObjectProperty<RunState> mRunStateProperty = new SimpleObjectProperty<>();
     private final BooleanProperty mRunningProperty = new SimpleBooleanProperty(false);
 
@@ -38,8 +38,8 @@ public class RunStateManager {
     private RunStateManager() {
     }
 
-    public Profile getProfile() {
-        return mProfileProperty.get();
+    public Task getTask() {
+        return mTaskProperty.get();
     }
 
     public RunState getRunState() {
@@ -50,8 +50,8 @@ public class RunStateManager {
         return mRunningProperty.get();
     }
 
-    public ObjectProperty<Profile> profileProperty() {
-        return mProfileProperty;
+    public ObjectProperty<Task> taskProperty() {
+        return mTaskProperty;
     }
 
     public ObjectProperty<RunState> runStateProperty() {
@@ -62,8 +62,8 @@ public class RunStateManager {
         return mRunningProperty;
     }
 
-    public void setProfile(Profile profile) {
-        mProfileProperty.set(profile);
+    public void setTask(Task task) {
+        mTaskProperty.set(task);
     }
 
     public void setRunState(RunState runState) {

@@ -1,4 +1,4 @@
-/*
+/* 
  * Copyright 2023 Patrik Karlström <patrik@trixon.se>.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,8 +28,8 @@ import se.trixon.almond.util.Dict;
 import se.trixon.almond.util.fx.FxHelper;
 import se.trixon.almond.util.fx.control.editable_list.EditableList;
 import se.trixon.almond.util.swing.SwingHelper;
-import se.trixon.filebydate.core.Profile;
-import se.trixon.filebydate.core.ProfileManager;
+import se.trixon.filebydate.core.Task;
+import se.trixon.filebydate.core.TaskManager;
 import se.trixon.filebydate.core.Storage;
 import se.trixon.filebydate.core.StorageManager;
 
@@ -39,19 +39,19 @@ import se.trixon.filebydate.core.StorageManager;
  */
 public class TaskListEditor {
 
-    private EditableList<Profile> mEditableList;
-    private final ProfileManager mTaskManager = ProfileManager.getInstance();
+    private EditableList<Task> mEditableList;
+    private final TaskManager mTaskManager = TaskManager.getInstance();
 
     public TaskListEditor() {
         init();
     }
 
-    public EditableList<Profile> getEditableList() {
+    public EditableList<Task> getEditableList() {
         return mEditableList;
     }
 
     private void init() {
-        mEditableList = new NbEditableList.Builder<Profile>()
+        mEditableList = new NbEditableList.Builder<Task>()
                 //                .setIconSize(48)
                 //                .setTitle("abc")
                 .setItemSingular(Dict.TASK.toString())
@@ -113,7 +113,7 @@ public class TaskListEditor {
         mEditableList.getListView().setCellFactory(listView -> new TaskListCell());
     }
 
-    private void postEdit(Profile task) {
+    private void postEdit(Task task) {
         mEditableList.postEdit(task);
     }
 

@@ -1,5 +1,5 @@
-/*
- * Copyright 2022 Patrik Karlström.
+/* 
+ * Copyright 2023 Patrik Karlström <patrik@trixon.se>.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,9 +38,9 @@ import se.trixon.filebydate.ui.MainTopComponent;
  *
  * @author Patrik Karlström
  */
-public class Profile implements Comparable<Profile>, Cloneable, EditableListItem {
+public class Task implements Comparable<Task>, Cloneable, EditableListItem {
 
-    private transient final ResourceBundle mBundle = SystemHelper.getBundle(Profile.class, "Bundle");
+    private transient final ResourceBundle mBundle = SystemHelper.getBundle(Task.class, "Bundle");
     private transient final ResourceBundle mBundleUI = SystemHelper.getBundle(MainTopComponent.class, "Bundle");
     @SerializedName("case_base")
     private NameCase mCaseBase = NameCase.UNCHANGED;
@@ -83,10 +83,10 @@ public class Profile implements Comparable<Profile>, Cloneable, EditableListItem
     @SerializedName("uuid")
     private String mId = UUID.randomUUID().toString();
 
-    public Profile() {
+    public Task() {
     }
 
-    public Profile(CommandLine commandLine) {
+    public Task(CommandLine commandLine) {
         mModeCopy = commandLine.hasOption("copy");
         mModeMove = commandLine.hasOption("move");
 
@@ -104,17 +104,17 @@ public class Profile implements Comparable<Profile>, Cloneable, EditableListItem
     }
 
     @Override
-    public Profile clone() {
+    public Task clone() {
         try {
-            return (Profile) super.clone();
+            return (Task) super.clone();
         } catch (CloneNotSupportedException ex) {
-            Logger.getLogger(Profile.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Task.class.getName()).log(Level.SEVERE, null, ex);
             return null;
         }
     }
 
     @Override
-    public int compareTo(Profile o) {
+    public int compareTo(Task o) {
         return mName.compareTo(o.getName());
     }
 

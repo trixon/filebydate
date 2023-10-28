@@ -1,4 +1,4 @@
-/*
+/* 
  * Copyright 2023 Patrik Karlström <patrik@trixon.se>.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,27 +30,27 @@ import org.apache.commons.lang3.StringUtils;
  *
  * @author Patrik Karlström <patrik@trixon.se>
  */
-public class ProfileManager {
+public class TaskManager {
 
-    private final ObjectProperty<ObservableMap<String, Profile>> mIdToItemProperty = new SimpleObjectProperty<>();
-    private final ObjectProperty<ObservableList<Profile>> mItemsProperty = new SimpleObjectProperty<>();
+    private final ObjectProperty<ObservableMap<String, Task>> mIdToItemProperty = new SimpleObjectProperty<>();
+    private final ObjectProperty<ObservableList<Task>> mItemsProperty = new SimpleObjectProperty<>();
 
-    public static ProfileManager getInstance() {
+    public static TaskManager getInstance() {
         return Holder.INSTANCE;
     }
 
-    private ProfileManager() {
+    private TaskManager() {
         mItemsProperty.setValue(FXCollections.observableArrayList());
         mIdToItemProperty.setValue(FXCollections.observableHashMap());
 
-        mIdToItemProperty.get().addListener((MapChangeListener.Change<? extends String, ? extends Profile> change) -> {
-            var values = new ArrayList<Profile>(getIdToItem().values());
+        mIdToItemProperty.get().addListener((MapChangeListener.Change<? extends String, ? extends Task> change) -> {
+            var values = new ArrayList<Task>(getIdToItem().values());
             values.sort((o1, o2) -> o1.getName().compareToIgnoreCase(o2.getName()));
             getItems().setAll(values);
         });
     }
 
-    public boolean exists(Profile item) {
+    public boolean exists(Task item) {
         return getIdToItem().containsValue(item);
     }
 
@@ -59,20 +59,20 @@ public class ProfileManager {
                 .anyMatch(item -> (StringUtils.equalsIgnoreCase(name, item.getName())));
     }
 
-    public Profile getById(String id) {
+    public Task getById(String id) {
         return getIdToItem().get(id);
     }
 
-    public final ObservableMap<String, Profile> getIdToItem() {
+    public final ObservableMap<String, Task> getIdToItem() {
         return mIdToItemProperty.get();
     }
 
-    public final ObservableList<Profile> getItems() {
+    public final ObservableList<Task> getItems() {
         return mItemsProperty.get();
     }
 
-    public List<Profile> getTasks(ArrayList<String> taskIds) {
-        var tasks = new ArrayList<Profile>();
+    public List<Task> getTasks(ArrayList<String> taskIds) {
+        var tasks = new ArrayList<Task>();
 
         taskIds.forEach(id -> {
             var task = getById(id);
@@ -88,7 +88,7 @@ public class ProfileManager {
         return false;
     }
 
-    public ObjectProperty<ObservableList<Profile>> itemsProperty() {
+    public ObjectProperty<ObservableList<Task>> itemsProperty() {
         return mItemsProperty;
     }
 
@@ -96,12 +96,12 @@ public class ProfileManager {
         System.out.println(message);
     }
 
-    public Profile save() throws IOException {
+    public Task save() throws IOException {
         return null;
     }
 
     private static class Holder {
 
-        private static final ProfileManager INSTANCE = new ProfileManager();
+        private static final TaskManager INSTANCE = new TaskManager();
     }
 }

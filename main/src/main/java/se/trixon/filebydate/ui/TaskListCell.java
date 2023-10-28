@@ -1,4 +1,4 @@
-/*
+/* 
  * Copyright 2023 Patrik Karlström <patrik@trixon.se>.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,13 +21,13 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import se.trixon.almond.util.fx.control.editable_list.EditableListCell;
-import se.trixon.filebydate.core.Profile;
+import se.trixon.filebydate.core.Task;
 
 /**
  *
  * @author Patrik Karlström <patrik@trixon.se>
  */
-public class TaskListCell extends EditableListCell<Profile> {
+public class TaskListCell extends EditableListCell<Task> {
 
     private final Font mDefaultFont = Font.getDefault();
     private final Label mDescLabel = new Label();
@@ -39,7 +39,7 @@ public class TaskListCell extends EditableListCell<Profile> {
     }
 
     @Override
-    protected void updateItem(Profile item, boolean empty) {
+    protected void updateItem(Task item, boolean empty) {
         super.updateItem(item, empty);
         if (item == null || empty) {
             clearContent();
@@ -48,7 +48,7 @@ public class TaskListCell extends EditableListCell<Profile> {
         }
     }
 
-    private void addContent(Profile item) {
+    private void addContent(Task item) {
         setText(null);
         mNameLabel.setText(item.getName());
         mDescLabel.setText(item.getDescription());
