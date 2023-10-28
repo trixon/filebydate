@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2023 Patrik Karlström <patrik@trixon.se>.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,7 +34,6 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -182,11 +181,7 @@ public class Operation {
 
             if (!mTask.isDryRun()) {
                 mTask.setLastRun(System.currentTimeMillis());
-                try {
-                    TaskManager.getInstance().save();
-                } catch (IOException ex) {
-                    LOGGER.log(Level.SEVERE, null, ex);
-                }
+                StorageManager.save();
             }
         }
     }

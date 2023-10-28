@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2023 Patrik Karlström <patrik@trixon.se>.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,10 +28,10 @@ import se.trixon.almond.util.Dict;
 import se.trixon.almond.util.fx.FxHelper;
 import se.trixon.almond.util.fx.control.editable_list.EditableList;
 import se.trixon.almond.util.swing.SwingHelper;
-import se.trixon.filebydate.core.Task;
-import se.trixon.filebydate.core.TaskManager;
 import se.trixon.filebydate.core.Storage;
 import se.trixon.filebydate.core.StorageManager;
+import se.trixon.filebydate.core.Task;
+import se.trixon.filebydate.core.TaskManager;
 
 /**
  *
@@ -60,14 +60,14 @@ public class TaskListEditor {
                 .setItemsProperty(mTaskManager.itemsProperty())
                 .setOnEdit((title, item) -> {
                     var editor = new TaskEditor();
-                    editor.setPadding(FxHelper.getUIScaledInsets(8, 8, 0, 8));
+                    editor.setPadding(FxHelper.getUIScaledInsets(16, 16, 0, 16));
                     var dialogPanel = new FxDialogPanel() {
                         @Override
                         protected void fxConstructor() {
                             setScene(new Scene(editor));
                         }
                     };
-                    dialogPanel.setPreferredSize(SwingHelper.getUIScaledDim(600, 480));
+                    dialogPanel.setPreferredSize(SwingHelper.getUIScaledDim(760, 360));
 
                     SwingUtilities.invokeLater(() -> {
                         editor.setPrefSize(FxHelper.getUIScaled(600), FxHelper.getUIScaled(660));

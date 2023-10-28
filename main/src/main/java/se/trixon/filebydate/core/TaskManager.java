@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2023 Patrik Karlström <patrik@trixon.se>.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,7 +15,6 @@
  */
 package se.trixon.filebydate.core;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.beans.property.ObjectProperty;
@@ -71,6 +70,16 @@ public class TaskManager {
         return mItemsProperty.get();
     }
 
+    public Task getTask(String name) {
+        for (var task : getItems()) {
+            if (task.getName().equalsIgnoreCase(name)) {
+                return task;
+            }
+        }
+
+        return null;
+    }
+
     public List<Task> getTasks(ArrayList<String> taskIds) {
         var tasks = new ArrayList<Task>();
 
@@ -88,16 +97,21 @@ public class TaskManager {
         return false;
     }
 
+    public boolean isValid(String oldName, String newName) {
+        if (StringUtils.isBlank(newName)) {
+            return false;
+        }
+
+        var profileByName = getTask(newName.trim());
+        return profileByName == null || profileByName == getTask(oldName);
+    }
+
     public ObjectProperty<ObservableList<Task>> itemsProperty() {
         return mItemsProperty;
     }
 
     public void log(String message) {
         System.out.println(message);
-    }
-
-    public Task save() throws IOException {
-        return null;
     }
 
     private static class Holder {
