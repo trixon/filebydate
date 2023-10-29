@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2023 Patrik Karlström <patrik@trixon.se>.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,6 +20,7 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import se.trixon.almond.util.fx.FxHelper;
 import se.trixon.almond.util.fx.control.editable_list.EditableListCell;
 import se.trixon.filebydate.core.Task;
 
@@ -67,7 +68,7 @@ public class TaskListCell extends EditableListCell<Task> {
 
     private void createUI() {
         String fontFamily = mDefaultFont.getFamily();
-        double fontSize = mDefaultFont.getSize();
+        var fontSize = FxHelper.getScaledFontSize();
         mNameLabel.setFont(Font.font(fontFamily, FontWeight.BOLD, fontSize * 1.4));
         mDescLabel.setFont(Font.font(fontFamily, FontWeight.NORMAL, fontSize * 1.1));
     }

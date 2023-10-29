@@ -52,11 +52,8 @@ public class TaskListEditor {
 
     private void init() {
         mEditableList = new NbEditableList.Builder<Task>()
-                //                .setIconSize(48)
-                //                .setTitle("abc")
                 .setItemSingular(Dict.TASK.toString())
                 .setItemPlural(Dict.TASKS.toString())
-                //.setListCell(new TaskListCell())
                 .setItemsProperty(mTaskManager.itemsProperty())
                 .setOnEdit((title, item) -> {
                     var editor = new TaskEditor();
@@ -85,7 +82,6 @@ public class TaskListEditor {
                             });
                         }
                     });
-
                 })
                 .setOnRemoveAll(() -> {
                     mTaskManager.getIdToItem().clear();
@@ -107,6 +103,32 @@ public class TaskListEditor {
                     StorageManager.save();
 
                     return mTaskManager.getById(uuid);
+                })
+                .setOnStart(task -> {
+                    var taskSummary = new TaskSummary(task);
+                    var dialogPanel = new FxDialogPanel() {
+                        @Override
+                        protected void fxConstructor() {
+                            setScene(new Scene(taskSummary));
+                        }
+                    };
+                    dialogPanel.setPreferredSize(SwingHelper.getUIScaledDim(320, 250));
+
+                    SwingUtilities.invokeLater(() -> {
+                        taskSummary.setPrefSize(FxHelper.getUIScaled(320), FxHelper.getUIScaled(250));
+                        var title = Dict.Dialog.TITLE_TASK_RUN_S.toString().formatted(task.getName());
+                        var d = new DialogDescriptor(dialogPanel, title);
+                        d.setValid(false);
+                        dialogPanel.setNotifyDescriptor(d);
+                        dialogPanel.initFx(() -> {
+//                            editor.load(item, d);
+                        });
+
+                        if (DialogDescriptor.OK_OPTION == DialogDisplayer.getDefault().notify(d)) {
+                            Platform.runLater(() -> {
+                            });
+                        }
+                    });
                 })
                 .build();
 

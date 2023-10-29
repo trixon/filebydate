@@ -16,7 +16,6 @@
 package se.trixon.filebydate.boot;
 
 import java.io.IOException;
-import javafx.scene.paint.Color;
 import org.apache.commons.lang3.StringUtils;
 import org.openide.modules.ModuleInstall;
 import org.openide.util.Exceptions;
@@ -58,7 +57,7 @@ public class Installer extends ModuleInstall {
         var nightMode = StringUtils.containsIgnoreCase(preferences.get(key, ""), "dark");
         if (nightMode) {
             FxHelper.setDarkThemeEnabled(nightMode);
-            MaterialIcon.setDefaultColor(Color.valueOf("D3D3D3"));
+            MaterialIcon.setDefaultColor(FxHelper.getFillColorForDarkTheme());
         }
 
         try {
