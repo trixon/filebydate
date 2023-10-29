@@ -16,12 +16,8 @@
 package se.trixon.filebydate.boot;
 
 import java.io.IOException;
-import org.apache.commons.lang3.StringUtils;
 import org.openide.modules.ModuleInstall;
 import org.openide.util.Exceptions;
-import org.openide.util.NbPreferences;
-import se.trixon.almond.util.fx.FxHelper;
-import se.trixon.almond.util.icons.material.MaterialIcon;
 import se.trixon.filebydate.Options;
 import se.trixon.filebydate.core.StorageManager;
 
@@ -52,14 +48,6 @@ public class Installer extends ModuleInstall {
 
     @Override
     public void restored() {
-        var key = "laf";
-        var preferences = NbPreferences.root().node("laf");
-        var nightMode = StringUtils.containsIgnoreCase(preferences.get(key, ""), "dark");
-        if (nightMode) {
-            FxHelper.setDarkThemeEnabled(nightMode);
-            MaterialIcon.setDefaultColor(FxHelper.getFillColorForDarkTheme());
-        }
-
         try {
             mStorageManager.load();
         } catch (IOException ex) {

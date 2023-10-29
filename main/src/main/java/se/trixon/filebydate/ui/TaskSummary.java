@@ -40,24 +40,17 @@ import se.trixon.filebydate.core.Task;
  */
 public class TaskSummary extends VBox {
 
+    private final Font mDefaultFont = Font.getDefault();
     private final Label mDescLabel = new Label();
-    private String mFontFamily;
+    private final String mFontFamily;
     private final Label mNameLabel = new Label();
     private final SummaryDetails mSummaryDetails;
-    Font defaultFont = Font.getDefault();
 
     public TaskSummary(Task task) {
-        super(FxHelper.getUIScaled(8));
-        mFontFamily = defaultFont.getFamily();
-
+        mFontFamily = mDefaultFont.getFamily();
         mSummaryDetails = new SummaryDetails(task);
         createUI();
         load(task);
-    }
-
-    void load(Task task) {
-        mNameLabel.setText(task.getName());
-        mDescLabel.setText(task.getDescription());
     }
 
     private void createUI() {
@@ -73,7 +66,15 @@ public class TaskSummary extends VBox {
         mNameLabel.setFont(Font.font(mFontFamily, FontWeight.BOLD, fontSize * 1.6));
         mDescLabel.setFont(Font.font(mFontFamily, FontWeight.NORMAL, fontSize * 1.3));
 
-        setPadding(FxHelper.getUIScaledInsets(16, 16, 0, 16));
+        mDescLabel.setPadding(FxHelper.getUIScaledInsets(0, 0, 12, 0));
+        mSummaryDetails.setPadding(FxHelper.getUIScaledInsets(12, 0, 0, 0));
+
+        setPadding(FxHelper.getUIScaledInsets(0, 16, 0, 16));
+    }
+
+    private void load(Task task) {
+        mNameLabel.setText(task.getName());
+        mDescLabel.setText(task.getDescription());
     }
 
     class SummaryDetails extends TextFlow {
@@ -155,7 +156,7 @@ public class TaskSummary extends VBox {
                         }
                     });
 
-            mOperation.setFont(Font.font(defaultFont.getName(), FontWeight.EXTRA_BOLD, fontSize));
+            mOperation.setFont(Font.font(mDefaultFont.getName(), FontWeight.EXTRA_BOLD, fontSize));
         }
     }
 }

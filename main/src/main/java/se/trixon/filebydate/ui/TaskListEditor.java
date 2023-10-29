@@ -28,6 +28,7 @@ import se.trixon.almond.util.Dict;
 import se.trixon.almond.util.fx.FxHelper;
 import se.trixon.almond.util.fx.control.editable_list.EditableList;
 import se.trixon.almond.util.swing.SwingHelper;
+import se.trixon.filebydate.core.ExecutorManager;
 import se.trixon.filebydate.core.Storage;
 import se.trixon.filebydate.core.StorageManager;
 import se.trixon.filebydate.core.Task;
@@ -40,6 +41,7 @@ import se.trixon.filebydate.core.TaskManager;
 public class TaskListEditor {
 
     private EditableList<Task> mEditableList;
+    private final ExecutorManager mExecutorManager = ExecutorManager.getInstance();
     private final TaskManager mTaskManager = TaskManager.getInstance();
 
     public TaskListEditor() {
@@ -50,38 +52,42 @@ public class TaskListEditor {
         return mEditableList;
     }
 
+    private void editTask(String title, Task task) {
+        var editor = new TaskEditor();
+        editor.setPadding(FxHelper.getUIScaledInsets(16, 16, 0, 16));
+        var dialogPanel = new FxDialogPanel() {
+            @Override
+            protected void fxConstructor() {
+                setScene(new Scene(editor));
+            }
+        };
+        dialogPanel.setPreferredSize(SwingHelper.getUIScaledDim(760, 360));
+
+        SwingUtilities.invokeLater(() -> {
+            editor.setPrefSize(FxHelper.getUIScaled(600), FxHelper.getUIScaled(660));
+            var d = new DialogDescriptor(dialogPanel, title);
+            d.setValid(false);
+            dialogPanel.setNotifyDescriptor(d);
+            dialogPanel.initFx(() -> {
+                editor.load(task, d);
+            });
+
+            if (DialogDescriptor.OK_OPTION == DialogDisplayer.getDefault().notify(d)) {
+                Platform.runLater(() -> {
+                    var editedItem = editor.save();
+                    postEdit(mTaskManager.getById(editedItem.getId()));
+                });
+            }
+        });
+    }
+
     private void init() {
         mEditableList = new NbEditableList.Builder<Task>()
                 .setItemSingular(Dict.TASK.toString())
                 .setItemPlural(Dict.TASKS.toString())
                 .setItemsProperty(mTaskManager.itemsProperty())
-                .setOnEdit((title, item) -> {
-                    var editor = new TaskEditor();
-                    editor.setPadding(FxHelper.getUIScaledInsets(16, 16, 0, 16));
-                    var dialogPanel = new FxDialogPanel() {
-                        @Override
-                        protected void fxConstructor() {
-                            setScene(new Scene(editor));
-                        }
-                    };
-                    dialogPanel.setPreferredSize(SwingHelper.getUIScaledDim(760, 360));
-
-                    SwingUtilities.invokeLater(() -> {
-                        editor.setPrefSize(FxHelper.getUIScaled(600), FxHelper.getUIScaled(660));
-                        var d = new DialogDescriptor(dialogPanel, title);
-                        d.setValid(false);
-                        dialogPanel.setNotifyDescriptor(d);
-                        dialogPanel.initFx(() -> {
-                            editor.load(item, d);
-                        });
-
-                        if (DialogDescriptor.OK_OPTION == DialogDisplayer.getDefault().notify(d)) {
-                            Platform.runLater(() -> {
-                                var editedItem = editor.save();
-                                postEdit(mTaskManager.getById(editedItem.getId()));
-                            });
-                        }
-                    });
+                .setOnEdit((title, task) -> {
+                    editTask(title, task);
                 })
                 .setOnRemoveAll(() -> {
                     mTaskManager.getIdToItem().clear();
@@ -105,30 +111,7 @@ public class TaskListEditor {
                     return mTaskManager.getById(uuid);
                 })
                 .setOnStart(task -> {
-                    var taskSummary = new TaskSummary(task);
-                    var dialogPanel = new FxDialogPanel() {
-                        @Override
-                        protected void fxConstructor() {
-                            setScene(new Scene(taskSummary));
-                        }
-                    };
-                    dialogPanel.setPreferredSize(SwingHelper.getUIScaledDim(320, 250));
-
-                    SwingUtilities.invokeLater(() -> {
-                        taskSummary.setPrefSize(FxHelper.getUIScaled(320), FxHelper.getUIScaled(250));
-                        var title = Dict.Dialog.TITLE_TASK_RUN_S.toString().formatted(task.getName());
-                        var d = new DialogDescriptor(dialogPanel, title);
-                        d.setValid(false);
-                        dialogPanel.setNotifyDescriptor(d);
-                        dialogPanel.initFx(() -> {
-//                            editor.load(item, d);
-                        });
-
-                        if (DialogDescriptor.OK_OPTION == DialogDisplayer.getDefault().notify(d)) {
-                            Platform.runLater(() -> {
-                            });
-                        }
-                    });
+                    mExecutorManager.requestStart(task);
                 })
                 .build();
 

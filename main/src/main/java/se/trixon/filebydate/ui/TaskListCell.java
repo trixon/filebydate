@@ -22,6 +22,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import se.trixon.almond.util.fx.FxHelper;
 import se.trixon.almond.util.fx.control.editable_list.EditableListCell;
+import se.trixon.filebydate.core.ExecutorManager;
 import se.trixon.filebydate.core.Task;
 
 /**
@@ -49,13 +50,14 @@ public class TaskListCell extends EditableListCell<Task> {
         }
     }
 
-    private void addContent(Task item) {
+    private void addContent(Task task) {
         setText(null);
-        mNameLabel.setText(item.getName());
-        mDescLabel.setText(item.getDescription());
+        mNameLabel.setText(task.getName());
+        mDescLabel.setText(task.getDescription());
         mRoot.getChildren().setAll(mNameLabel, mDescLabel);
         mRoot.setOnMouseClicked(mouseEvent -> {
             if (mouseEvent.getButton() == MouseButton.PRIMARY && mouseEvent.getClickCount() == 2) {
+                ExecutorManager.getInstance().requestStart(task);
             }
         });
         setGraphic(mRoot);
