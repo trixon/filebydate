@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2023 Patrik Karlström <patrik@trixon.se>.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,6 +18,7 @@ package se.trixon.filebydate.core;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.concurrent.TimeUnit;
 import org.netbeans.api.progress.ProgressHandle;
 import org.openide.util.Cancellable;
 import org.openide.util.Exceptions;
@@ -83,7 +84,26 @@ public class TaskExecutor implements Runnable {
         mProgressHandle.switchToIndeterminate();
         mOperationThread = new Thread(() -> {
             var operation = new Operation(mTask, mInputOutput, mProgressHandle);
+            var startTime = System.currentTimeMillis();
             operation.start();
+
+            if (operation.isInterrupted()) {
+                mInputOutput.getErr().println();
+                mInputOutput.getErr().println("%s %s".formatted(now(), Dict.TASK_ABORTED.toString()));
+            } else {
+                long millis = System.currentTimeMillis() - startTime;
+                long min = TimeUnit.MILLISECONDS.toMinutes(millis);
+                long sec = TimeUnit.MILLISECONDS.toSeconds(millis) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis));
+                var status = String.format("%s (%d %s, %d %s)", Dict.TASK_COMPLETED.toString(), min, Dict.TIME_MIN.toString(), sec, Dict.TIME_SEC.toString());
+                mInputOutput.getOut().println();
+                mInputOutput.getOut().println("%s %s".formatted(now(), status));
+
+                if (!mTask.isDryRun()) {
+                    mTask.setLastRun(System.currentTimeMillis());
+                    StorageManager.save();
+                }
+            }
+
             mProgressHandle.finish();
             ExecutorManager.getInstance().getTaskExecutors().remove(mTask.getId());
         }, "Operation");

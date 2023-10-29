@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2023 Patrik Karlström <patrik@trixon.se>.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -50,12 +50,11 @@ import se.trixon.almond.util.Dict;
 public class Operation {
 
     private final ResourceBundle mBundle = NbBundle.getBundle(Operation.class);
-    private final List<Exception> mExceptions = new ArrayList<>();
     private final List<File> mFiles = new ArrayList<>();
+    private final InputOutput mInputOutput;
     private boolean mInterrupted;
     private final ProgressHandle mProgressHandle;
     private final Task mTask;
-    private final InputOutput mInputOutput;
 
     public Operation(Task task, InputOutput inputOutput, ProgressHandle progressHandle) {
         mTask = task;
@@ -63,17 +62,17 @@ public class Operation {
         mProgressHandle = progressHandle;
     }
 
-    public void start() {
-        long startTime = System.currentTimeMillis();
+    public boolean isInterrupted() {
+        return mInterrupted;
+    }
 
+    public void start() {
         mInterrupted = !generateFileList();
-        String status;
 
         if (!mInterrupted && !mFiles.isEmpty()) {
             mInputOutput.getOut().println(String.format(mBundle.getString("found_count"), mFiles.size()));
             mInputOutput.getOut().println("");
-            status = Dict.PROCESSING.toString();
-            mInputOutput.getOut().println(status);
+            mInputOutput.getOut().println(Dict.PROCESSING.toString());
             mProgressHandle.switchToDeterminate(mFiles.size());
             int progress = 0;
             var taskDateFormat = mTask.getDateFormat();
@@ -159,26 +158,6 @@ public class Operation {
                 }
 
                 mProgressHandle.progress(++progress);
-            }
-        }
-
-        if (mInterrupted) {
-            status = Dict.TASK_ABORTED.toString();
-            mInputOutput.getErr().println("\n" + status);
-        } else {
-            mExceptions.forEach(exception -> {
-                mInputOutput.getOut().println(String.format("#%s", exception.getLocalizedMessage()));
-            });
-            long millis = System.currentTimeMillis() - startTime;
-            long min = TimeUnit.MILLISECONDS.toMinutes(millis);
-            long sec = TimeUnit.MILLISECONDS.toSeconds(millis) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis));
-            status = String.format("%s (%d %s, %d %s)", Dict.TASK_COMPLETED.toString(), min, Dict.TIME_MIN.toString(), sec, Dict.TIME_SEC.toString());
-            mInputOutput.getOut().println();
-            mInputOutput.getOut().println(status);
-
-            if (!mTask.isDryRun()) {
-                mTask.setLastRun(System.currentTimeMillis());
-                StorageManager.save();
             }
         }
     }
