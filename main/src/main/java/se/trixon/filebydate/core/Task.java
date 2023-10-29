@@ -1,4 +1,4 @@
-/*
+/* 
  * Copyright 2023 Patrik Karlström <patrik@trixon.se>.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -311,7 +311,7 @@ public class Task implements Comparable<Task>, Cloneable, EditableListItem {
     }
 
     public void setId(String id) {
-        this.mId = id;
+        mId = id;
     }
 
     public void setLastRun(long lastRun) {

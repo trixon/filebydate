@@ -1,4 +1,4 @@
-/*
+/* 
  * Copyright 2023 Patrik Karlström <patrik@trixon.se>.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,25 +33,21 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.netbeans.api.progress.ProgressHandle;
 import org.openide.util.NbBundle;
 import org.openide.windows.InputOutput;
 import se.trixon.almond.util.Dict;
-import se.trixon.almond.util.Xlog;
 
 /**
  *
  * @author Patrik Karlström
  */
 public class Operation {
-
-    private static final Logger LOGGER = Logger.getLogger(Operation.class.getName());
 
     private final ResourceBundle mBundle = NbBundle.getBundle(Operation.class);
     private final List<Exception> mExceptions = new ArrayList<>();
@@ -210,7 +206,7 @@ public class Operation {
                     return false;
                 }
             } catch (IOException ex) {
-                Xlog.e(getClass(), ex.getLocalizedMessage());
+                mInputOutput.getErr().println(ex.getMessage());
             }
         } else if (file.isFile() && mTask.getPathMatcher().matches(file.toPath().getFileName())) {
             mFiles.add(file);
@@ -229,29 +225,34 @@ public class Operation {
         var date = new Date(System.currentTimeMillis());
         var dateSource = mTask.getDateSource();
 
-        if (dateSource == DateSource.FILE_CREATED) {
-            var attr = Files.readAttributes(sourceFile.toPath(), BasicFileAttributes.class);
-            date = new Date(attr.creationTime().toMillis());
-        } else if (dateSource == DateSource.FILE_MODIFIED) {
-            var attr = Files.readAttributes(sourceFile.toPath(), BasicFileAttributes.class);
-            date = new Date(attr.lastModifiedTime().toMillis());
-        } else if (dateSource == DateSource.EXIF_ORIGINAL) {
-            Metadata metadata;
-            Directory directory = null;
-
-            try {
-                metadata = ImageMetadataReader.readMetadata(sourceFile);
-                directory = metadata.getFirstDirectoryOfType(ExifSubIFDDirectory.class);
-                date = directory.getDate(ExifSubIFDDirectory.TAG_DATETIME_ORIGINAL);
-            } catch (NullPointerException | ImageProcessingException ex) {
-                String message;
-                if (directory == null) {
-                    message = String.format(Dict.Dialog.ERROR_EXIF_NOT_FOUND.toString(), sourceFile.getAbsolutePath());
-                } else {
-                    message = String.format(Dict.Dialog.ERROR_FILE_FORMAT_NOT_SUPPORTED.toString(), sourceFile.getAbsolutePath());
+        if (null != dateSource) {
+            switch (dateSource) {
+                case FILE_CREATED -> {
+                    var attr = Files.readAttributes(sourceFile.toPath(), BasicFileAttributes.class);
+                    date = new Date(attr.creationTime().toMillis());
                 }
+                case FILE_MODIFIED -> {
+                    var attr = Files.readAttributes(sourceFile.toPath(), BasicFileAttributes.class);
+                    date = new Date(attr.lastModifiedTime().toMillis());
+                }
+                case EXIF_ORIGINAL -> {
+                    Metadata metadata;
+                    Directory directory = null;
+                    try {
+                        metadata = ImageMetadataReader.readMetadata(sourceFile);
+                        directory = metadata.getFirstDirectoryOfType(ExifSubIFDDirectory.class);
+                        date = directory.getDate(ExifSubIFDDirectory.TAG_DATETIME_ORIGINAL);
+                    } catch (NullPointerException | ImageProcessingException ex) {
+                        String message;
+                        if (directory == null) {
+                            message = String.format(Dict.Dialog.ERROR_EXIF_NOT_FOUND.toString(), sourceFile.getAbsolutePath());
+                        } else {
+                            message = String.format(Dict.Dialog.ERROR_FILE_FORMAT_NOT_SUPPORTED.toString(), sourceFile.getAbsolutePath());
+                        }
 
-                throw new ImageProcessingException(message);
+                        throw new ImageProcessingException(message);
+                    }
+                }
             }
         }
 
@@ -263,7 +264,7 @@ public class Operation {
             message = String.format("dry-run: %s", message);
         }
 
-        return StringUtils.defaultString(message, "");
+        return Objects.toString(message, "");
     }
 
     public enum Command {
@@ -297,17 +298,17 @@ public class Operation {
             }
 
             mInputOutput.getOut().println(dir.toString());
-            String[] filePaths = dir.toFile().list();
+            var filePaths = dir.toFile().list();
 
             if (filePaths != null && filePaths.length > 0) {
-                for (String fileName : filePaths) {
+                for (var fileName : filePaths) {
                     try {
                         TimeUnit.NANOSECONDS.sleep(1);
                     } catch (InterruptedException ex) {
                         mInterrupted = true;
                         return FileVisitResult.TERMINATE;
                     }
-                    File file = new File(dir.toFile(), fileName);
+                    var file = new File(dir.toFile(), fileName);
                     if (file.isFile() && mTask.getPathMatcher().matches(file.toPath().getFileName())) {
                         mFiles.add(file);
                     }

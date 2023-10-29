@@ -1,4 +1,4 @@
-/*
+/* 
  * Copyright 2023 Patrik Karlström <patrik@trixon.se>.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -54,8 +54,8 @@ public class StorageManager {
     private StorageManager() {
         mUserDirectory = Places.getUserDirectory();
 
-        mTasksFile = new File(mUserDirectory, "config.json");
-        mTasksBackupFile = new File(mUserDirectory, "config.bak");
+        mTasksFile = new File(mUserDirectory, "tasks.json");
+        mTasksBackupFile = new File(mUserDirectory, "tasks.bak");
         mHistoryFile = new File(mUserDirectory, "var/history");
         mLogFile = new File(mUserDirectory, "var/filebydate.log");
     }

@@ -1,4 +1,4 @@
-/*
+/* 
  * Copyright 2023 Patrik Karlström <patrik@trixon.se>.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,25 +26,6 @@ public class Installer extends ModuleInstall {
     static boolean GUI = true;
     private final Options mOptions = Options.getInstance();
     private final StorageManager mStorageManager = StorageManager.getInstance();
-//    private final TaskManager mTaskManager = TaskManager.getInstance();
-
-    @Override
-    public boolean closing() {
-        boolean exit = true;
-
-//        if (mTaskManager.hasActiveTasks()) {
-//            var d = new NotifyDescriptor(
-//                    NbBundle.getMessage(Installer.class, "confirmExit"),
-//                    "filebydate",
-//                    NotifyDescriptor.YES_NO_OPTION,
-//                    NotifyDescriptor.WARNING_MESSAGE,
-//                    null,
-//                    null);
-//            var result = DialogDisplayer.getDefault().notify(d);
-//            exit = result == NotifyDescriptor.YES_OPTION;
-//        }
-        return exit;
-    }
 
     @Override
     public void restored() {
@@ -53,18 +34,5 @@ public class Installer extends ModuleInstall {
         } catch (IOException ex) {
             Exceptions.printStackTrace(ex);
         }
-        //initStorage();
     }
-
-    private void initStorage() {
-//        var taskManager = mStorageManager.getTaskManager();
-//
-//        var task = new Task();
-//        task.setName("Task %d %s".formatted(taskManager.getIdToItem().size(), RandomStringUtils.random(5, true, false)));
-//        task.setDescription(RandomStringUtils.random(15, true, true));
-//        taskManager.getIdToItem().put(task.getId(), task);
-//
-//        StorageManager.save();
-    }
-
 }

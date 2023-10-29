@@ -1,5 +1,5 @@
-/*
- * Copyright 2022 Patrik Karlström.
+/* 
+ * Copyright 2023 Patrik Karlström <patrik@trixon.se>.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import java.util.Date;
 import java.util.function.Predicate;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
-import javafx.geometry.Insets;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -36,6 +35,7 @@ import org.controlsfx.validation.ValidationSupport;
 import org.controlsfx.validation.Validator;
 import org.openide.DialogDescriptor;
 import se.trixon.almond.util.Dict;
+import se.trixon.almond.util.fx.FxHelper;
 import se.trixon.almond.util.fx.control.FileChooserPane;
 import se.trixon.almond.util.fx.control.FileChooserPane.ObjectMode;
 import se.trixon.filebydate.Options;
@@ -201,7 +201,7 @@ public class TaskEditor extends GridPane {
         subPane.setHgap(8);
         add(subPane, col, ++row, REMAINING, 1);
 
-        final Insets rowInsets = new Insets(0, 0, 8, 0);
+        var rowInsets = FxHelper.getUIScaledInsets(0, 0, 8, 0);
 
         GridPane.setMargin(mNameTextField, rowInsets);
         GridPane.setMargin(mDescTextField, rowInsets);

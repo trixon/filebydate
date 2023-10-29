@@ -17,7 +17,7 @@ package se.trixon.filebydate.core;
 
 import java.util.Locale;
 import java.util.ResourceBundle;
-import se.trixon.almond.util.SystemHelper;
+import org.openide.util.NbBundle;
 import se.trixon.filebydate.ui.MainTopComponent;
 
 /**
@@ -26,7 +26,7 @@ import se.trixon.filebydate.ui.MainTopComponent;
  */
 public enum NameCase {
     UNCHANGED, LOWER, UPPER;
-    private final ResourceBundle mBundleUI = SystemHelper.getBundle(MainTopComponent.class, "Bundle");
+    private final ResourceBundle mBundleUI = NbBundle.getBundle(MainTopComponent.class);
 
     public static NameCase getCase(String key) {
         if (key != null) {
