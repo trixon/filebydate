@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2023 Patrik Karlström <patrik@trixon.se>.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,6 +23,7 @@ import java.util.Date;
 import org.apache.commons.io.FileUtils;
 import org.openide.modules.Places;
 import org.openide.util.Exceptions;
+import se.trixon.almond.util.fx.FxHelper;
 
 /**
  *
@@ -32,10 +33,10 @@ public class StorageManager {
 
     private final File mHistoryFile;
     private final File mLogFile;
-    private final File mTasksBackupFile;
-    private final File mTasksFile;
     private Storage mStorage = new Storage();
     private final TaskManager mTaskManager = TaskManager.getInstance();
+    private final File mTasksBackupFile;
+    private final File mTasksFile;
     private final File mUserDirectory;
 
     public static StorageManager getInstance() {
@@ -71,12 +72,12 @@ public class StorageManager {
         return mLogFile;
     }
 
-    public File getTasksFile() {
-        return mTasksFile;
-    }
-
     public TaskManager getTaskManager() {
         return mTaskManager;
+    }
+
+    public File getTasksFile() {
+        return mTasksFile;
     }
 
     public File getUserDirectory() {
@@ -101,7 +102,13 @@ public class StorageManager {
         String tag = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         FileUtils.writeStringToFile(mTasksBackupFile, String.format("%s=%s\n", tag, json), Charset.defaultCharset(), true);
 
-        load(); //This will refresh and sort ListViews
+        FxHelper.runLater(() -> {
+            try {
+                load();
+            } catch (IOException ex) {
+                Exceptions.printStackTrace(ex);
+            }
+        });
     }
 
     private static class Holder {

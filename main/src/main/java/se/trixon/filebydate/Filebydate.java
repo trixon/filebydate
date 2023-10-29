@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2023 Patrik Karlström <patrik@trixon.se>.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,12 +16,13 @@
 package se.trixon.filebydate;
 
 import java.io.IOException;
-import java.util.Locale;
 import org.openide.util.Exceptions;
+import org.openide.util.NbBundle;
 import org.openide.windows.IOProvider;
 import se.trixon.almond.util.Dict;
 import se.trixon.almond.util.SystemHelper;
-import se.trixon.almond.util.fx.FxHelper;
+import se.trixon.filebydate.core.Task;
+import se.trixon.filebydate.core.TaskManager;
 
 /**
  *
@@ -29,15 +30,9 @@ import se.trixon.almond.util.fx.FxHelper;
  */
 public class Filebydate {
 
-    private static final int ICON_SIZE_TOOLBAR = 32;
-
-    public static int getIconSizeToolBar() {
-        return FxHelper.getUIScaled(ICON_SIZE_TOOLBAR);
-    }
-
     public static void displaySystemInformation() {
         String s = "%s\n%s".formatted(
-                Dict.SYSTEM.toString().toUpperCase(Locale.ENGLISH),
+                Dict.SYSTEM.toUpper(),
                 SystemHelper.getSystemInfo()
         );
 
@@ -49,6 +44,11 @@ public class Filebydate {
         }
 
         io.getOut().println(s);
+        if (TaskManager.getInstance().getItems().isEmpty()) {
+            io.getOut().println();
+            io.getOut().println(NbBundle.getMessage(Task.class, "welcome"));
+        }
+
         io.getOut().close();
     }
 

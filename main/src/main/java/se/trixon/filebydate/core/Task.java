@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2023 Patrik Karlström <patrik@trixon.se>.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,8 +27,8 @@ import java.util.logging.Logger;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.openide.util.NbBundle;
 import se.trixon.almond.util.Dict;
-import se.trixon.almond.util.SystemHelper;
 import se.trixon.almond.util.fx.control.editable_list.EditableListItem;
 import se.trixon.filebydate.Options;
 import se.trixon.filebydate.core.Operation.Command;
@@ -40,8 +40,8 @@ import se.trixon.filebydate.ui.MainTopComponent;
  */
 public class Task implements Comparable<Task>, Cloneable, EditableListItem {
 
-    private transient final ResourceBundle mBundle = SystemHelper.getBundle(Task.class, "Bundle");
-    private transient final ResourceBundle mBundleUI = SystemHelper.getBundle(MainTopComponent.class, "Bundle");
+    private transient final ResourceBundle mBundle = NbBundle.getBundle(Task.class);
+    private transient final ResourceBundle mBundleUI = NbBundle.getBundle(MainTopComponent.class);
     @SerializedName("case_base")
     private NameCase mCaseBase = NameCase.UNCHANGED;
     private transient String mCaseBaseString;

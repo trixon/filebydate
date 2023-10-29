@@ -16,11 +16,14 @@
 package se.trixon.filebydate.core;
 
 import java.util.HashMap;
+import java.util.ResourceBundle;
 import javafx.scene.Scene;
 import javax.swing.JButton;
 import javax.swing.SwingUtilities;
 import org.openide.DialogDescriptor;
 import org.openide.DialogDisplayer;
+import org.openide.util.NbBundle;
+import se.trixon.almond.nbp.dialogs.NbMessage;
 import se.trixon.almond.nbp.fx.FxDialogPanel;
 import se.trixon.almond.util.Dict;
 import se.trixon.almond.util.swing.SwingHelper;
@@ -32,6 +35,7 @@ import se.trixon.filebydate.ui.TaskSummary;
  */
 public class ExecutorManager {
 
+    private final ResourceBundle mBundle = NbBundle.getBundle(Task.class);
     private final HashMap<String, TaskExecutor> mTaskExecutors = new HashMap<>();
 
     public static ExecutorManager getInstance() {
@@ -46,65 +50,52 @@ public class ExecutorManager {
     }
 
     public void requestStart(Task task) {
-        var taskSummary = new TaskSummary(task);
-        var dialogPanel = new FxDialogPanel() {
-            @Override
-            protected void fxConstructor() {
-                setScene(new Scene(taskSummary));
-            }
-        };
-        dialogPanel.setPreferredSize(SwingHelper.getUIScaledDim(480, 200));
+        if (mTaskExecutors.containsKey(task.getId())) {
+            NbMessage.error(mBundle.getString("task_running_title"), mBundle.getString("task_running_message"));
+        } else {
+            var taskSummary = new TaskSummary(task);
+            var dialogPanel = new FxDialogPanel() {
+                @Override
+                protected void fxConstructor() {
+                    setScene(new Scene(taskSummary));
+                }
+            };
+            dialogPanel.setPreferredSize(SwingHelper.getUIScaledDim(480, 200));
 
-        SwingUtilities.invokeLater(() -> {
-            var title = Dict.Dialog.TITLE_TASK_RUN_S.toString().formatted(task.getName());
-            var dryRunButton = new JButton(Dict.DRY_RUN.toString());
-            var d = new DialogDescriptor(
-                    dialogPanel,
-                    title,
-                    true,
-                    new Object[]{Dict.CANCEL.toString(), Dict.RUN.toString(), dryRunButton},
-                    dryRunButton,
-                    0,
-                    null,
-                    null
-            );
+            SwingUtilities.invokeLater(() -> {
+                var title = Dict.Dialog.TITLE_TASK_RUN_S.toString().formatted(task.getName());
+                var dryRunButton = new JButton(Dict.DRY_RUN.toString());
+                var d = new DialogDescriptor(
+                        dialogPanel,
+                        title,
+                        true,
+                        new Object[]{Dict.CANCEL.toString(), Dict.RUN.toString(), dryRunButton},
+                        dryRunButton,
+                        0,
+                        null,
+                        null
+                );
 
-            d.setValid(false);
-            dialogPanel.setNotifyDescriptor(d);
-            dialogPanel.initFx(() -> {
+                d.setValid(false);
+                dialogPanel.setNotifyDescriptor(d);
+                dialogPanel.initFx(() -> {
+                });
+                SwingHelper.runLaterDelayed(100, () -> dryRunButton.requestFocus());
+                var result = DialogDisplayer.getDefault().notify(d);
+
+                if (result == Dict.RUN.toString()) {
+                    start(task, false);
+                } else if (result == dryRunButton) {
+                    start(task, true);
+                }
             });
-            SwingHelper.runLaterDelayed(100, () -> dryRunButton.requestFocus());
-            var result = DialogDisplayer.getDefault().notify(d);
-
-            if (result == Dict.RUN.toString()) {
-                start(task, false);
-            } else if (result == dryRunButton) {
-                start(task, true);
-            }
-        });
+        }
     }
 
     public void start(Task task, boolean dryRun) {
-        System.out.println("START");
-        System.out.println(task.getName());
-        System.out.println(dryRun);
         var taskExecutor = new TaskExecutor(task, dryRun);
         mTaskExecutors.put(task.getId(), taskExecutor);
         taskExecutor.run();
-
-//        if (task.isValid()) {
-//            mLastRunProfile = profile;
-//            mOperationThread = new Thread(() -> {
-//                Operation operation = new Operation(mOperationListener, profile);
-//                operation.start();
-//            });
-//            mOperationThread.setName("Operation");
-//            mOperationThread.start();
-//        } else {
-//            mStatusPanel.out(profile.toDebugString());
-//            mStatusPanel.out(profile.getValidationError());
-//            mStatusPanel.out(Dict.ABORTING.toString());
-//        }
     }
 
     private static class Holder {

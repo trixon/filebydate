@@ -15,19 +15,15 @@
  */
 package se.trixon.filebydate.core;
 
-import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
 import org.netbeans.api.progress.ProgressHandle;
 import org.openide.util.Cancellable;
 import org.openide.util.Exceptions;
 import org.openide.windows.IOProvider;
 import org.openide.windows.InputOutput;
 import se.trixon.almond.util.Dict;
-import se.trixon.almond.util.icons.material.swing.MaterialIcon;
 
 /**
  *
@@ -37,9 +33,9 @@ public class TaskExecutor implements Runnable {
 
     private final boolean mDryRun;
     private String mDryRunIndicator = "";
-
     private final InputOutput mInputOutput;
     private long mLastRun;
+    private Thread mOperationThread;
     private ProgressHandle mProgressHandle;
 
     private final Task mTask;
@@ -47,16 +43,7 @@ public class TaskExecutor implements Runnable {
     public TaskExecutor(Task task, boolean dryRun) {
         mTask = task;
         mDryRun = dryRun;
-        AbstractAction abstractAction = new AbstractAction("xyz", MaterialIcon._Action.ACCESSIBILITY.getImageIcon(36)) {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                System.out.println("action performed");
-            }
-
-        };
-        var actions = new Action[]{abstractAction};
-
-        mInputOutput = IOProvider.getDefault().getIO(mTask.getName(), false, actions, null);
+        mInputOutput = IOProvider.getDefault().getIO(mTask.getName(), false);
 
         if (mDryRun) {
             mDryRunIndicator = String.format(" (%s)", Dict.DRY_RUN.toString());
@@ -69,91 +56,39 @@ public class TaskExecutor implements Runnable {
             Exceptions.printStackTrace(ex);
         }
 
+        task.setOperation(task.getCommand().ordinal());
     }
 
     @Override
     public void run() {
-        var allowToCancel = (Cancellable) () -> {
-            //TODO kill thread...
-            System.out.println("request CANCEL");
-            mInputOutput.getErr().println("cancelet");
+        String s = "%s %s %s.".formatted(now(), Dict.START.toString(), mTask.getName());
+        mInputOutput.getOut().println(s);
 
+        if (!mTask.isValid()) {
+            mInputOutput.getErr().println(mTask.getValidationError());
+            return;
+        }
+
+        var allowToCancel = (Cancellable) () -> {
+            mOperationThread.interrupt();
             mProgressHandle.finish();
+            ExecutorManager.getInstance().getTaskExecutors().remove(mTask.getId());
 
             return true;
         };
-        var ii = MaterialIcon._Action.ACCESSIBILITY.getImageIcon(16);
-        AbstractAction abstractAction = new AbstractAction("xyz", ii) {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                System.out.println("action performed");
-            }
-
-        };
-        mProgressHandle = ProgressHandle.createHandle(mTask.getName(), allowToCancel, abstractAction);
-        mProgressHandle.addDefaultAction(abstractAction);
+        mProgressHandle = ProgressHandle.createHandle(mTask.getName(), allowToCancel);
         mLastRun = System.currentTimeMillis();
 
-//        appendHistoryFile(getHistoryLine(mTask.getId(), Dict.STARTED.toString(), mDryRunIndicator));
-        String s = "%s %s %s.".formatted(now(), Dict.START.toString(), mTask.getName());
-        mInputOutput.getOut().println(s);
-        mInputOutput.getErr().println(String.format("\n\n%s", Dict.JOB_FAILED.toString()));
         mProgressHandle.start();
         mProgressHandle.switchToIndeterminate();
-        mProgressHandle.progress("567");
-        new Thread(() -> {
-            try {
-                Thread.sleep(100 * 1000);
-            } catch (InterruptedException ex) {
-                Exceptions.printStackTrace(ex);
-            }
-            mInputOutput.getOut().println("DONE");
+        mOperationThread = new Thread(() -> {
+            var operation = new Operation(mTask, mInputOutput, mProgressHandle);
+            operation.start();
             mProgressHandle.finish();
-        }).start();
+            ExecutorManager.getInstance().getTaskExecutors().remove(mTask.getId());
+        }, "Operation");
+        mOperationThread.start();
 
-//        var jobExecuteSection = mTask.getExecuteSection();
-//        try {
-//            // run before first task
-//            run(jobExecuteSection.getBefore(), "JobEditor.runBefore");
-//
-//            runTasks();
-//
-//            if (mNumOfFailedTasks == 0) {
-//                // run after last task - if all ok
-//                run(jobExecuteSection.getAfterOk(), "JobEditor.runAfterOk");
-//            } else {
-//                s = String.format(Dict.TASKS_FAILED.toString(), mNumOfFailedTasks);
-//                mInputOutput.getErr().println(s);
-//
-//                // run after last task - if any failed
-//                run(jobExecuteSection.getAfterFail(), "JobEditor.runAfterFail");
-//            }
-//
-//            // run after last task
-//            run(jobExecuteSection.getAfter(), "JobEditor.runAfter");
-//
-//            appendHistoryFile(getHistoryLine(mTask.getId(), Dict.DONE.toString(), mDryRunIndicator));
-//            s = String.format("%s %s: %s", Jota.nowToDateTime(), Dict.DONE.toString(), Dict.JOB.toString());
-//            mInputOutput.getOut().println(s);
-//            updateJobStatus(0);
-//            writelogs();
-//            mInputOutput.getOut().println(String.format(Dict.JOB_FINISHED.toString(), mTask.getName()));
-//        } catch (InterruptedException ex) {
-//            appendHistoryFile(getHistoryLine(mTask.getId(), Dict.CANCELED.toString(), mDryRunIndicator));
-//            updateJobStatus(99);
-//            writelogs();
-//        } catch (IOException ex) {
-//            writelogs();
-//            Exceptions.printStackTrace(ex);
-//        } catch (ExecutionFailedException ex) {
-//            //Logger.getLogger(JobExecutor.class.getName()).log(Level.SEVERE, null, ex);
-//            //send(ProcessEvent.OUT, "before failed and will not continue");
-//            appendHistoryFile(getHistoryLine(mTask.getId(), Dict.FAILED.toString(), mDryRunIndicator));
-//            updateJobStatus(1);
-//            writelogs();
-//            mInputOutput.getErr().println(String.format("\n\n%s", Dict.JOB_FAILED.toString()));
-//        }
-        ExecutorManager.getInstance().getTaskExecutors().remove(mTask.getId());
     }
 
     private String now() {

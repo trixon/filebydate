@@ -23,10 +23,11 @@ import com.drew.metadata.exif.ExifSubIFDDirectory;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileVisitOption;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
-import java.nio.file.PathMatcher;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -38,8 +39,10 @@ import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.netbeans.api.progress.ProgressHandle;
+import org.openide.util.NbBundle;
+import org.openide.windows.InputOutput;
 import se.trixon.almond.util.Dict;
-import se.trixon.almond.util.SystemHelper;
 import se.trixon.almond.util.Xlog;
 
 /**
@@ -50,40 +53,37 @@ public class Operation {
 
     private static final Logger LOGGER = Logger.getLogger(Operation.class.getName());
 
-    private final ResourceBundle mBundle;
+    private final ResourceBundle mBundle = NbBundle.getBundle(Operation.class);
     private final List<Exception> mExceptions = new ArrayList<>();
     private final List<File> mFiles = new ArrayList<>();
     private boolean mInterrupted;
-    private final OperationListener mListener;
+    private final ProgressHandle mProgressHandle;
     private final Task mTask;
+    private final InputOutput mInputOutput;
 
-    public Operation(OperationListener operationListener, Task task) {
-        mListener = operationListener;
+    public Operation(Task task, InputOutput inputOutput, ProgressHandle progressHandle) {
         mTask = task;
-        mBundle = SystemHelper.getBundle(Operation.class, "Bundle");
+        mInputOutput = inputOutput;
+        mProgressHandle = progressHandle;
     }
 
     public void start() {
         long startTime = System.currentTimeMillis();
 
-        Date date = new Date(startTime);
-        SimpleDateFormat dateFormat = new SimpleDateFormat();
-        mListener.onOperationStarted();
-        mListener.onOperationProcessingStarted();
-        mListener.onOperationLog(dateFormat.format(date));
-
         mInterrupted = !generateFileList();
         String status;
 
         if (!mInterrupted && !mFiles.isEmpty()) {
-            mListener.onOperationLog(String.format(mBundle.getString("found_count"), mFiles.size()));
-            mListener.onOperationLog("");
+            mInputOutput.getOut().println(String.format(mBundle.getString("found_count"), mFiles.size()));
+            mInputOutput.getOut().println("");
             status = Dict.PROCESSING.toString();
-            mListener.onOperationLog(status);
-
+            mInputOutput.getOut().println(status);
+            mProgressHandle.switchToDeterminate(mFiles.size());
             int progress = 0;
-            SimpleDateFormat simpleDateFormat = mTask.getDateFormat();
-            for (File sourceFile : mFiles) {
+            var taskDateFormat = mTask.getDateFormat();
+
+            for (var sourceFile : mFiles) {
+                mProgressHandle.progress(sourceFile.getName());
                 try {
                     try {
                         TimeUnit.MILLISECONDS.sleep(1);
@@ -92,11 +92,11 @@ public class Operation {
                         break;
                     }
 
-                    String fileDate = simpleDateFormat.format(getDate(sourceFile));
-                    File destDir = new File(mTask.getDestDir(), fileDate);
+                    var fileDate = taskDateFormat.format(getDate(sourceFile));
+                    var destDir = new File(mTask.getDestDir(), fileDate);
 
                     if (destDir.isFile()) {
-                        mListener.onOperationLog(String.format(Dict.Dialog.ERROR_DEST_DIR_IS_FILE.toString(), destDir.getAbsolutePath()));
+                        mInputOutput.getOut().println(String.format(Dict.Dialog.ERROR_DEST_DIR_IS_FILE.toString(), destDir.getAbsolutePath()));
                         break;
                     } else if (!destDir.exists() && !mTask.isDryRun()) {
                         FileUtils.forceMkdir(destDir);
@@ -105,8 +105,8 @@ public class Operation {
                     String destFilename = sourceFile.getName();
                     String base = FilenameUtils.getBaseName(destFilename);
                     String ext = FilenameUtils.getExtension(destFilename);
-                    NameCase caseBase = mTask.getCaseBase();
-                    NameCase caseExt = mTask.getCaseExt();
+                    var caseBase = mTask.getCaseBase();
+                    var caseExt = mTask.getCaseExt();
 
                     if (caseBase != NameCase.UNCHANGED || caseExt != NameCase.UNCHANGED) {
                         if (caseBase == NameCase.LOWER) {
@@ -130,12 +130,12 @@ public class Operation {
                         }
                     }
 
-                    File destFile = new File(destDir, destFilename);
+                    var destFile = new File(destDir, destFilename);
                     String log;
                     if (destFile.exists() && !mTask.isReplaceExisting()) {
                         log = String.format(Dict.Dialog.ERROR_DEST_FILE_EXISTS.toString(), destFile.getAbsolutePath());
                     } else {
-                        Command command = mTask.getCommand();
+                        var command = mTask.getCommand();
                         String cmd = command == Command.COPY ? "cp" : "mv";
                         log = String.format("%s %s  %s", cmd, sourceFile.getAbsolutePath(), destFile.toString());
 
@@ -157,27 +157,28 @@ public class Operation {
                         }
                     }
 
-                    mListener.onOperationLog(getMessage(log));
+                    mInputOutput.getOut().println(getMessage(log));
                 } catch (IOException | ImageProcessingException | NullPointerException ex) {
-                    mListener.onOperationLog(getMessage(ex.getLocalizedMessage()));
+                    mInputOutput.getOut().println(getMessage(ex.getLocalizedMessage()));
                 }
-                mListener.onOperationProgress(++progress, mFiles.size());
+
+                mProgressHandle.progress(++progress);
             }
         }
 
         if (mInterrupted) {
             status = Dict.TASK_ABORTED.toString();
-            mListener.onOperationLog("\n" + status);
-            mListener.onOperationInterrupted();
+            mInputOutput.getErr().println("\n" + status);
         } else {
-            mExceptions.stream().forEach((exception) -> {
-                mListener.onOperationLog(String.format("#%s", exception.getLocalizedMessage()));
+            mExceptions.forEach(exception -> {
+                mInputOutput.getOut().println(String.format("#%s", exception.getLocalizedMessage()));
             });
             long millis = System.currentTimeMillis() - startTime;
             long min = TimeUnit.MILLISECONDS.toMinutes(millis);
             long sec = TimeUnit.MILLISECONDS.toSeconds(millis) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis));
             status = String.format("%s (%d %s, %d %s)", Dict.TASK_COMPLETED.toString(), min, Dict.TIME_MIN.toString(), sec, Dict.TIME_SEC.toString());
-            mListener.onOperationFinished(status, mFiles.size());
+            mInputOutput.getOut().println();
+            mInputOutput.getOut().println(status);
 
             if (!mTask.isDryRun()) {
                 mTask.setLastRun(System.currentTimeMillis());
@@ -186,23 +187,18 @@ public class Operation {
         }
     }
 
-    OperationListener getListener() {
-        return mListener;
-    }
-
     private boolean generateFileList() {
-        mListener.onOperationLog("");
-        mListener.onOperationLog(Dict.GENERATING_FILELIST.toString());
-        PathMatcher pathMatcher = mTask.getPathMatcher();
+        mInputOutput.getOut().println();
+        mInputOutput.getOut().println(Dict.GENERATING_FILELIST.toString());
 
-        EnumSet<FileVisitOption> fileVisitOptions = EnumSet.noneOf(FileVisitOption.class);
+        var fileVisitOptions = EnumSet.noneOf(FileVisitOption.class);
         if (mTask.isFollowLinks()) {
             fileVisitOptions = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
         }
 
-        File file = mTask.getSourceDir();
+        var file = mTask.getSourceDir();
         if (file.isDirectory()) {
-            FileVisitor fileVisitor = new FileVisitor(pathMatcher, mFiles, this);
+            var fileVisitor = new FileVisitor();
             try {
                 if (mTask.isRecursive()) {
                     Files.walkFileTree(file.toPath(), fileVisitOptions, Integer.MAX_VALUE, fileVisitor);
@@ -216,12 +212,12 @@ public class Operation {
             } catch (IOException ex) {
                 Xlog.e(getClass(), ex.getLocalizedMessage());
             }
-        } else if (file.isFile() && pathMatcher.matches(file.toPath().getFileName())) {
+        } else if (file.isFile() && mTask.getPathMatcher().matches(file.toPath().getFileName())) {
             mFiles.add(file);
         }
 
         if (mFiles.isEmpty()) {
-            mListener.onOperationLog(Dict.FILELIST_EMPTY.toString());
+            mInputOutput.getOut().println(Dict.FILELIST_EMPTY.toString());
         } else {
             Collections.sort(mFiles);
         }
@@ -230,14 +226,14 @@ public class Operation {
     }
 
     private Date getDate(File sourceFile) throws IOException, ImageProcessingException {
-        Date date = new Date(System.currentTimeMillis());
-        DateSource dateSource = mTask.getDateSource();
+        var date = new Date(System.currentTimeMillis());
+        var dateSource = mTask.getDateSource();
 
         if (dateSource == DateSource.FILE_CREATED) {
-            BasicFileAttributes attr = Files.readAttributes(sourceFile.toPath(), BasicFileAttributes.class);
+            var attr = Files.readAttributes(sourceFile.toPath(), BasicFileAttributes.class);
             date = new Date(attr.creationTime().toMillis());
         } else if (dateSource == DateSource.FILE_MODIFIED) {
-            BasicFileAttributes attr = Files.readAttributes(sourceFile.toPath(), BasicFileAttributes.class);
+            var attr = Files.readAttributes(sourceFile.toPath(), BasicFileAttributes.class);
             date = new Date(attr.lastModifiedTime().toMillis());
         } else if (dateSource == DateSource.EXIF_ORIGINAL) {
             Metadata metadata;
@@ -277,6 +273,53 @@ public class Operation {
         @Override
         public String toString() {
             return Dict.valueOf(name()).toString();
+        }
+    }
+
+    public class FileVisitor extends SimpleFileVisitor<Path> {
+
+        private boolean mInterrupted;
+
+        public FileVisitor() {
+        }
+
+        public boolean isInterrupted() {
+            return mInterrupted;
+        }
+
+        @Override
+        public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+            try {
+                TimeUnit.NANOSECONDS.sleep(1);
+            } catch (InterruptedException ex) {
+                mInterrupted = true;
+                return FileVisitResult.TERMINATE;
+            }
+
+            mInputOutput.getOut().println(dir.toString());
+            String[] filePaths = dir.toFile().list();
+
+            if (filePaths != null && filePaths.length > 0) {
+                for (String fileName : filePaths) {
+                    try {
+                        TimeUnit.NANOSECONDS.sleep(1);
+                    } catch (InterruptedException ex) {
+                        mInterrupted = true;
+                        return FileVisitResult.TERMINATE;
+                    }
+                    File file = new File(dir.toFile(), fileName);
+                    if (file.isFile() && mTask.getPathMatcher().matches(file.toPath().getFileName())) {
+                        mFiles.add(file);
+                    }
+                }
+            }
+
+            return FileVisitResult.CONTINUE;
+        }
+
+        @Override
+        public FileVisitResult visitFileFailed(Path file, IOException exc) {
+            return FileVisitResult.CONTINUE;
         }
     }
 }
