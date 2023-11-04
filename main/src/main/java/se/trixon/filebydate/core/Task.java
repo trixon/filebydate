@@ -15,8 +15,6 @@
  */
 package se.trixon.filebydate.core;
 
-import se.trixon.filebydate.core.parts.DateSource;
-import se.trixon.filebydate.core.parts.NameCase;
 import com.google.gson.annotations.SerializedName;
 import java.io.File;
 import java.nio.file.FileSystems;
@@ -34,6 +32,8 @@ import se.trixon.almond.util.Dict;
 import se.trixon.almond.util.fx.control.editable_list.EditableListItem;
 import se.trixon.filebydate.Options;
 import se.trixon.filebydate.core.parts.Command;
+import se.trixon.filebydate.core.parts.DateSource;
+import se.trixon.filebydate.core.parts.NameCase;
 
 /**
  *
@@ -60,12 +60,13 @@ public class Task implements Comparable<Task>, Cloneable, EditableListItem {
     private String mDescription;
     @SerializedName("destination")
     private File mDestDir;
-    @SerializedName("dry_run")
-    private boolean mDryRun;
+    private transient boolean mDryRun;
     @SerializedName("file_pattern")
     private String mFilePattern;
     @SerializedName("follow_links")
     private boolean mFollowLinks;
+    @SerializedName("uuid")
+    private String mId = UUID.randomUUID().toString();
     @SerializedName("last_run")
     private long mLastRun;
     private transient boolean mModeCopy;
@@ -80,8 +81,6 @@ public class Task implements Comparable<Task>, Cloneable, EditableListItem {
     @SerializedName("source")
     private File mSourceDir;
     private transient StringBuilder mValidationErrorBuilder = new StringBuilder();
-    @SerializedName("uuid")
-    private String mId = UUID.randomUUID().toString();
 
     public Task() {
     }

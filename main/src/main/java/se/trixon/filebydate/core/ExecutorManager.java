@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2023 Patrik Karlström <patrik@trixon.se>.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -93,7 +93,8 @@ public class ExecutorManager {
     }
 
     public void start(Task task, boolean dryRun) {
-        var taskExecutor = new TaskExecutor(task, dryRun);
+        task.setDryRun(dryRun);
+        var taskExecutor = new TaskExecutor(task);
         mTaskExecutors.put(task.getId(), taskExecutor);
         taskExecutor.run();
     }

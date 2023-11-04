@@ -29,7 +29,6 @@ import se.trixon.almond.util.Dict;
  */
 public class TaskExecutor implements Runnable {
 
-    private final boolean mDryRun;
     private String mDryRunIndicator = "";
     private long mLastRun;
     private Thread mOperationThread;
@@ -37,11 +36,10 @@ public class TaskExecutor implements Runnable {
     private ProgressHandle mProgressHandle;
     private final Task mTask;
 
-    public TaskExecutor(Task task, boolean dryRun) {
+    public TaskExecutor(Task task) {
         mTask = task;
-        mDryRun = dryRun;
         mPrinter = new Printer(IOProvider.getDefault().getIO(mTask.getName(), false));
-        if (mDryRun) {
+        if (task.isDryRun()) {
             mDryRunIndicator = String.format(" (%s)", Dict.DRY_RUN.toString());
         }
 
