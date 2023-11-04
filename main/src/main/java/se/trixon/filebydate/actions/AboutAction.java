@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2023 Patrik Karlström <patrik@trixon.se>.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,9 +20,11 @@ import java.awt.event.ActionListener;
 import org.openide.awt.ActionID;
 import se.trixon.almond.nbp.core.ModuleHelper;
 import se.trixon.almond.nbp.dialogs.NbAbout;
+import se.trixon.almond.util.PomInfo;
 import se.trixon.almond.util.SystemHelper;
 import se.trixon.almond.util.swing.AboutModel;
 import se.trixon.filebydate.Filebydate;
+import se.trixon.filebydate.core.Task;
 
 @ActionID(
         category = "Help",
@@ -32,8 +34,10 @@ public final class AboutAction implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
+        var pomInfo = new PomInfo(Task.class, "se.trixon.filebydate", "main");
         var aboutModel = new AboutModel(SystemHelper.getBundle(Filebydate.class, "about"), SystemHelper.getResourceAsImageIcon(Filebydate.class, "about_logo.png"));
         aboutModel.setAppDate(ModuleHelper.getBuildTime(Filebydate.class));
+        aboutModel.setAppVersion(pomInfo.getVersion());
 
         new NbAbout(aboutModel).display();
     }

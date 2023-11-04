@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2023 Patrik Karlström <patrik@trixon.se>.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,7 +24,6 @@ import se.trixon.almond.nbp.dialogs.NbOptionalDialog;
 import se.trixon.almond.util.PrefsHelper;
 import se.trixon.almond.util.fx.FxHelper;
 import se.trixon.almond.util.icons.material.MaterialIcon;
-import se.trixon.filebydate.Options;
 
 /**
  *
@@ -32,8 +31,6 @@ import se.trixon.filebydate.Options;
  */
 @OnStart
 public class DoOnStart implements Runnable {
-
-    private static final Options mOptions = Options.getInstance();
 
     static {
         System.setProperty("netbeans.winsys.no_help_in_dialogs", "true");

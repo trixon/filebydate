@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2023 Patrik Karlström <patrik@trixon.se>.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,29 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.trixon.filebydate.core;
+package se.trixon.filebydate.core.parts;
 
-import java.util.Locale;
-import java.util.ResourceBundle;
-import org.openide.util.NbBundle;
-import se.trixon.filebydate.ui.MainTopComponent;
+import se.trixon.almond.util.Dict;
 
 /**
  *
- * @author Patrik Karlström
+ * @author Patrik Karlström <patrik@trixon.se>
  */
-public enum DateSource {
-
-    EXIF_ORIGINAL,
-    FILE_CREATED,
-    FILE_MODIFIED;
-    private final ResourceBundle mBundleUI = NbBundle.getBundle(MainTopComponent.class);
-
-    private DateSource() {
-    }
+public enum Command {
+    COPY, MOVE;
 
     @Override
     public String toString() {
-        return mBundleUI.getString("dateSource_" + name().toLowerCase(Locale.ROOT));
+        return Dict.valueOf(name()).toString();
     }
+
 }

@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2023 Patrik Karlström <patrik@trixon.se>.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,13 +18,10 @@ package se.trixon.filebydate.boot;
 import java.io.IOException;
 import org.openide.modules.ModuleInstall;
 import org.openide.util.Exceptions;
-import se.trixon.filebydate.Options;
 import se.trixon.filebydate.core.StorageManager;
 
 public class Installer extends ModuleInstall {
 
-    static boolean GUI = true;
-    private final Options mOptions = Options.getInstance();
     private final StorageManager mStorageManager = StorageManager.getInstance();
 
     @Override

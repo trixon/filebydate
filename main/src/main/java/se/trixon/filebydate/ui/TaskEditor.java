@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2023 Patrik Karlström <patrik@trixon.se>.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,12 +39,12 @@ import se.trixon.almond.util.fx.FxHelper;
 import se.trixon.almond.util.fx.control.FileChooserPane;
 import se.trixon.almond.util.fx.control.FileChooserPane.ObjectMode;
 import se.trixon.filebydate.Options;
-import se.trixon.filebydate.core.DateSource;
-import se.trixon.filebydate.core.NameCase;
-import se.trixon.filebydate.core.Operation.Command;
 import se.trixon.filebydate.core.StorageManager;
 import se.trixon.filebydate.core.Task;
 import se.trixon.filebydate.core.TaskManager;
+import se.trixon.filebydate.core.parts.Command;
+import se.trixon.filebydate.core.parts.DateSource;
+import se.trixon.filebydate.core.parts.NameCase;
 
 /**
  *
@@ -233,7 +233,8 @@ public class TaskEditor extends GridPane {
     }
 
     private void initValidation() {
-        final String text_is_required = "Text is required";
+        var textRequired = "Text is required";
+        var textUnique = "Text has to be unique";
         boolean indicateRequired = false;
 
         var namePredicate = (Predicate<String>) s -> {
@@ -253,15 +254,18 @@ public class TaskEditor extends GridPane {
         };
 
         var validationSupport = new ValidationSupport();
-        validationSupport.registerValidator(mNameTextField, indicateRequired, Validator.createEmptyValidator(text_is_required));
-        validationSupport.registerValidator(mNameTextField, indicateRequired, Validator.createPredicateValidator(namePredicate, text_is_required));
-        validationSupport.registerValidator(mNameTextField, indicateRequired, Validator.createPredicateValidator(uniqueNamePredicate, text_is_required));
-        validationSupport.registerValidator(mDescTextField, indicateRequired, Validator.createEmptyValidator(text_is_required));
-        validationSupport.registerValidator(mSourceChooserPane.getTextField(), indicateRequired, Validator.createEmptyValidator(text_is_required));
-        validationSupport.registerValidator(mDestChooserPane.getTextField(), indicateRequired, Validator.createEmptyValidator(text_is_required));
-        validationSupport.registerValidator(mFilePatternComboBox, indicateRequired, Validator.createEmptyValidator(text_is_required));
-        validationSupport.registerValidator(mDatePatternComboBox, indicateRequired, Validator.createEmptyValidator(text_is_required));
-        validationSupport.registerValidator(mDatePatternComboBox, indicateRequired, Validator.createPredicateValidator(datePredicate, text_is_required));
+        validationSupport.registerValidator(mNameTextField, indicateRequired, Validator.combine(
+                Validator.createEmptyValidator(textRequired),
+                Validator.createPredicateValidator(namePredicate, textUnique),
+                Validator.createPredicateValidator(uniqueNamePredicate, textUnique)
+        ));
+
+        validationSupport.registerValidator(mDescTextField, indicateRequired, Validator.createEmptyValidator(textRequired));
+        validationSupport.registerValidator(mSourceChooserPane.getTextField(), indicateRequired, Validator.createEmptyValidator(textRequired));
+        validationSupport.registerValidator(mDestChooserPane.getTextField(), indicateRequired, Validator.createEmptyValidator(textRequired));
+        validationSupport.registerValidator(mFilePatternComboBox, indicateRequired, Validator.createEmptyValidator(textRequired));
+        validationSupport.registerValidator(mDatePatternComboBox, indicateRequired, Validator.createEmptyValidator(textRequired));
+        validationSupport.registerValidator(mDatePatternComboBox, indicateRequired, Validator.createPredicateValidator(datePredicate, textRequired));
 
         validationSupport.validationResultProperty().addListener((p, o, n) -> {
             mDialogDescriptor.setValid(!validationSupport.isInvalid());

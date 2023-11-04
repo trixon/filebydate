@@ -15,15 +15,12 @@
  */
 package se.trixon.filebydate.core;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.concurrent.TimeUnit;
 import org.netbeans.api.progress.ProgressHandle;
 import org.openide.util.Cancellable;
-import org.openide.util.Exceptions;
 import org.openide.windows.IOProvider;
-import org.openide.windows.InputOutput;
 import se.trixon.almond.util.Dict;
 
 /**
@@ -34,27 +31,18 @@ public class TaskExecutor implements Runnable {
 
     private final boolean mDryRun;
     private String mDryRunIndicator = "";
-    private final InputOutput mInputOutput;
     private long mLastRun;
     private Thread mOperationThread;
+    private final Printer mPrinter;
     private ProgressHandle mProgressHandle;
-
     private final Task mTask;
 
     public TaskExecutor(Task task, boolean dryRun) {
         mTask = task;
         mDryRun = dryRun;
-        mInputOutput = IOProvider.getDefault().getIO(mTask.getName(), false);
-
+        mPrinter = new Printer(IOProvider.getDefault().getIO(mTask.getName(), false));
         if (mDryRun) {
             mDryRunIndicator = String.format(" (%s)", Dict.DRY_RUN.toString());
-        }
-
-        try {
-            mInputOutput.getOut().reset();
-            mInputOutput.select();
-        } catch (IOException ex) {
-            Exceptions.printStackTrace(ex);
         }
 
         task.setOperation(task.getCommand().ordinal());
@@ -63,10 +51,10 @@ public class TaskExecutor implements Runnable {
     @Override
     public void run() {
         String s = "%s %s %s.".formatted(now(), Dict.START.toString(), mTask.getName());
-        mInputOutput.getOut().println(s);
+        mPrinter.outln(s);
 
         if (!mTask.isValid()) {
-            mInputOutput.getErr().println(mTask.getValidationError());
+            mPrinter.errln(mTask.getValidationError());
             return;
         }
 
@@ -83,20 +71,20 @@ public class TaskExecutor implements Runnable {
         mProgressHandle.start();
         mProgressHandle.switchToIndeterminate();
         mOperationThread = new Thread(() -> {
-            var operation = new Operation(mTask, mInputOutput, mProgressHandle);
+            var operation = new Operation(mTask, mPrinter, mProgressHandle);
             var startTime = System.currentTimeMillis();
             operation.start();
 
             if (operation.isInterrupted()) {
-                mInputOutput.getErr().println();
-                mInputOutput.getErr().println("%s %s".formatted(now(), Dict.TASK_ABORTED.toString()));
+                mPrinter.errln("");
+                mPrinter.errln("%s %s".formatted(now(), Dict.TASK_ABORTED.toString()));
             } else {
                 long millis = System.currentTimeMillis() - startTime;
                 long min = TimeUnit.MILLISECONDS.toMinutes(millis);
                 long sec = TimeUnit.MILLISECONDS.toSeconds(millis) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis));
                 var status = String.format("%s (%d %s, %d %s)", Dict.TASK_COMPLETED.toString(), min, Dict.TIME_MIN.toString(), sec, Dict.TIME_SEC.toString());
-                mInputOutput.getOut().println();
-                mInputOutput.getOut().println("%s %s".formatted(now(), status));
+                mPrinter.outln("");
+                mPrinter.outln("%s %s".formatted(now(), status));
 
                 if (!mTask.isDryRun()) {
                     mTask.setLastRun(System.currentTimeMillis());

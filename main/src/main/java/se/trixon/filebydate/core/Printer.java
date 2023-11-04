@@ -13,42 +13,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.trixon.filebydate;
+package se.trixon.filebydate.core;
 
 import java.io.IOException;
 import org.openide.util.Exceptions;
-import org.openide.util.NbBundle;
-import org.openide.windows.IOProvider;
-import se.trixon.almond.util.Dict;
-import se.trixon.almond.util.SystemHelper;
-import se.trixon.filebydate.core.TaskManager;
-import se.trixon.filebydate.ui.MainTopComponent;
+import org.openide.windows.InputOutput;
 
 /**
  *
  * @author Patrik Karlström <patrik@trixon.se>
  */
-public class Filebydate {
+public class Printer {
 
-    public static void displaySystemInformation() {
-        String s = "%s\n%s".formatted(
-                Dict.SYSTEM.toUpper(),
-                SystemHelper.getSystemInfo()
-        );
+    private final InputOutput mInputOutput;
 
-        var io = IOProvider.getDefault().getIO(Dict.INFORMATION.toString(), false);
+    public Printer(InputOutput inputOutput) {
+        mInputOutput = inputOutput;
         try {
-            io.getOut().reset();
+            mInputOutput.getOut().reset();
+            mInputOutput.select();
         } catch (IOException ex) {
             Exceptions.printStackTrace(ex);
         }
+    }
 
-        io.getOut().println(s);
-        if (TaskManager.getInstance().getItems().isEmpty()) {
-            io.getOut().println();
-            io.getOut().println(NbBundle.getMessage(MainTopComponent.class, "welcome"));
+    public void errln(String s) {
+        if (TaskManager.getInstance().isGui()) {
+            mInputOutput.getErr().println(s);
+        } else {
+            System.out.println(s);
         }
+    }
 
-        io.getOut().close();
+    public void outln(String s) {
+        if (TaskManager.getInstance().isGui()) {
+            mInputOutput.getOut().println(s);
+        } else {
+            System.out.println(s);
+        }
     }
 }

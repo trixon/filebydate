@@ -15,6 +15,8 @@
  */
 package se.trixon.filebydate.core;
 
+import se.trixon.filebydate.core.parts.NameCase;
+import se.trixon.filebydate.core.parts.Command;
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.Directory;
@@ -40,7 +42,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.netbeans.api.progress.ProgressHandle;
 import org.openide.util.NbBundle;
-import org.openide.windows.InputOutput;
 import se.trixon.almond.util.Dict;
 
 /**
@@ -49,16 +50,16 @@ import se.trixon.almond.util.Dict;
  */
 public class Operation {
 
-    private final ResourceBundle mBundle = NbBundle.getBundle(Operation.class);
+    private final ResourceBundle mBundle = NbBundle.getBundle(Task.class);
     private final List<File> mFiles = new ArrayList<>();
-    private final InputOutput mInputOutput;
     private boolean mInterrupted;
+    private final Printer mPrinter;
     private final ProgressHandle mProgressHandle;
     private final Task mTask;
 
-    public Operation(Task task, InputOutput inputOutput, ProgressHandle progressHandle) {
+    public Operation(Task task, Printer printer, ProgressHandle progressHandle) {
         mTask = task;
-        mInputOutput = inputOutput;
+        mPrinter = printer;
         mProgressHandle = progressHandle;
     }
 
@@ -70,9 +71,9 @@ public class Operation {
         mInterrupted = !generateFileList();
 
         if (!mInterrupted && !mFiles.isEmpty()) {
-            mInputOutput.getOut().println(String.format(mBundle.getString("found_count"), mFiles.size()));
-            mInputOutput.getOut().println("");
-            mInputOutput.getOut().println(Dict.PROCESSING.toString());
+            mPrinter.outln(String.format(mBundle.getString("found_count"), mFiles.size()));
+            mPrinter.outln("");
+            mPrinter.outln(Dict.PROCESSING.toString());
             mProgressHandle.switchToDeterminate(mFiles.size());
             int progress = 0;
             var taskDateFormat = mTask.getDateFormat();
@@ -91,7 +92,7 @@ public class Operation {
                     var destDir = new File(mTask.getDestDir(), fileDate);
 
                     if (destDir.isFile()) {
-                        mInputOutput.getOut().println(String.format(Dict.Dialog.ERROR_DEST_DIR_IS_FILE.toString(), destDir.getAbsolutePath()));
+                        mPrinter.outln(String.format(Dict.Dialog.ERROR_DEST_DIR_IS_FILE.toString(), destDir.getAbsolutePath()));
                         break;
                     } else if (!destDir.exists() && !mTask.isDryRun()) {
                         FileUtils.forceMkdir(destDir);
@@ -130,7 +131,7 @@ public class Operation {
                     if (destFile.exists() && !mTask.isReplaceExisting()) {
                         log = String.format(Dict.Dialog.ERROR_DEST_FILE_EXISTS.toString(), destFile.getAbsolutePath());
                     } else {
-                        var command = mTask.getCommand();
+                        se.trixon.filebydate.core.parts.Command command = mTask.getCommand();
                         String cmd = command == Command.COPY ? "cp" : "mv";
                         log = String.format("%s %s  %s", cmd, sourceFile.getAbsolutePath(), destFile.toString());
 
@@ -152,9 +153,9 @@ public class Operation {
                         }
                     }
 
-                    mInputOutput.getOut().println(getMessage(log));
+                    mPrinter.outln(getMessage(log));
                 } catch (IOException | ImageProcessingException | NullPointerException ex) {
-                    mInputOutput.getOut().println(getMessage(ex.getLocalizedMessage()));
+                    mPrinter.outln(getMessage(ex.getLocalizedMessage()));
                 }
 
                 mProgressHandle.progress(++progress);
@@ -163,8 +164,8 @@ public class Operation {
     }
 
     private boolean generateFileList() {
-        mInputOutput.getOut().println();
-        mInputOutput.getOut().println(Dict.GENERATING_FILELIST.toString());
+        mPrinter.outln("");
+        mPrinter.outln(Dict.GENERATING_FILELIST.toString());
 
         var fileVisitOptions = EnumSet.noneOf(FileVisitOption.class);
         if (mTask.isFollowLinks()) {
@@ -185,14 +186,14 @@ public class Operation {
                     return false;
                 }
             } catch (IOException ex) {
-                mInputOutput.getErr().println(ex.getMessage());
+                mPrinter.errln(ex.getMessage());
             }
         } else if (file.isFile() && mTask.getPathMatcher().matches(file.toPath().getFileName())) {
             mFiles.add(file);
         }
 
         if (mFiles.isEmpty()) {
-            mInputOutput.getOut().println(Dict.FILELIST_EMPTY.toString());
+            mPrinter.outln(Dict.FILELIST_EMPTY.toString());
         } else {
             Collections.sort(mFiles);
         }
@@ -246,15 +247,6 @@ public class Operation {
         return Objects.toString(message, "");
     }
 
-    public enum Command {
-
-        COPY, MOVE;
-
-        @Override
-        public String toString() {
-            return Dict.valueOf(name()).toString();
-        }
-    }
 
     public class FileVisitor extends SimpleFileVisitor<Path> {
 
@@ -276,7 +268,7 @@ public class Operation {
                 return FileVisitResult.TERMINATE;
             }
 
-            mInputOutput.getOut().println(dir.toString());
+            mPrinter.outln(dir.toString());
             var filePaths = dir.toFile().list();
 
             if (filePaths != null && filePaths.length > 0) {

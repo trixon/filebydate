@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2023 Patrik Karlström <patrik@trixon.se>.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,6 +15,8 @@
  */
 package se.trixon.filebydate.core;
 
+import se.trixon.filebydate.core.parts.DateSource;
+import se.trixon.filebydate.core.parts.NameCase;
 import com.google.gson.annotations.SerializedName;
 import java.io.File;
 import java.nio.file.FileSystems;
@@ -31,8 +33,7 @@ import org.openide.util.NbBundle;
 import se.trixon.almond.util.Dict;
 import se.trixon.almond.util.fx.control.editable_list.EditableListItem;
 import se.trixon.filebydate.Options;
-import se.trixon.filebydate.core.Operation.Command;
-import se.trixon.filebydate.ui.MainTopComponent;
+import se.trixon.filebydate.core.parts.Command;
 
 /**
  *
@@ -41,7 +42,6 @@ import se.trixon.filebydate.ui.MainTopComponent;
 public class Task implements Comparable<Task>, Cloneable, EditableListItem {
 
     private transient final ResourceBundle mBundle = NbBundle.getBundle(Task.class);
-    private transient final ResourceBundle mBundleUI = NbBundle.getBundle(MainTopComponent.class);
     @SerializedName("case_base")
     private NameCase mCaseBase = NameCase.UNCHANGED;
     private transient String mCaseBaseString;
@@ -49,7 +49,7 @@ public class Task implements Comparable<Task>, Cloneable, EditableListItem {
     private NameCase mCaseExt = NameCase.UNCHANGED;
     private transient String mCaseExtString;
     @SerializedName("operation")
-    private Command mCommand;
+    private Command mCommand = Command.COPY;
     private transient SimpleDateFormat mDateFormat;
     @SerializedName("date_pattern")
     private String mDatePattern;

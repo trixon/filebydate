@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2023 Patrik Karlström <patrik@trixon.se>.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -80,7 +80,7 @@ public class TaskSummary extends VBox {
     class SummaryDetails extends TextFlow {
 
         private final Text mBasedOn = new Text();
-        private final ResourceBundle mBundle = NbBundle.getBundle(SummaryDetails.class);
+        private final ResourceBundle mBundle = NbBundle.getBundle(MainTopComponent.class);
         private final Text mCase = new Text();
         private final Text mDest = new Text("\n");
         private final Text mFilesFrom = new Text(mBundle.getString("files_from"));

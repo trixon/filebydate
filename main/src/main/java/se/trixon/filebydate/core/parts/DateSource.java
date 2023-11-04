@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2023 Patrik Karlström <patrik@trixon.se>.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.trixon.filebydate.core;
+package se.trixon.filebydate.core.parts;
 
 import java.util.Locale;
 import java.util.ResourceBundle;
@@ -24,28 +24,18 @@ import se.trixon.filebydate.ui.MainTopComponent;
  *
  * @author Patrik Karlström
  */
-public enum NameCase {
-    UNCHANGED, LOWER, UPPER;
-    private final ResourceBundle mBundleUI = NbBundle.getBundle(MainTopComponent.class);
+public enum DateSource {
 
-    public static NameCase getCase(String key) {
-        if (key != null) {
-            key = key.toLowerCase();
-            if (key.equalsIgnoreCase("l") || key.equalsIgnoreCase("lower")) {
-                return LOWER;
-            } else if (key.equalsIgnoreCase("u") || key.equalsIgnoreCase("upper")) {
-                return UPPER;
-            }
-        }
+    EXIF_ORIGINAL,
+    FILE_CREATED,
+    FILE_MODIFIED;
+    private final ResourceBundle mBundle = NbBundle.getBundle(MainTopComponent.class);
 
-        return null;
-    }
-
-    private NameCase() {
+    private DateSource() {
     }
 
     @Override
     public String toString() {
-        return mBundleUI.getString("case_" + name().toLowerCase(Locale.ROOT));
+        return mBundle.getString("dateSource_" + name().toLowerCase(Locale.ROOT));
     }
 }

@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2023 Patrik Karlström <patrik@trixon.se>.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -102,13 +102,17 @@ public class StorageManager {
         String tag = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         FileUtils.writeStringToFile(mTasksBackupFile, String.format("%s=%s\n", tag, json), Charset.defaultCharset(), true);
 
-        FxHelper.runLater(() -> {
-            try {
-                load();
-            } catch (IOException ex) {
-                Exceptions.printStackTrace(ex);
-            }
-        });
+        try {
+            FxHelper.runLater(() -> {
+                try {
+                    load();
+                } catch (IOException ex) {
+                    Exceptions.printStackTrace(ex);
+                }
+            });
+        } catch (IllegalStateException e) {
+            //nvm - probably started from console w/o fx
+        }
     }
 
     private static class Holder {

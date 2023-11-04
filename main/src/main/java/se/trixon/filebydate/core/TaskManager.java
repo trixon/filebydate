@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2023 Patrik Karlström <patrik@trixon.se>.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,6 +30,8 @@ import org.apache.commons.lang3.StringUtils;
  * @author Patrik Karlström <patrik@trixon.se>
  */
 public class TaskManager {
+
+    private boolean mGui = true;
 
     private final ObjectProperty<ObservableMap<String, Task>> mIdToItemProperty = new SimpleObjectProperty<>();
     private final ObjectProperty<ObservableList<Task>> mItemsProperty = new SimpleObjectProperty<>();
@@ -97,6 +99,10 @@ public class TaskManager {
         return false;
     }
 
+    public boolean isGui() {
+        return mGui;
+    }
+
     public boolean isValid(String oldName, String newName) {
         if (StringUtils.isBlank(newName)) {
             return false;
@@ -108,6 +114,10 @@ public class TaskManager {
 
     public ObjectProperty<ObservableList<Task>> itemsProperty() {
         return mItemsProperty;
+    }
+
+    public void setGui(boolean gui) {
+        mGui = gui;
     }
 
     private static class Holder {
