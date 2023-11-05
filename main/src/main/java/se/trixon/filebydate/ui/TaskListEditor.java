@@ -103,6 +103,7 @@ public class TaskListEditor {
                     var clone = GSON.fromJson(json, original.getClass());
                     var uuid = UUID.randomUUID().toString();
                     clone.setId(uuid);
+                    clone.setLastRun(0);
                     clone.setName("%s %s".formatted(clone.getName(), LocalDate.now().toString()));
                     mTaskManager.getIdToItem().put(clone.getId(), clone);
 
