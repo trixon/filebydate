@@ -22,8 +22,6 @@ import java.nio.file.PathMatcher;
 import java.text.SimpleDateFormat;
 import java.util.ResourceBundle;
 import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -39,7 +37,7 @@ import se.trixon.filebydate.core.parts.NameCase;
  *
  * @author Patrik Karlström
  */
-public class Task implements Comparable<Task>, Cloneable, EditableListItem {
+public class Task implements EditableListItem {
 
     private transient final ResourceBundle mBundle = NbBundle.getBundle(Task.class);
     @SerializedName("case_base")
@@ -100,21 +98,6 @@ public class Task implements Comparable<Task>, Cloneable, EditableListItem {
         mReplaceExisting = commandLine.hasOption("overwrite");
 
         setSourceAndDest(commandLine.getArgs());
-    }
-
-    @Override
-    public Task clone() {
-        try {
-            return (Task) super.clone();
-        } catch (CloneNotSupportedException ex) {
-            Logger.getLogger(Task.class.getName()).log(Level.SEVERE, null, ex);
-            return null;
-        }
-    }
-
-    @Override
-    public int compareTo(Task o) {
-        return mName.compareTo(o.getName());
     }
 
     public NameCase getCaseBase() {

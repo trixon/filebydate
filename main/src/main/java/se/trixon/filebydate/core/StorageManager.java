@@ -15,21 +15,35 @@
  */
 package se.trixon.filebydate.core;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
+import com.google.gson.annotations.SerializedName;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
+import javafx.collections.ObservableMap;
 import org.apache.commons.io.FileUtils;
 import org.openide.modules.Places;
 import org.openide.util.Exceptions;
 import se.trixon.almond.util.fx.FxHelper;
+import se.trixon.almond.util.gson_adapter.FileAdapter;
 
 /**
  *
  * @author Patrik Karlström
  */
 public class StorageManager {
+
+    public static final Gson GSON = new GsonBuilder()
+            .setVersion(1.0)
+            .serializeNulls()
+            .setPrettyPrinting()
+            .registerTypeAdapter(File.class, new FileAdapter())
+            .create();
 
     private final File mHistoryFile;
     private final File mLogFile;
@@ -118,5 +132,47 @@ public class StorageManager {
     private static class Holder {
 
         private static final StorageManager INSTANCE = new StorageManager();
+    }
+
+    public class Storage {
+
+        private static final int FILE_FORMAT_VERSION = 1;
+        @SerializedName("fileFormatVersion")
+        private int mFileFormatVersion;
+        @SerializedName("tasks")
+        private final HashMap<String, Task> mTasks = new HashMap<>();
+
+        public static Storage open(File file) throws IOException, JsonSyntaxException {
+            String json = FileUtils.readFileToString(file, Charset.defaultCharset());
+
+            var storage = GSON.fromJson(json, Storage.class);
+
+            if (storage.mFileFormatVersion != FILE_FORMAT_VERSION) {
+                //TODO Handle file format version change
+            }
+
+            return storage;
+        }
+
+        public int getFileFormatVersion() {
+            return mFileFormatVersion;
+        }
+
+        public HashMap<String, Task> getTasks() {
+            return mTasks;
+        }
+
+        public String save(File file) throws IOException {
+            mFileFormatVersion = FILE_FORMAT_VERSION;
+            var json = GSON.toJson(this);
+            FileUtils.writeStringToFile(file, json, Charset.defaultCharset());
+
+            return json;
+        }
+
+        void setTasks(ObservableMap<String, Task> tasks) {
+            mTasks.clear();
+            mTasks.putAll(tasks);
+        }
     }
 }

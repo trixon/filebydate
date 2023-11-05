@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2023 Patrik Karlström <patrik@trixon.se>.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,8 +29,8 @@ import se.trixon.almond.util.fx.FxHelper;
 import se.trixon.almond.util.fx.control.editable_list.EditableList;
 import se.trixon.almond.util.swing.SwingHelper;
 import se.trixon.filebydate.core.ExecutorManager;
-import se.trixon.filebydate.core.Storage;
 import se.trixon.filebydate.core.StorageManager;
+import static se.trixon.filebydate.core.StorageManager.GSON;
 import se.trixon.filebydate.core.Task;
 import se.trixon.filebydate.core.TaskManager;
 
@@ -99,8 +99,8 @@ public class TaskListEditor {
                 })
                 .setOnClone(t -> {
                     var original = t;
-                    var json = Storage.GSON.toJson(original);
-                    var clone = Storage.GSON.fromJson(json, original.getClass());
+                    var json = GSON.toJson(original);
+                    var clone = GSON.fromJson(json, original.getClass());
                     var uuid = UUID.randomUUID().toString();
                     clone.setId(uuid);
                     clone.setName("%s %s".formatted(clone.getName(), LocalDate.now().toString()));
