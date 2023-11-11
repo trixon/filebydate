@@ -22,8 +22,8 @@ import java.nio.file.PathMatcher;
 import java.text.SimpleDateFormat;
 import java.util.ResourceBundle;
 import java.util.UUID;
-import org.apache.commons.cli.CommandLine;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.openide.util.NbBundle;
 import se.trixon.almond.util.Dict;
@@ -81,23 +81,6 @@ public class Task implements EditableListItem {
     private transient StringBuilder mValidationErrorBuilder = new StringBuilder();
 
     public Task() {
-    }
-
-    public Task(CommandLine commandLine) {
-        mModeCopy = commandLine.hasOption("copy");
-        mModeMove = commandLine.hasOption("move");
-
-        mDatePattern = commandLine.getOptionValue("dp");
-        mDateSourceString = commandLine.getOptionValue("ds");
-        mCaseBaseString = commandLine.getOptionValue("case-base");
-        mCaseExtString = commandLine.getOptionValue("case-ext");
-
-        mDryRun = commandLine.hasOption("dry-run");
-        mFollowLinks = commandLine.hasOption("links");
-        mRecursive = commandLine.hasOption("recursive");
-        mReplaceExisting = commandLine.hasOption("overwrite");
-
-        setSourceAndDest(commandLine.getArgs());
     }
 
     public NameCase getCaseBase() {
@@ -252,8 +235,16 @@ public class Task implements EditableListItem {
         mCaseBase = caseBase;
     }
 
+    public void setCaseBaseString(String caseBaseString) {
+        this.mCaseBaseString = caseBaseString;
+    }
+
     public void setCaseExt(NameCase caseExt) {
         mCaseExt = caseExt;
+    }
+
+    public void setCaseExtString(String caseExtString) {
+        this.mCaseExtString = caseExtString;
     }
 
     public void setCommand(Command operationMode) {
@@ -300,6 +291,14 @@ public class Task implements EditableListItem {
         mLastRun = lastRun;
     }
 
+    public void setModeCopy(boolean modeCopy) {
+        this.mModeCopy = modeCopy;
+    }
+
+    public void setModeMove(boolean modeMove) {
+        this.mModeMove = modeMove;
+    }
+
     public void setName(String name) {
         mName = name;
     }
@@ -328,24 +327,22 @@ public class Task implements EditableListItem {
         mReplaceExisting = replaceExisting;
     }
 
-    public void setSourceAndDest(String[] args) {
-        if (args.length == 2) {
-            String source = args[0];
-            File sourceFile = new File(source);
-
-            if (sourceFile.isDirectory()) {
-                mSourceDir = sourceFile;
-                mFilePattern = "*";
-            } else {
-                String sourceDir = FilenameUtils.getFullPathNoEndSeparator(source);
-                mSourceDir = new File(sourceDir);
-                mFilePattern = FilenameUtils.getName(source);
-            }
-
-            setDestDir(new File(args[1]));
-        } else {
-            addValidationError(mBundle.getString("invalid_arg_count"));
+    public void setSourceAndDest(String source, String dest) {
+        if (ObjectUtils.anyNull(source, dest)) {
+            return;
         }
+        var sourceFile = new File(source);
+
+        if (sourceFile.isDirectory()) {
+            mSourceDir = sourceFile;
+            mFilePattern = "*";
+        } else {
+            String sourceDir = FilenameUtils.getFullPathNoEndSeparator(source);
+            mSourceDir = new File(sourceDir);
+            mFilePattern = FilenameUtils.getName(source);
+        }
+
+        setDestDir(new File(dest));
     }
 
     public void setSourceDir(File source) {
@@ -374,11 +371,10 @@ public class Task implements EditableListItem {
         return b.toString();
     }
 
-    @Override
-    public String toString() {
-        return mName;
-    }
-
+//    @Override
+//    public String toString() {
+//        return mName;
+//    }
     private void addValidationError(String string) {
         mValidationErrorBuilder.append(string).append("\n");
     }
