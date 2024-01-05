@@ -24,20 +24,20 @@ import javafx.collections.FXCollections;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
+import javax.swing.JFileChooser;
 import org.apache.commons.lang3.StringUtils;
 import org.controlsfx.validation.ValidationSupport;
 import org.controlsfx.validation.Validator;
 import org.openide.DialogDescriptor;
+import se.trixon.almond.nbp.Almond;
 import se.trixon.almond.util.Dict;
 import se.trixon.almond.util.fx.FxHelper;
-import se.trixon.almond.util.fx.control.FileChooserPane;
-import se.trixon.almond.util.fx.control.FileChooserPane.ObjectMode;
+import se.trixon.almond.util.fx.control.FileChooserPaneSwingFx;
 import se.trixon.filebydate.Options;
 import se.trixon.filebydate.core.StorageManager;
 import se.trixon.filebydate.core.Task;
@@ -58,7 +58,7 @@ public class TaskEditor extends GridPane {
     private Label mDatePatternLabel;
     private ComboBox<DateSource> mDateSourceComboBox;
     private TextField mDescTextField;
-    private FileChooserPane mDestChooserPane;
+    private FileChooserPaneSwingFx mDestChooserPane;
     private DialogDescriptor mDialogDescriptor;
     private ComboBox<String> mFilePatternComboBox;
     private CheckBox mLinksCheckBox;
@@ -67,7 +67,7 @@ public class TaskEditor extends GridPane {
     private final Options mOptions = Options.getInstance();
     private CheckBox mRecursiveCheckBox;
     private CheckBox mReplaceCheckBox;
-    private FileChooserPane mSourceChooserPane;
+    private FileChooserPaneSwingFx mSourceChooserPane;
     private Task mTask;
     private final TaskManager mTaskManager = TaskManager.getInstance();
 
@@ -151,8 +151,8 @@ public class TaskEditor extends GridPane {
         mNameTextField = new TextField();
         mDescTextField = new TextField();
 
-        mSourceChooserPane = new FileChooserPane(Dict.OPEN.toString(), Dict.SOURCE.toString(), ObjectMode.DIRECTORY, SelectionMode.SINGLE);
-        mDestChooserPane = new FileChooserPane(Dict.OPEN.toString(), Dict.DESTINATION.toString(), ObjectMode.DIRECTORY, SelectionMode.SINGLE);
+        mSourceChooserPane = new FileChooserPaneSwingFx(Dict.OPEN.toString(), Dict.SOURCE.toString(), Almond.getFrame(), JFileChooser.DIRECTORIES_ONLY);
+        mDestChooserPane = new FileChooserPaneSwingFx(Dict.OPEN.toString(), Dict.DESTINATION.toString(), Almond.getFrame(), JFileChooser.DIRECTORIES_ONLY);
 
         mFilePatternComboBox.setEditable(true);
         mDatePatternComboBox.setEditable(true);
@@ -260,7 +260,7 @@ public class TaskEditor extends GridPane {
                 Validator.createPredicateValidator(uniqueNamePredicate, textUnique)
         ));
 
-        validationSupport.registerValidator(mDescTextField, indicateRequired, Validator.createEmptyValidator(textRequired));
+        //validationSupport.registerValidator(mDescTextField, indicateRequired, Validator.createEmptyValidator(textRequired));
         validationSupport.registerValidator(mSourceChooserPane.getTextField(), indicateRequired, Validator.createEmptyValidator(textRequired));
         validationSupport.registerValidator(mDestChooserPane.getTextField(), indicateRequired, Validator.createEmptyValidator(textRequired));
         validationSupport.registerValidator(mFilePatternComboBox, indicateRequired, Validator.createEmptyValidator(textRequired));

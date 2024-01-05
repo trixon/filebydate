@@ -106,9 +106,10 @@ public class DoArgsProcessing implements ArgsProcessor {
     @Messages("DoArgsProcessing.version.desc=print the version information and exit")
     public boolean mVersionOption;
     private final ResourceBundle mBundle = NbBundle.getBundle(DoArgsProcessing.class);
+    private final TaskManager mTaskManager = TaskManager.getInstance();
 
     {
-        TaskManager.getInstance().setGui(false);
+        mTaskManager.setGui(false);
     }
 
     public DoArgsProcessing() {
@@ -123,10 +124,10 @@ public class DoArgsProcessing implements ArgsProcessor {
             listJobs();
         } else if (mStartOption != null) {
             load();
-            startTask(mStartOption);
+            startTask(mTaskManager.getByName(mStartOption));
         } else if (mInfo != null) {
             load();
-            infoTask(mInfo);
+            infoTask(mTaskManager.getByName(mInfo));
         } else {
             buildTask();
         }
@@ -162,17 +163,14 @@ public class DoArgsProcessing implements ArgsProcessor {
         System.out.println(mBundle.getString("version_info").formatted(pomInfo.getVersion()));
     }
 
-    private void infoTask(String name) {
-        var task = TaskManager.getInstance().getTask(name);
+    private void infoTask(Task task) {
         if (task != null) {
             System.out.println(task.toDebugString());
-        } else {
-            System.out.println("TASK NOT FOUND " + name);
         }
     }
 
     private void listJobs() {
-        for (var task : TaskManager.getInstance().getItems()) {
+        for (var task : mTaskManager.getItems()) {
             System.out.println(task.getName());
         }
     }
@@ -185,12 +183,9 @@ public class DoArgsProcessing implements ArgsProcessor {
         }
     }
 
-    private void startTask(String name) {
-        var task = TaskManager.getInstance().getTask(name);
+    private void startTask(Task task) {
         if (task != null) {
             ExecutorManager.getInstance().start(task, true);
-        } else {
-            System.out.println("TASK NOT FOUND " + name);
         }
     }
 }

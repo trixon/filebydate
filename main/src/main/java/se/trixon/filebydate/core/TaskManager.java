@@ -64,22 +64,24 @@ public class TaskManager {
         return getIdToItem().get(id);
     }
 
-    public final ObservableMap<String, Task> getIdToItem() {
-        return mIdToItemProperty.get();
-    }
-
-    public final ObservableList<Task> getItems() {
-        return mItemsProperty.get();
-    }
-
-    public Task getTask(String name) {
+    public Task getByName(String name) {
         for (var task : getItems()) {
             if (task.getName().equalsIgnoreCase(name)) {
                 return task;
             }
         }
 
+        System.out.println("TASK NOT FOUND: " + name);
+
         return null;
+    }
+
+    public final ObservableMap<String, Task> getIdToItem() {
+        return mIdToItemProperty.get();
+    }
+
+    public final ObservableList<Task> getItems() {
+        return mItemsProperty.get();
     }
 
     public List<Task> getTasks(ArrayList<String> taskIds) {
@@ -108,8 +110,9 @@ public class TaskManager {
             return false;
         }
 
-        var profileByName = getTask(newName.trim());
-        return profileByName == null || profileByName == getTask(oldName);
+        var taskByName = getByName(newName.trim());
+
+        return taskByName == null || taskByName == getByName(oldName);
     }
 
     public ObjectProperty<ObservableList<Task>> itemsProperty() {
