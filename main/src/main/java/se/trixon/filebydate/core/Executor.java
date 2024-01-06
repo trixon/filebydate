@@ -32,7 +32,7 @@ import se.trixon.almond.util.Dict;
  *
  * @author Patrik Karlström <patrik@trixon.se>
  */
-public class TaskExecutor implements Runnable {
+public class Executor implements Runnable {
 
     private final boolean mDryRun;
 
@@ -47,7 +47,7 @@ public class TaskExecutor implements Runnable {
     private final StatusDisplayer mStatusDisplayer = StatusDisplayer.getDefault();
     private final Task mTask;
 
-    public TaskExecutor(Task task, boolean dryRun) {
+    public Executor(Task task, boolean dryRun) {
         mTask = task;
         mDryRun = dryRun;
 //        mPrinter = new Printer(IOProvider.getDefault().getIO(mTask.getName(), false));

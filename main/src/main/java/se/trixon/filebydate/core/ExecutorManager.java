@@ -16,13 +16,11 @@
 package se.trixon.filebydate.core;
 
 import java.util.HashMap;
-import java.util.ResourceBundle;
 import javafx.scene.Scene;
 import javax.swing.JButton;
 import javax.swing.SwingUtilities;
 import org.openide.DialogDescriptor;
 import org.openide.DialogDisplayer;
-import org.openide.util.NbBundle;
 import se.trixon.almond.nbp.dialogs.NbMessage;
 import se.trixon.almond.nbp.fx.FxDialogPanel;
 import se.trixon.almond.util.Dict;
@@ -35,8 +33,7 @@ import se.trixon.filebydate.ui.TaskSummary;
  */
 public class ExecutorManager {
 
-    private final ResourceBundle mBundle = NbBundle.getBundle(Task.class);
-    private final HashMap<String, TaskExecutor> mExecutors = new HashMap<>();
+    private final HashMap<String, Executor> mExecutors = new HashMap<>();
 
     public static ExecutorManager getInstance() {
         return Holder.INSTANCE;
@@ -45,13 +42,13 @@ public class ExecutorManager {
     private ExecutorManager() {
     }
 
-    public HashMap<String, TaskExecutor> getExecutors() {
+    public HashMap<String, Executor> getExecutors() {
         return mExecutors;
     }
 
     public void requestStart(Task task) {
         if (mExecutors.containsKey(task.getId())) {
-            NbMessage.error(mBundle.getString("task_running_title"), mBundle.getString("task_running_message"));
+            NbMessage.error(Dict.Dialog.TITLE_TASK_RUNNING.toString(), Dict.Dialog.MESSAGE_TASK_RUNNING.toString());
         } else {
             var taskSummary = new TaskSummary(task);
             var dialogPanel = new FxDialogPanel() {
@@ -92,9 +89,9 @@ public class ExecutorManager {
     }
 
     public void start(Task task, boolean dryRun) {
-        var taskExecutor = new TaskExecutor(task, dryRun);
-        mExecutors.put(task.getId(), taskExecutor);
-        taskExecutor.run();
+        var executor = new Executor(task, dryRun);
+        mExecutors.put(task.getId(), executor);
+        executor.run();
     }
 
     private static class Holder {
