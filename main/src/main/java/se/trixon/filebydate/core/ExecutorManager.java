@@ -15,20 +15,14 @@
  */
 package se.trixon.filebydate.core;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.ResourceBundle;
-import java.util.concurrent.TimeUnit;
 import javafx.scene.Scene;
 import javax.swing.JButton;
 import javax.swing.SwingUtilities;
-import org.netbeans.api.progress.ProgressHandle;
 import org.openide.DialogDescriptor;
 import org.openide.DialogDisplayer;
-import org.openide.util.Cancellable;
 import org.openide.util.NbBundle;
-import org.openide.windows.IOProvider;
 import se.trixon.almond.nbp.dialogs.NbMessage;
 import se.trixon.almond.nbp.fx.FxDialogPanel;
 import se.trixon.almond.util.Dict;
@@ -42,7 +36,7 @@ import se.trixon.filebydate.ui.TaskSummary;
 public class ExecutorManager {
 
     private final ResourceBundle mBundle = NbBundle.getBundle(Task.class);
-    private final HashMap<String, Executor> mExecutors = new HashMap<>();
+    private final HashMap<String, TaskExecutor> mExecutors = new HashMap<>();
 
     public static ExecutorManager getInstance() {
         return Holder.INSTANCE;
@@ -51,7 +45,7 @@ public class ExecutorManager {
     private ExecutorManager() {
     }
 
-    public HashMap<String, Executor> getExecutors() {
+    public HashMap<String, TaskExecutor> getExecutors() {
         return mExecutors;
     }
 
@@ -98,8 +92,7 @@ public class ExecutorManager {
     }
 
     public void start(Task task, boolean dryRun) {
-        task.setDryRun(dryRun);
-        var taskExecutor = new Executor(task);
+        var taskExecutor = new TaskExecutor(task, dryRun);
         mExecutors.put(task.getId(), taskExecutor);
         taskExecutor.run();
     }
@@ -109,79 +102,4 @@ public class ExecutorManager {
         private static final ExecutorManager INSTANCE = new ExecutorManager();
     }
 
-    public class Executor implements Runnable {
-
-        private String mDryRunIndicator = "";
-        private long mLastRun;
-        private Thread mOperationThread;
-        private final Printer mPrinter;
-        private ProgressHandle mProgressHandle;
-        private final Task mTask;
-
-        public Executor(Task task) {
-            mTask = task;
-            mPrinter = new Printer(IOProvider.getDefault().getIO(mTask.getName(), false));
-            if (task.isDryRun()) {
-                mDryRunIndicator = String.format(" (%s)", Dict.DRY_RUN.toString());
-            }
-
-            task.setOperation(task.getCommand().ordinal());
-        }
-
-        @Override
-        public void run() {
-            String s = "%s %s %s.".formatted(now(), Dict.START.toString(), mTask.getName());
-            mPrinter.outln(s);
-
-            if (!mTask.isValid()) {
-                mPrinter.errln(mTask.getValidationError());
-                return;
-            }
-
-            var allowToCancel = (Cancellable) () -> {
-                mOperationThread.interrupt();
-                mProgressHandle.finish();
-                ExecutorManager.getInstance().getExecutors().remove(mTask.getId());
-
-                return true;
-            };
-            mProgressHandle = ProgressHandle.createHandle(mTask.getName(), allowToCancel);
-            mLastRun = System.currentTimeMillis();
-
-            mProgressHandle.start();
-            mProgressHandle.switchToIndeterminate();
-            mOperationThread = new Thread(() -> {
-                var operation = new Operation(mTask, mPrinter, mProgressHandle);
-                var startTime = System.currentTimeMillis();
-                operation.start();
-
-                if (operation.isInterrupted()) {
-                    mPrinter.errln("");
-                    mPrinter.errln("%s %s".formatted(now(), Dict.TASK_ABORTED.toString()));
-                } else {
-                    long millis = System.currentTimeMillis() - startTime;
-                    long min = TimeUnit.MILLISECONDS.toMinutes(millis);
-                    long sec = TimeUnit.MILLISECONDS.toSeconds(millis) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis));
-                    var status = String.format("%s (%d %s, %d %s)", Dict.TASK_COMPLETED.toString(), min, Dict.TIME_MIN.toString(), sec, Dict.TIME_SEC.toString());
-                    mPrinter.outln("");
-                    mPrinter.outln("%s %s".formatted(now(), status));
-
-                    if (!mTask.isDryRun()) {
-                        mTask.setLastRun(System.currentTimeMillis());
-                        StorageManager.save();
-                    }
-                }
-
-                mProgressHandle.finish();
-                ExecutorManager.getInstance().getExecutors().remove(mTask.getId());
-            }, "Operation");
-            mOperationThread.start();
-
-        }
-
-        private String now() {
-            return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH.mm.ss"));
-        }
-
-    }
 }
