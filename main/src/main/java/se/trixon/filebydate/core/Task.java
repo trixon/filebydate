@@ -58,7 +58,6 @@ public class Task implements EditableListItem {
     private String mDescription;
     @SerializedName("destination")
     private File mDestDir;
-    private transient boolean mDryRun;
     @SerializedName("file_pattern")
     private String mFilePattern;
     @SerializedName("follow_links")
@@ -158,10 +157,6 @@ public class Task implements EditableListItem {
 
     public String getValidationError() {
         return mValidationErrorBuilder.toString();
-    }
-
-    public boolean isDryRun() {
-        return mDryRun;
     }
 
     public boolean isFollowLinks() {
@@ -269,10 +264,6 @@ public class Task implements EditableListItem {
 
     public void setDestDir(File dest) {
         mDestDir = dest;
-    }
-
-    public void setDryRun(boolean dryRun) {
-        mDryRun = dryRun;
     }
 
     public void setFilePattern(String filePattern) {

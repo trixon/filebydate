@@ -137,7 +137,6 @@ public class DoArgsProcessing implements ArgsProcessor {
 
     private void buildTask() {
         var task = new Task();
-        task.setDryRun(mDryRun);
         task.setModeCopy(mCmdCopy);
         task.setModeMove(mCmdMove);
         task.setDatePattern(mDatePattern);
@@ -151,7 +150,7 @@ public class DoArgsProcessing implements ArgsProcessor {
 //        System.out.println(task.toDebugString());
 
         if (task.isValid()) {
-            System.out.println("call start");
+            System.out.println("call start with " + mDryRun);
         } else {
             System.out.println(task.getValidationError());
             System.out.println(Dict.ABORTING.toString());
