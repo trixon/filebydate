@@ -15,11 +15,22 @@
  */
 package se.trixon.filebydate.core;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileVisitOption;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 import org.netbeans.api.progress.ProgressHandle;
 import org.openide.awt.StatusDisplayer;
 import org.openide.util.Cancellable;
-import org.openide.util.Exceptions;
 import org.openide.windows.FoldHandle;
 import org.openide.windows.IOFolding;
 import org.openide.windows.IOProvider;
@@ -41,20 +52,16 @@ public class Executor implements Runnable {
     private boolean mInterrupted;
     private long mLastRun;
     private FoldHandle mMainFoldHandle;
-    private Thread mOperationThread;
+    private Thread mExecutorThread;
     private OutputHelper mOutputHelper;
     private ProgressHandle mProgressHandle;
     private final StatusDisplayer mStatusDisplayer = StatusDisplayer.getDefault();
     private final Task mTask;
+    private final List<File> mFiles = new ArrayList<>();
 
     public Executor(Task task, boolean dryRun) {
         mTask = task;
         mDryRun = dryRun;
-//        mPrinter = new Printer(IOProvider.getDefault().getIO(mTask.getName(), false));
-//
-//        if (mDryRun) {
-//            mDryRunIndicator = String.format(" (%s)", Dict.DRY_RUN.toString());
-//        }
         mInputOutput = IOProvider.getDefault().getIO(mTask.getName(), false);
         mInputOutput.select();
 
@@ -62,11 +69,8 @@ public class Executor implements Runnable {
             mDryRunIndicator = String.format(" (%s)", Dict.DRY_RUN.toString());
         }
 
-        try {
-            mInputOutput.getOut().reset();
-        } catch (IOException ex) {
-            Exceptions.printStackTrace(ex);
-        }
+        mOutputHelper = new OutputHelper(mTask.getName(), mInputOutput, mDryRun);
+        mOutputHelper.reset();
 
         task.setOperation(task.getCommand().ordinal());
     }
@@ -74,66 +78,140 @@ public class Executor implements Runnable {
     @Override
     public void run() {
         var allowToCancel = (Cancellable) () -> {
-            mOperationThread.interrupt();
+            mExecutorThread.interrupt();
+            mInterrupted = true;
             mProgressHandle.finish();
             ExecutorManager.getInstance().getExecutors().remove(mTask.getId());
+            jobEnded(OutputLineMode.WARNING, Dict.CANCELED.toString());
 
             return true;
         };
 
-        mOutputHelper = new OutputHelper(mTask.getName(), mInputOutput, mDryRun);
         mLastRun = System.currentTimeMillis();
         mProgressHandle = ProgressHandle.createHandle(mTask.getName(), allowToCancel);
         mProgressHandle.start();
         mProgressHandle.switchToIndeterminate();
 
-        mOperationThread = new Thread(() -> {
+        mExecutorThread = new Thread(() -> {
             mOutputHelper.start();
             mOutputHelper.printSectionHeader(OutputLineMode.INFO, Dict.START.toString(), Dict.TASK.toLower(), mTask.getName());
             mMainFoldHandle = IOFolding.startFold(mInputOutput, true);
 
             if (!mTask.isValid()) {
                 mInputOutput.getErr().println(mTask.getValidationError());
-                jobEnded(OutputLineMode.ERROR, Dict.FAILED.toString());
+                jobEnded(OutputLineMode.ERROR, Dict.INVALID_INPUT.toString());
                 mInputOutput.getErr().println(String.format("\n\n%s", Dict.JOB_FAILED.toString()));
 
                 return;
             }
 
+            mInterrupted = !generateFileList();
+
             if (!mInterrupted) {
                 jobEnded(OutputLineMode.OK, Dict.DONE.toString());
+
+                if (!mTask.isDryRun()) {
+                    mTask.setLastRun(System.currentTimeMillis());
+                    StorageManager.save();
+                }
             }
 
-//            var operation = new Operation(mTask, mPrinter, mProgressHandle);
-//            operation.start();
-//
-//            if (operation.isInterrupted()) {
-//                mPrinter.errln("");
-//                mPrinter.errln("%s %s".formatted(now(), Dict.TASK_ABORTED.toString()));
-//            } else {
-//                long millis = System.currentTimeMillis() - startTime;
-//                long min = TimeUnit.MILLISECONDS.toMinutes(millis);
-//                long sec = TimeUnit.MILLISECONDS.toSeconds(millis) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis));
-//                var status = String.format("%s (%d %s, %d %s)", Dict.TASK_COMPLETED.toString(), min, Dict.TIME_MIN.toString(), sec, Dict.TIME_SEC.toString());
-//                mPrinter.outln("");
-//                mPrinter.outln("%s %s".formatted(now(), status));
-//
-//                if (!mTask.isDryRun()) {
-//                    mTask.setLastRun(System.currentTimeMillis());
-//                    StorageManager.save();
-//                }
-//            }
             mProgressHandle.finish();
             ExecutorManager.getInstance().getExecutors().remove(mTask.getId());
-        }, "Operation");
-        mOperationThread.start();
+        }, "Executor");
 
+        mExecutorThread.start();
     }
 
-    private void jobEnded(OutputLineMode outputLineMode, String type) {
+    private boolean generateFileList() {
+        mInputOutput.getOut().println();
+        mOutputHelper.printSectionHeader(OutputLineMode.INFO, Dict.GENERATING_FILELIST.toString(), "", mTask.getSourceDirAsString());
+
+        var fileVisitOptions = EnumSet.noneOf(FileVisitOption.class);
+        if (mTask.isFollowLinks()) {
+            fileVisitOptions = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
+        }
+
+        var file = mTask.getSourceDir();
+        if (file.isDirectory()) {
+            var fileVisitor = new FileVisitor();
+            try {
+                if (mTask.isRecursive()) {
+                    Files.walkFileTree(file.toPath(), fileVisitOptions, Integer.MAX_VALUE, fileVisitor);
+                } else {
+                    Files.walkFileTree(file.toPath(), fileVisitOptions, 1, fileVisitor);
+                }
+
+                if (fileVisitor.isInterrupted()) {
+                    return false;
+                }
+            } catch (IOException ex) {
+                mInputOutput.getErr().println(ex.getMessage());
+            }
+        } else if (file.isFile() && mTask.getPathMatcher().matches(file.toPath().getFileName())) {
+            mFiles.add(file);
+        }
+
+        if (mFiles.isEmpty()) {
+            mInputOutput.getOut().println(Dict.FILELIST_EMPTY.toString());
+        } else {
+            Collections.sort(mFiles);
+        }
+
+        return true;
+    }
+
+    private void jobEnded(OutputLineMode outputLineMode, String action) {
         mMainFoldHandle.finish();
-        mStatusDisplayer.setStatusText(type);
-        mOutputHelper.printSummary(outputLineMode, type);
+        mStatusDisplayer.setStatusText(action);
+        mOutputHelper.printSummary(outputLineMode, action, Dict.TASK.toString());
+    }
+
+    public class FileVisitor extends SimpleFileVisitor<Path> {
+
+        private boolean mInterrupted;
+
+        public FileVisitor() {
+        }
+
+        public boolean isInterrupted() {
+            return mInterrupted;
+        }
+
+        @Override
+        public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+            try {
+                TimeUnit.NANOSECONDS.sleep(10000000);
+            } catch (InterruptedException ex) {
+                mInterrupted = true;
+                return FileVisitResult.TERMINATE;
+            }
+
+            mInputOutput.getOut().println(dir.toString());
+            var filePaths = dir.toFile().list();
+
+            if (filePaths != null && filePaths.length > 0) {
+                for (var fileName : filePaths) {
+                    try {
+                        TimeUnit.NANOSECONDS.sleep(1);
+                    } catch (InterruptedException ex) {
+                        mInterrupted = true;
+                        return FileVisitResult.TERMINATE;
+                    }
+                    var file = new File(dir.toFile(), fileName);
+                    if (file.isFile() && mTask.getPathMatcher().matches(file.toPath().getFileName())) {
+                        mFiles.add(file);
+                    }
+                }
+            }
+
+            return FileVisitResult.CONTINUE;
+        }
+
+        @Override
+        public FileVisitResult visitFileFailed(Path file, IOException exc) {
+            return FileVisitResult.CONTINUE;
+        }
     }
 
 }

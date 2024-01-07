@@ -15,8 +15,6 @@
  */
 package se.trixon.filebydate.core;
 
-import se.trixon.filebydate.core.parts.NameCase;
-import se.trixon.filebydate.core.parts.Command;
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.Directory;
@@ -24,16 +22,10 @@ import com.drew.metadata.Metadata;
 import com.drew.metadata.exif.ExifSubIFDDirectory;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.FileVisitOption;
-import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.ResourceBundle;
@@ -43,6 +35,8 @@ import org.apache.commons.io.FilenameUtils;
 import org.netbeans.api.progress.ProgressHandle;
 import org.openide.util.NbBundle;
 import se.trixon.almond.util.Dict;
+import se.trixon.filebydate.core.parts.Command;
+import se.trixon.filebydate.core.parts.NameCase;
 
 /**
  *
@@ -68,7 +62,6 @@ public class Operation {
     }
 
     public void start() {
-        mInterrupted = !generateFileList();
 
         if (!mInterrupted && !mFiles.isEmpty()) {
             mPrinter.outln(String.format(mBundle.getString("found_count"), mFiles.size()));
@@ -163,44 +156,6 @@ public class Operation {
         }
     }
 
-    private boolean generateFileList() {
-        mPrinter.outln("");
-        mPrinter.outln(Dict.GENERATING_FILELIST.toString());
-
-        var fileVisitOptions = EnumSet.noneOf(FileVisitOption.class);
-        if (mTask.isFollowLinks()) {
-            fileVisitOptions = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
-        }
-
-        var file = mTask.getSourceDir();
-        if (file.isDirectory()) {
-            var fileVisitor = new FileVisitor();
-            try {
-                if (mTask.isRecursive()) {
-                    Files.walkFileTree(file.toPath(), fileVisitOptions, Integer.MAX_VALUE, fileVisitor);
-                } else {
-                    Files.walkFileTree(file.toPath(), fileVisitOptions, 1, fileVisitor);
-                }
-
-                if (fileVisitor.isInterrupted()) {
-                    return false;
-                }
-            } catch (IOException ex) {
-                mPrinter.errln(ex.getMessage());
-            }
-        } else if (file.isFile() && mTask.getPathMatcher().matches(file.toPath().getFileName())) {
-            mFiles.add(file);
-        }
-
-        if (mFiles.isEmpty()) {
-            mPrinter.outln(Dict.FILELIST_EMPTY.toString());
-        } else {
-            Collections.sort(mFiles);
-        }
-
-        return true;
-    }
-
     private Date getDate(File sourceFile) throws IOException, ImageProcessingException {
         var date = new Date(System.currentTimeMillis());
         var dateSource = mTask.getDateSource();
@@ -247,51 +202,4 @@ public class Operation {
         return Objects.toString(message, "");
     }
 
-
-    public class FileVisitor extends SimpleFileVisitor<Path> {
-
-        private boolean mInterrupted;
-
-        public FileVisitor() {
-        }
-
-        public boolean isInterrupted() {
-            return mInterrupted;
-        }
-
-        @Override
-        public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-            try {
-                TimeUnit.NANOSECONDS.sleep(1);
-            } catch (InterruptedException ex) {
-                mInterrupted = true;
-                return FileVisitResult.TERMINATE;
-            }
-
-            mPrinter.outln(dir.toString());
-            var filePaths = dir.toFile().list();
-
-            if (filePaths != null && filePaths.length > 0) {
-                for (var fileName : filePaths) {
-                    try {
-                        TimeUnit.NANOSECONDS.sleep(1);
-                    } catch (InterruptedException ex) {
-                        mInterrupted = true;
-                        return FileVisitResult.TERMINATE;
-                    }
-                    var file = new File(dir.toFile(), fileName);
-                    if (file.isFile() && mTask.getPathMatcher().matches(file.toPath().getFileName())) {
-                        mFiles.add(file);
-                    }
-                }
-            }
-
-            return FileVisitResult.CONTINUE;
-        }
-
-        @Override
-        public FileVisitResult visitFileFailed(Path file, IOException exc) {
-            return FileVisitResult.CONTINUE;
-        }
-    }
 }
