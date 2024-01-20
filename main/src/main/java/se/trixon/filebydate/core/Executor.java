@@ -70,9 +70,8 @@ public class Executor implements Runnable {
     private final List<File> mFiles = new ArrayList<>();
     private final InputOutput mInputOutput;
     private boolean mInterrupted;
-    private long mLastRun;
     private FoldHandle mMainFoldHandle;
-    private OutputHelper mOutputHelper;
+    private final OutputHelper mOutputHelper;
     private ProgressHandle mProgressHandle;
     private final StatusDisplayer mStatusDisplayer = StatusDisplayer.getDefault();
     private final Task mTask;
@@ -105,7 +104,6 @@ public class Executor implements Runnable {
             return true;
         };
 
-        mLastRun = System.currentTimeMillis();
         mProgressHandle = ProgressHandle.createHandle(mTask.getName(), allowToCancel);
         mProgressHandle.start();
         mProgressHandle.switchToIndeterminate();
