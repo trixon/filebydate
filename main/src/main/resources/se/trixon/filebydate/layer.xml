@@ -33,6 +33,7 @@ limitations under the License.
     <folder name="Menu">
         <file name="Edit_hidden"/>
         <folder name="File">
+            <file name="se-trixon-almond-nbp-actions-RestartAction.shadow_hidden"/>
             <file name="org-openide-actions-PageSetupAction.shadow_hidden"/>
             <file name="org-openide-actions-PrintAction.shadow_hidden"/>
             <file name="org-openide-actions-SaveAction.shadow_hidden"/>
@@ -64,9 +65,6 @@ limitations under the License.
     <folder name="Shortcuts">
         <file name="DS-ENTER.shadow_hidden"/>
         <file name="OS-ENTER.shadow_hidden"/>
-        <file name="CS-Q.shadow">
-            <attr name="originalFile" stringvalue="Actions/File/se-trixon-almond-nbp-actions-RestartAction.instance"/>
-        </file>
         <file name="D-COMMA.shadow">
             <attr name="originalFile" stringvalue="Actions/Window/org-netbeans-modules-options-OptionsWindowAction.instance"/>
         </file>

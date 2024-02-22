@@ -16,7 +16,6 @@
 package se.trixon.filebydate.core;
 
 import java.util.ArrayList;
-import java.util.List;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -84,19 +83,18 @@ public class TaskManager {
         return mItemsProperty.get();
     }
 
-    public List<Task> getTasks(ArrayList<String> taskIds) {
-        var tasks = new ArrayList<Task>();
-
-        taskIds.forEach(id -> {
-            var task = getById(id);
-            if (task != null) {
-                tasks.add(task);
-            }
-        });
-
-        return tasks;
-    }
-
+//    public List<Task> getTasks(ArrayList<String> taskIds) {
+//        var tasks = new ArrayList<Task>();
+//
+//        taskIds.forEach(id -> {
+//            var task = getById(id);
+//            if (task != null) {
+//                tasks.add(task);
+//            }
+//        });
+//
+//        return tasks;
+//    }
     public boolean hasActiveTasks() {
         return false;
     }
