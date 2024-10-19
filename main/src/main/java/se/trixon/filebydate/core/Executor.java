@@ -136,7 +136,7 @@ public class Executor implements Runnable {
                     mProgressHandle.progress(sourceFile.getName());
                     try {
                         try {
-                            TimeUnit.MILLISECONDS.sleep(1000);
+                            TimeUnit.MILLISECONDS.sleep(1);
                         } catch (InterruptedException ex) {
                             mInterrupted = true;
                             break;
@@ -337,7 +337,7 @@ public class Executor implements Runnable {
         @Override
         public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
             try {
-                TimeUnit.NANOSECONDS.sleep(10000000);
+                TimeUnit.NANOSECONDS.sleep(1);
             } catch (InterruptedException ex) {
                 mInterrupted = true;
                 return FileVisitResult.TERMINATE;
