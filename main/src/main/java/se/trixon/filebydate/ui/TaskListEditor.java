@@ -16,6 +16,7 @@
 package se.trixon.filebydate.ui;
 
 import java.time.LocalDate;
+import java.util.Objects;
 import java.util.UUID;
 import javafx.application.Platform;
 import javafx.scene.Scene;
@@ -41,7 +42,6 @@ import se.trixon.filebydate.core.TaskManager;
 public class TaskListEditor {
 
     private EditableList<Task> mEditableList;
-    private final ExecutorManager mExecutorManager = ExecutorManager.getInstance();
     private final TaskManager mTaskManager = TaskManager.getInstance();
 
     public TaskListEditor() {
@@ -52,7 +52,7 @@ public class TaskListEditor {
         return mEditableList;
     }
 
-    private void editTask(String title, Task task) {
+    void editTask(String title, Task task) {
         var editor = new TaskEditor();
         editor.setPadding(FxHelper.getUIScaledInsets(16, 16, 0, 16));
         var dialogPanel = new FxDialogPanel() {
@@ -65,7 +65,7 @@ public class TaskListEditor {
 
         SwingUtilities.invokeLater(() -> {
             editor.setPrefSize(FxHelper.getUIScaled(600), FxHelper.getUIScaled(660));
-            var d = new DialogDescriptor(dialogPanel, title);
+            var d = new DialogDescriptor(dialogPanel, Objects.toString(title, Dict.EDIT.toString()));
             d.setValid(false);
             dialogPanel.setNotifyDescriptor(d);
             dialogPanel.initFx(() -> {
@@ -112,11 +112,11 @@ public class TaskListEditor {
                     return mTaskManager.getById(uuid);
                 })
                 .setOnStart(task -> {
-                    mExecutorManager.requestStart(task);
+                    ExecutorManager.getInstance().requestStart(task);
                 })
                 .build();
 
-        mEditableList.getListView().setCellFactory(listView -> new TaskListCell());
+        mEditableList.getListView().setCellFactory(listView -> new TaskListCell(this));
     }
 
     private void postEdit(Task task) {

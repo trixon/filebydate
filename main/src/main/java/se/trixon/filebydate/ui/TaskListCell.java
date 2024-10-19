@@ -34,12 +34,14 @@ import se.trixon.filebydate.core.Task;
 public class TaskListCell extends EditableListCell<Task> {
 
     private final Label mDescLabel = new Label();
+    private final TaskListEditor mEditor;
     private final Label mNameLabel = new Label();
     private final Label mLastRunLabel = new Label();
 
     private final VBox mRoot = new VBox();
 
-    public TaskListCell() {
+    public TaskListCell(TaskListEditor editor) {
+        mEditor = editor;
         createUI();
     }
 
@@ -67,7 +69,11 @@ public class TaskListCell extends EditableListCell<Task> {
         mRoot.getChildren().setAll(mNameLabel, mDescLabel, mLastRunLabel);
         mRoot.setOnMouseClicked(mouseEvent -> {
             if (mouseEvent.getButton() == MouseButton.PRIMARY && mouseEvent.getClickCount() == 2) {
-                ExecutorManager.getInstance().requestStart(task);
+                if (mouseEvent.isControlDown()) {
+                    mEditor.editTask(null, task);
+                } else {
+                    ExecutorManager.getInstance().requestStart(task);
+                }
             }
         });
         setGraphic(mRoot);
