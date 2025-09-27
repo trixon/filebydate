@@ -17,12 +17,11 @@ package se.trixon.filebydate;
 
 import java.io.IOException;
 import org.openide.util.Exceptions;
-import org.openide.util.NbBundle;
 import org.openide.windows.IOProvider;
+import se.trixon.almond.nbp.output.OutputHelper;
+import se.trixon.almond.nbp.output.OutputLineMode;
 import se.trixon.almond.util.Dict;
 import se.trixon.almond.util.SystemHelper;
-import se.trixon.filebydate.core.TaskManager;
-import se.trixon.filebydate.ui.MainTopComponent;
 
 /**
  *
@@ -31,24 +30,15 @@ import se.trixon.filebydate.ui.MainTopComponent;
 public class Filebydate {
 
     public static void displaySystemInformation() {
-        String s = "%s\n%s".formatted(
-                Dict.SYSTEM.toUpper(),
-                SystemHelper.getSystemInfo()
-        );
-
         var io = IOProvider.getDefault().getIO(Dict.INFORMATION.toString(), false);
-        try {
-            io.getOut().reset();
+        var outputHelper = new OutputHelper(Dict.INFORMATION.toString(), io, false);
+
+        io.select();
+        try (var out = io.getOut()) {
+            out.reset();
+            outputHelper.println(OutputLineMode.INFO, SystemHelper.getSystemInfo());
         } catch (IOException ex) {
             Exceptions.printStackTrace(ex);
         }
-
-        io.getOut().println(s);
-        if (TaskManager.getInstance().getItems().isEmpty()) {
-            io.getOut().println();
-            io.getOut().println(NbBundle.getMessage(MainTopComponent.class, "welcome"));
-        }
-
-        io.getOut().close();
     }
 }
