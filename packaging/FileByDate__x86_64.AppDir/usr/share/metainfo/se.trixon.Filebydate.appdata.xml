@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+    <id>se.trixon.Filebydate</id>
+    <name>FileByDate</name>
+    <metadata_license>CC0-1.0</metadata_license>
+    <project_license>Apache-2.0</project_license>
+    <content_rating type="oars-1.1" />
+    <developer id="se.trixon.patrik">
+        <name>Patrik Karlström</name>
+    </developer>
+    <summary>Copy or move files to location based on exif or file dates</summary>
+    <description>
+        <p>FileByDate is a tool that moves and copies files to a destination directory based on either file or exif dates and the user specified date pattern.</p>
+    </description>
+    <launchable type="desktop-id">se.trixon.Filebydate.desktop</launchable>
+    <url type="homepage">https://trixon.se/projects/filebydate/</url>
+    <url type="bugtracker">https://github.com/trixon/filebydate/issues</url>
+    <url type="donation">https://buymeacoffee.com/trixon</url>
+    <provides>
+        <id>Filebydate.desktop</id>
+    </provides>
+    <keywords>
+        <keyword translate="no">java</keyword>
+        <keyword translate="no">javafx</keyword>
+        <keyword translate="no">netbeans</keyword>
+    </keywords>
+
+    <branding>
+        <color type="primary" scheme_preference="light">#ff96ff</color>
+        <color type="primary" scheme_preference="dark">#600060</color>
+    </branding>
+
+    <screenshots>
+        <screenshot type="default">
+            <image>https://trixon.se/files/screenshots/filebydate_appstream01.png</image>
+            <caption>Main window - Tasks</caption>
+        </screenshot>
+        <screenshot>
+            <image>https://trixon.se/files/screenshots/filebydate_appstream02.png</image>
+            <caption>Task editor</caption>
+        </screenshot>
+        <screenshot>
+            <image>https://trixon.se/files/screenshots/filebydate_appstream03.png</image>
+            <caption>Run dialog</caption>
+        </screenshot>
+    </screenshots>
+
+    <releases>
+        <release date="2024-11-01" version="24.11"/>
+        <release date="2018-07-15" version="2.0.0"/>
+        <release date="2017-09-10" version="1.1.0"/>
+        <release date="2017-06-28" version="1.0.3"/>
+        <release date="2017-05-14" version="1.0.2"/>
+        <release date="2017-01-29" version="1.0.1"/>
+        <release date="2017-01-21" version="1.0.0"/>
+    </releases>
+</component>

@@ -1,0 +1,43 @@
+name: filebydate
+title: FileByDate
+base: core24
+version: 'REPLACE_WITH_VERSION'
+summary: Copy or move files to location based on exif or file dates
+description: |
+    FileByDate is a tool that moves and copies files to a destination directory based on either file or exif dates and the user specified date pattern.
+
+    https://github.com/trixon/filebydate
+
+grade: stable
+platforms:
+    amd64:
+confinement: strict
+icon: snap/gui/filebydate.png
+license: Apache-2.0
+
+apps:
+  filebydate:
+    command: filebydate/bin/filebydate
+    extensions: [gnome]
+    plugs:
+        - home
+        - removable-media
+        - network
+
+parts:
+  filebydate:
+    plugin: dump
+    #source: https://github.com/trixon/filebydate/releases/download/v$SNAPCRAFT_PROJECT_VERSION/filebydate-$SNAPCRAFT_PROJECT_VERSION-linux.zip
+    source: /root/project/filebydate-$SNAPCRAFT_PROJECT_VERSION-linux.zip
+    source-type: zip
+
+  config:
+    after: [filebydate]
+    plugin: nil
+    override-prime: |
+      craftctl default
+      sed -i 's/${HOME}\/.${APPNAME}/${SNAP_USER_COMMON}\/.filebydate/' /root/prime/filebydate/bin/filebydate
+      sed -i 's/${HOME}\/.cache\/${APPNAME}/${SNAP_USER_COMMON}\/.cache\/filebydate/' /root/prime/filebydate/bin/filebydate
+      
+lint:
+  ignore: [library]

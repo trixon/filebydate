@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=FileByDate
+Comment=date based file organizer
+Exec=filebydate %F
+Icon=se.trixon.FileByDate
+Terminal=false
+Categories=Graphics;
+StartupNotify=true
+StartupWMClass=FileByDate
+
