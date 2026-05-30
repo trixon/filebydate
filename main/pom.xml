@@ -4,7 +4,7 @@
     <parent>
         <groupId>se.trixon.filebydate</groupId>
         <artifactId>parent</artifactId>
-        <version>26.03</version>
+        <version>26.03x</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>main</artifactId>
@@ -28,7 +28,7 @@
         <dependency>
             <groupId>se.trixon.netbeans-platform</groupId>
             <artifactId>basic</artifactId>
-            <version>29</version>
+            <version>30</version>
             <type>pom</type>
         </dependency>
         <dependency>
@@ -102,7 +102,6 @@
         <dependency>
             <groupId>org.netbeans.api</groupId>
             <artifactId>org-openide-filesystems-nb</artifactId>
-            <version>${netbeans.version}</version>
         </dependency>
 
         <!-- Trixon -->
@@ -133,7 +132,7 @@
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
-            <version>2.13.2</version>
+            <version>2.14.0</version>
         </dependency>
         <dependency>
             <groupId>org.controlsfx</groupId>
@@ -149,11 +148,16 @@
         <dependency>
             <groupId>com.drewnoakes</groupId>
             <artifactId>metadata-extractor</artifactId>
-            <version>2.19.0</version>
+            <version>2.20.0</version>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.dlsc.gemsfx</groupId>
+            <artifactId>gemsfx</artifactId>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 
